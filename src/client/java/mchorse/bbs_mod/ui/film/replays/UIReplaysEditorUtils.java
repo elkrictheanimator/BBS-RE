@@ -188,8 +188,8 @@ public class UIReplaysEditorUtils
         Map<TrackId, UIKeyframeSheet> rows = new HashMap<>();
 
         /* Pose and transform tracks (the form's own, plus the overlays) read alike once every part is
-         * on one timeline. They are named per family - "Pose", "Pose 1", "Pose 2"... then "Pose Overlay",
-         * "Pose Overlay 1"... then the same for Transform - and listed in exactly that order, wherever the
+         * on one timeline. They are named per family - "Pose", "Pose (1)", "Pose (2)"... then "Pose Overlay",
+         * "Pose Overlay (1)"... then the same for Transform - and listed in exactly that order, wherever the
          * catalog happened to put them. A track the user has renamed keeps their name. */
         String poseWord = TrackStyle.label(TrackId.property("", "pose")).get();
         String transformWord = TrackStyle.label(TrackId.property("", "transform")).get();
@@ -210,7 +210,7 @@ public class UIReplaysEditorUtils
 
                 if (sheet.title == sheet.defaultTitle)
                 {
-                    sheet.title = IKey.constant(n == 0 ? words[family] : words[family] + " " + n);
+                    sheet.title = IKey.constant(n == 0 ? words[family] : words[family] + " (" + n + ")");
                 }
 
                 familySheets.add(sheet);

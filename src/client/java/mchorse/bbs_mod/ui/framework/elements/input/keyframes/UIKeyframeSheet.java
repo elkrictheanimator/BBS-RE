@@ -181,8 +181,8 @@ public class UIKeyframeSheet
 
         if (this.number > 0)
         {
-            /* "Pose 1", "Pose 2"...: a user's own name for the track still wins over the kind's word. */
-            this.title = IKey.constant((name.isEmpty() ? this.numberWord : name) + " " + this.number);
+            /* "Pose (1)", "Pose (2)"...: a user's own name for the track still wins over the kind's word. */
+            this.title = IKey.constant((name.isEmpty() ? this.numberWord : name) + " (" + this.number + ")");
         }
         else
         {
