@@ -202,7 +202,8 @@ public class UIReplaysEditorUtils
         for (TrackDescriptor track : catalog)
         {
             UIKeyframeSheet sheet = new UIKeyframeSheet(track);
-            int family = familyOf(track.id());
+            /* The 2.5.2 layout keeps the form's own order: no renaming, no regrouping of these rows */
+            int family = BBSSettings.classicTrackOrder.get() ? -1 : familyOf(track.id());
 
             if (family >= 0)
             {

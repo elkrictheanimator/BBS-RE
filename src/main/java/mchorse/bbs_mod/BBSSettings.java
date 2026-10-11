@@ -204,6 +204,7 @@ public class BBSSettings {
 	public static ValueBoolean editorPreviewIconsAutoHide;
 	public static ValueBoolean editorPreviewSelectionHud;
 	public static ValueBoolean editorKeepFrameOnExit;
+	public static ValueBoolean classicTrackOrder;
 
 	public static ValueFloat recordingCountdown;
 	public static ValueBoolean recordingSwipeDamage;
@@ -859,6 +860,7 @@ public class BBSSettings {
 		editorMinutesBackup = builder.getBoolean("minutes_backup", true);
 		editorKeepFrameOnExit = builder.getBoolean("keep_frame_on_exit", false);
 		editorClipAutoName = builder.getBoolean("clip_auto_name", true);
+		classicTrackOrder = builder.getBoolean("classic_track_order", true);
 
 		builder.category("recording", Icons.FILM);
 		recordingCountdown = builder.getFloat("countdown", 1.5F, 0F, 30F);
