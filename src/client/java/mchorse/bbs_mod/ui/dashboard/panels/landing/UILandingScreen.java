@@ -102,7 +102,7 @@ public class UILandingScreen extends UIElement
         this.banner.add(new UIRenderable((context) -> this.renderBannerCaption(context, this.banner.area)));
 
         /* The pencil: opens the banner editor (style and gradient colours) */
-        UIIcon editBanner = new UIIcon(Icons.EDIT, (b) -> UIOverlay.addOverlay(this.getContext(), new UIBannerEditorPanel(), 260, 200));
+        UIIcon editBanner = new UIIcon(Icons.EDIT, (b) -> UIOverlay.addOverlay(this.getContext(), new UIBannerEditorPanel(), 280, 300));
 
         editBanner.tooltip(IKey.constant("Chỉnh banner"));
         editBanner.relative(this.banner).x(1F, -PADDING - 20).y(PADDING).wh(20, 20);
@@ -358,6 +358,21 @@ public class UILandingScreen extends UIElement
     private void renderBanner(UIContext context, Area area)
     {
         int style = BBSSettings.bannerStyle.get();
+
+        if (style == 3)
+        {
+            Link custom = BBSSettings.bannerImage.get();
+
+            if (custom != null && BBSModClient.getTextures().getTexture(custom) != null)
+            {
+                this.renderBannerImage(context, area, custom, 1F);
+
+                return;
+            }
+
+            /* No picture chosen yet: fall through to the default slideshow */
+            style = 0;
+        }
 
         if (style != 0)
         {

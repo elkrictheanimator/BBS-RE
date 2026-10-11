@@ -53,6 +53,10 @@ public class LandingBackdrop
 
     private final Oklab oklab = new Oklab();
 
+    /* The personal gradient, when on: its top colour (-1 when off) and bottom colour */
+    private int gradientTop = -1;
+    private int gradientBottom;
+
     /* The cursor as the scene sees it: eased toward the real one, and how much it is "here" */
     private float cursorX;
     private float cursorY;
@@ -67,7 +71,22 @@ public class LandingBackdrop
 
         this.followCursor(context, area, time);
 
-        context.batcher.gradientVBox(area.x, area.y, area.ex(), area.ey(), Colors.A100 | base, Colors.A100 | Colors.mulRGB(base, GROUND_BOTTOM));
+        /* Personal gradient: the ground and the lights take the two banner colours */
+        boolean gradient = BBSSettings.backdropGradient.get();
+        int top = BBSSettings.bannerColorStart.get() & Colors.RGB;
+        int bottom = BBSSettings.bannerColorEnd.get() & Colors.RGB;
+
+        if (gradient)
+        {
+            context.batcher.gradientVBox(area.x, area.y, area.ex(), area.ey(), Colors.A100 | Colors.mulRGB(top, 0.5F), Colors.A100 | Colors.mulRGB(bottom, 0.5F));
+        }
+        else
+        {
+            context.batcher.gradientVBox(area.x, area.y, area.ex(), area.ey(), Colors.A100 | base, Colors.A100 | Colors.mulRGB(base, GROUND_BOTTOM));
+        }
+
+        this.gradientTop = gradient ? top : -1;
+        this.gradientBottom = bottom;
 
         context.batcher.clip(area, context);
         this.renderLights(context, area, time, accent);
@@ -99,6 +118,8 @@ public class LandingBackdrop
         float lookX = (this.cursorX - area.mx()) / area.w * this.presence;
         float lookY = (this.cursorY - area.my()) / area.h * this.presence;
 
+        int index = 0;
+
         for (float[] light : LIGHTS)
         {
             double phase = time / light[5] * Math.PI * 2;
@@ -106,7 +127,11 @@ public class LandingBackdrop
             int x = area.x + (int) ((light[0] + Math.sin(phase) * light[3] - lookX * parallax) * area.w);
             int y = area.y + (int) ((light[1] + Math.cos(phase * 0.7) * light[4] - lookY * parallax) * area.h);
             int radius = (int) (light[2] * area.h);
-            int color = this.turnHue(accent, light[6]);
+            int color = this.gradientTop >= 0
+                ? Colors.lerp(this.gradientTop, this.gradientBottom, index / (float) (LIGHTS.length - 1))
+                : this.turnHue(accent, light[6]);
+
+            index += 1;
 
             context.batcher.dropCircleShadow(x, y, radius, 0, SEGMENTS, Colors.setA(color, LIGHT_ALPHA), Colors.setA(color, 0F));
         }
