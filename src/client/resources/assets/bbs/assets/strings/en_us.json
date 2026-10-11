@@ -197,6 +197,8 @@
 	"bbs.config.appearance.uniform_scale-comment": "This option forces uniform scaling for transformation fields when all scale coordinates are same",
 	"bbs.config.workspace.clip_auto_name": "Auto clip name",
 	"bbs.config.workspace.clip_auto_name-comment": "When on: empty clip title shows type or resource name (e.g. audio filename). When off: only your custom title is shown.",
+	"bbs.config.workspace.classic_track_order": "2.5.2 track layout",
+	"bbs.config.workspace.classic_track_order-comment": "Arranges the replay's Form tracks the way FS 2.5.2 did: pose and transform overlays stay as flat rows in the form's own order, and only the bones fold under the pose. Off: overlays fold under what they overlay, and rows are regrouped as Pose, Pose Overlay, Transform. Reopen the replay to apply.",
 	"bbs.config.audio.title": "Audio",
 	"bbs.config.audio.tooltip": "Options for in-game audio sync feature",
 	"bbs.config.audio.waveform_density": "Waveform density",
