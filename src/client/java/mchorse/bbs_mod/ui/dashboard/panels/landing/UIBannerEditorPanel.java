@@ -2,9 +2,13 @@ package mchorse.bbs_mod.ui.dashboard.panels.landing;
 
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.l10n.keys.IKey;
+import mchorse.bbs_mod.resources.Link;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
+import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UICirculate;
+import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UIColor;
+import mchorse.bbs_mod.ui.framework.elements.input.UITexturePicker;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.utils.UI;
@@ -28,6 +32,7 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         this.style.addLabel(IKey.constant("Kiểu: Ảnh"));
         this.style.addLabel(IKey.constant("Kiểu: Gradient dọc"));
         this.style.addLabel(IKey.constant("Kiểu: Gradient ngang"));
+        this.style.addLabel(IKey.constant("Kiểu: Ảnh của bạn"));
         this.style.setValue(BBSSettings.bannerStyle.get());
 
         this.start = new UIColor((c) -> BBSSettings.bannerColorStart.set(c & Colors.RGB));
@@ -40,9 +45,43 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         UILabel endLabel = UI.label(IKey.constant("Màu cuối"));
         UILabel hint = UI.label(IKey.constant("Gradient chỉ hiện khi chọn kiểu Gradient."));
 
-        UIElement column = UI.column(5, 10, this.style, startLabel, this.start, endLabel, this.end, hint);
+        /* Pick any texture as the banner picture; the style switches to it on its own */
+        UIButton image = new UIButton(IKey.constant("Chọn ảnh banner..."), (b) ->
+        {
+            Link current = BBSSettings.bannerImage.get();
+
+            UITexturePicker.open(this.getContext(), current, (link) ->
+            {
+                BBSSettings.bannerImage.set(link);
+                BBSSettings.bannerStyle.set(3);
+                this.style.setValue(3);
+            });
+        });
+
+        UIButton removeImage = new UIButton(IKey.constant("Bỏ ảnh banner"), (b) ->
+        {
+            BBSSettings.bannerImage.set(null);
+
+            if (BBSSettings.bannerStyle.get() == 3)
+            {
+                BBSSettings.bannerStyle.set(0);
+                this.style.setValue(0);
+            }
+        });
+
+        /* The landing screen's own background takes the same two colours */
+        UIToggle backdrop = new UIToggle(IKey.constant("Nền màn hình chính theo gradient"), BBSSettings.backdropGradient.get(), (b) -> BBSSettings.backdropGradient.set(b.getValue()));
+
+        UIElement column = UI.column(5, 10, this.style, image, removeImage, startLabel, this.start, endLabel, this.end, backdrop, hint);
 
         column.relative(this.content).xy(0, 0).w(1F).h(1F);
         this.content.add(column);
+
+        /* The pickers live next to the overlay, not inside it, so they would outlive the panel */
+        this.onClose((e) ->
+        {
+            this.start.picker.removeFromParent();
+            this.end.picker.removeFromParent();
+        });
     }
 }

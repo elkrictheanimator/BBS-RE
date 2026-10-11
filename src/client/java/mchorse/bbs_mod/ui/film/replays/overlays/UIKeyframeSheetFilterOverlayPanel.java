@@ -6,14 +6,18 @@ import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.film.replays.UIReplaysEditor;
 import mchorse.bbs_mod.ui.framework.UIContext;
+import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UIScrollView;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
+import mchorse.bbs_mod.ui.framework.elements.input.UIColor;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.utils.RowStyle;
 import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.icons.Icon;
+import mchorse.bbs_mod.utils.Direction;
+import mchorse.bbs_mod.utils.colors.Colors;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +28,7 @@ import java.util.function.Consumer;
 public class UIKeyframeSheetFilterOverlayPanel extends UIOverlayPanel
 {
     private final List<UIToggle> toggles = new ArrayList<>();
+    private final List<UIColor> pickers = new ArrayList<>();
 
     public UIKeyframeSheetFilterOverlayPanel(Set<String> disabled, Set<String> keys)
     {
@@ -94,11 +99,45 @@ public class UIKeyframeSheetFilterOverlayPanel extends UIOverlayPanel
                 toggleAll.label = this.toggleAllLabel(disabled, keys);
             });
 
-            toggle.h(UIConstants.CONTROL_HEIGHT);
             toggle.setValue(!disabled.contains(key));
             this.toggles.add(toggle);
-            scrollView.add(toggle);
+
+            /* A colour of its own for this body part / track kind. It is kept in the track styles,
+             * keyed like the right-click "track style" edit, so it applies in every film and
+             * shows when the panel closes and the timeline rebuilds. */
+            int defaultColor = keyToColor != null && keyToColor.containsKey(key) ? keyToColor.get(key) : UIReplaysEditor.getColor(key);
+            UIColor picker = new UIColor((value) ->
+            {
+                BBSSettings.trackStyles.setColor(key, value);
+                ((UICoolToggle) toggle).setSwatch(value & Colors.RGB);
+            });
+
+            picker.noLabel().direction(Direction.LEFT).withDefault(() -> defaultColor, () ->
+            {
+                BBSSettings.trackStyles.setColor(key, null);
+                ((UICoolToggle) toggle).setSwatch(defaultColor & Colors.RGB);
+                picker.setColor(defaultColor & Colors.RGB);
+            });
+            picker.setColor(color & Colors.RGB);
+            this.pickers.add(picker);
+
+            UIElement row = new UIElement();
+
+            row.h(UIConstants.CONTROL_HEIGHT);
+            toggle.relative(row).x(0).y(0).w(1F, -26).h(1F);
+            picker.relative(row).x(1F, -22).y(2).w(18).h(UIConstants.CONTROL_HEIGHT - 4);
+            row.add(toggle, picker);
+            scrollView.add(row);
         }
+
+        /* A picker's popup lives next to the overlay, not inside it, so it would outlive the panel */
+        this.onClose((e) ->
+        {
+            for (UIColor picker : this.pickers)
+            {
+                picker.picker.removeFromParent();
+            }
+        });
     }
 
     private IKey toggleAllLabel(Set<String> disabled, Set<String> keys)
@@ -118,6 +157,12 @@ public class UIKeyframeSheetFilterOverlayPanel extends UIOverlayPanel
             super(label, callback);
 
             this.key = key;
+            this.color = color;
+        }
+
+        /** The row's colour swatch, kept in step with the colour picked beside it. */
+        public void setSwatch(int color)
+        {
             this.color = color;
         }
 
