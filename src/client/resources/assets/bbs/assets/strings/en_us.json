@@ -199,6 +199,8 @@
 	"bbs.config.workspace.clip_auto_name-comment": "When on: empty clip title shows type or resource name (e.g. audio filename). When off: only your custom title is shown.",
 	"bbs.config.workspace.classic_track_order": "2.5.2 track layout",
 	"bbs.config.workspace.classic_track_order-comment": "Arranges the replay's Form tracks the way FS 2.5.2 did: pose and transform overlays stay as flat rows in the form's own order, and only the bones fold under the pose. Off: overlays fold under what they overlay, and rows are regrouped as Pose, Pose Overlay, Transform. Reopen the replay to apply.",
+	"bbs.config.workspace.arm_swing": "Arm swing while walking",
+	"bbs.config.workspace.arm_swing-comment": "How much the arms swing while a model walks or runs. 1 is the vanilla swing, 0 keeps the arms still (the legs still walk). Applies to models animated procedurally, in the editor and in playback.",
 	"bbs.config.audio.title": "Audio",
 	"bbs.config.audio.tooltip": "Options for in-game audio sync feature",
 	"bbs.config.audio.waveform_density": "Waveform density",
