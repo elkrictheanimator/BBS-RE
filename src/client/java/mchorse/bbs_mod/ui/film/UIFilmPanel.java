@@ -205,17 +205,9 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
             this.getContext().replaceContextMenu(this::fillFilmContextMenu);
         });
         this.openCameraEditor = new UIIcon(Icons.FRUSTUM, (b) -> this.showPanel(this.cameraEditor));
-        this.openReplayEditor = new UIIcon(Icons.SCENE, (b) ->
-        {
-            this.showPanel(this.replayEditor);
-            this.replayEditor.setActionsMode(false);
-        });
+        this.openReplayEditor = new UIIcon(Icons.SCENE, (b) -> this.showReplayTab(false));
         /* The action clips live inside the replay editor; this tab is a shortcut straight to them */
-        this.openActionEditor = new UIIcon(Icons.ACTION, (b) ->
-        {
-            this.showPanel(this.replayEditor);
-            this.replayEditor.setActionsMode(true);
-        });
+        this.openActionEditor = new UIIcon(Icons.ACTION, (b) -> this.showReplayTab(true));
 
         this.layoutLock = new UIIcon(() -> this.dock.isLocked() ? Icons.LOCKED : Icons.UNLOCKED, (b) -> this.toggleLayoutLock());
         this.layoutLock.tooltip(() -> (this.dock.isLocked() ? UIKeys.FILM_LAYOUT_UNLOCK : UIKeys.FILM_LAYOUT_LOCK).get());
@@ -493,9 +485,12 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
     /** Which editor's own layout id the current view corresponds to. */
     private String currentEditorLayoutId()
     {
-        return this.selectedMainEditorPanel == this.replayEditor
-            ? ValueEditorLayout.FILM_REPLAY
-            : ValueEditorLayout.FILM_CAMERA;
+        if (this.selectedMainEditorPanel == this.replayEditor)
+        {
+            return this.replayEditor.isActionsMode() ? ValueEditorLayout.FILM_ACTION : ValueEditorLayout.FILM_REPLAY;
+        }
+
+        return ValueEditorLayout.FILM_CAMERA;
     }
 
     /** Bound editors read and write their own tree; the rest share one. */
@@ -944,6 +939,20 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
         }
 
         return -1;
+    }
+
+    /** Opens the replay editor on its keyframe tab or its action tab; each tab keeps its own layout when bound. */
+    private void showReplayTab(boolean actions)
+    {
+        EditorLayoutNode before = this.getCurrentFilmLayoutRoot();
+
+        this.replayEditor.setActionsMode(actions);
+        this.showPanel(this.replayEditor);
+
+        if (before != this.getCurrentFilmLayoutRoot())
+        {
+            this.dock.refresh();
+        }
     }
 
     public void showPanel(int index)
