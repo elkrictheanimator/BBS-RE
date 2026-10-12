@@ -102,7 +102,7 @@ public class UILandingScreen extends UIElement
         this.banner.add(new UIRenderable((context) -> this.renderBannerCaption(context, this.banner.area)));
 
         /* The pencil: opens the banner editor (style and gradient colours) */
-        UIIcon editBanner = new UIIcon(Icons.EDIT, (b) -> UIOverlay.addOverlay(this.getContext(), new UIBannerEditorPanel(), 280, 300));
+        UIIcon editBanner = new UIIcon(Icons.EDIT, (b) -> UIOverlay.addOverlay(this.getContext(), new UIBannerEditorPanel(), 280, 380));
 
         editBanner.tooltip(IKey.constant("Chỉnh banner"));
         editBanner.relative(this.banner).x(1F, -PADDING - 20).y(PADDING).wh(20, 20);
@@ -458,6 +458,18 @@ public class UILandingScreen extends UIElement
             v1 = 0;
             v2 = texH;
         }
+
+        /* The user's framing: zoom in on the picture, and slide the window over it (0..1 on each side) */
+        float zoom = Math.max(1F, BBSSettings.bannerZoom.get());
+        float cropW = (u2 - u1) / zoom;
+        float cropH = (v2 - v1) / zoom;
+        float slackW = texW - cropW;
+        float slackH = texH - cropH;
+
+        u1 = Math.max(0F, Math.min(slackW, slackW * Math.max(0F, Math.min(1F, BBSSettings.bannerFocusX.get()))));
+        v1 = Math.max(0F, Math.min(slackH, slackH * Math.max(0F, Math.min(1F, BBSSettings.bannerFocusY.get()))));
+        u2 = u1 + cropW;
+        v2 = v1 + cropH;
 
         context.batcher.texturedBox(texture, Colors.setA(Colors.WHITE, alpha), area.x, area.y, area.w, area.h, u1, v1, u2, v2, texture.width, texture.height);
     }

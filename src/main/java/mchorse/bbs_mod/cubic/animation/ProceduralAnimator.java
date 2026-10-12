@@ -1,5 +1,6 @@
 package mchorse.bbs_mod.cubic.animation;
 
+import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.bobj.BOBJBone;
 import mchorse.bbs_mod.cubic.IModel;
 import mchorse.bbs_mod.cubic.IModelInstance;
@@ -150,6 +151,9 @@ public class ProceduralAnimator implements IAnimator
         float limbPhase = target.getLimbPos(transition);
         float leaningPitch = target.getLeaningPitch(transition);
 
+        /* How much the arms swing with the stride: 1 is vanilla, 0 keeps them still while walking */
+        float armSwing = BBSSettings.armSwing.get();
+
         /* Holding something up stops the swimming stroke - vanilla checks isUsingItem, and a
          * use pose is exactly what that resolves to here. */
         boolean usingItem = ItemUsePose.get(target, true) != null || ItemUsePose.get(target, false) != null;
@@ -267,7 +271,7 @@ public class ProceduralAnimator implements IAnimator
                 }
                 else if (!rightArmBone.isEmpty() && group.id.equals(rightArmBone))
                 {
-                    group.current.rotate.x += MathUtils.toDeg(MathHelper.cos(limbPhase * 0.6662F) * 2.0F * limbSpeed * 0.5F / coefficient);
+                    group.current.rotate.x += MathUtils.toDeg(MathHelper.cos(limbPhase * 0.6662F) * 2.0F * limbSpeed * 0.5F * armSwing / coefficient);
                     group.current.rotate.z += MathUtils.toDeg(1F * (MathHelper.cos(-age * 0.09F) * 0.05F + 0.05F));
                     group.current.rotate.x += MathUtils.toDeg(1F * MathHelper.sin(-age * 0.067F) * 0.05F);
 
@@ -275,7 +279,7 @@ public class ProceduralAnimator implements IAnimator
                 }
                 else if (!leftArmBone.isEmpty() && group.id.equals(leftArmBone))
                 {
-                    group.current.rotate.x += MathUtils.toDeg(MathHelper.cos(limbPhase * 0.6662F + 3.1415927F) * 2.0F * limbSpeed * 0.5F / coefficient);
+                    group.current.rotate.x += MathUtils.toDeg(MathHelper.cos(limbPhase * 0.6662F + 3.1415927F) * 2.0F * limbSpeed * 0.5F * armSwing / coefficient);
                     group.current.rotate.z += MathUtils.toDeg(-1F * (MathHelper.cos(-age * 0.09F) * 0.05F + 0.05F));
                     group.current.rotate.x += MathUtils.toDeg(-1F * MathHelper.sin(-age * 0.067F) * 0.05F);
 
@@ -472,7 +476,7 @@ public class ProceduralAnimator implements IAnimator
                 }
                 else if (!rightArmBone.isEmpty() && bone.name.equals(rightArmBone))
                 {
-                    bone.transform.rotate.x += MathHelper.cos(limbPhase * 0.6662F) * 2.0F * limbSpeed * 0.5F / coefficient;
+                    bone.transform.rotate.x += MathHelper.cos(limbPhase * 0.6662F) * 2.0F * limbSpeed * 0.5F * armSwing / coefficient;
                     bone.transform.rotate.z -= 1F * (MathHelper.cos(-age * 0.09F) * 0.05F + 0.05F);
                     bone.transform.rotate.x += 1F * MathHelper.sin(-age * 0.067F) * 0.05F;
 
@@ -480,7 +484,7 @@ public class ProceduralAnimator implements IAnimator
                 }
                 else if (!leftArmBone.isEmpty() && bone.name.equals(leftArmBone))
                 {
-                    bone.transform.rotate.x += MathHelper.cos(limbPhase * 0.6662F + 3.1415927F) * 2.0F * limbSpeed * 0.5F / coefficient;
+                    bone.transform.rotate.x += MathHelper.cos(limbPhase * 0.6662F + 3.1415927F) * 2.0F * limbSpeed * 0.5F * armSwing / coefficient;
                     bone.transform.rotate.z -= -1F * (MathHelper.cos(-age * 0.09F) * 0.05F + 0.05F);
                     bone.transform.rotate.x += -1F * MathHelper.sin(-age * 0.067F) * 0.05F;
 

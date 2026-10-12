@@ -123,6 +123,8 @@
     "bbs.config.recording.pose_transform_overlays-comment": "Số lượng track pose và transform bổ sung cho form (login lại world để áp dụng)",
     "bbs.config.workspace.classic_track_order": "Sắp xếp track kiểu 2.5.2",
     "bbs.config.workspace.classic_track_order-comment": "Sắp xếp track Form của replay như FS 2.5.2: overlay của pose và transform nằm phẳng theo thứ tự của form, chỉ có bone gập dưới pose. Tắt: overlay gập dưới track gốc và các hàng được nhóm lại thành Pose, Pose Overlay, Transform. Mở lại replay để áp dụng.",
+    "bbs.config.workspace.arm_swing": "Độ vung tay khi đi",
+    "bbs.config.workspace.arm_swing-comment": "Mức độ hai tay đung đưa khi model đi hoặc chạy. 1 là vung như bình thường, 0 giữ yên hai tay (chân vẫn bước). Áp dụng cho model dùng animation tự động, cả trong editor và khi phát.",
     "bbs.config.recording.swipe_damage": "Quét gây sát thương",
     "bbs.config.recording.swipe_damage-comment": "Khi hành động quét được quay lại, hãy tự động chèn thêm một clip hành động tấn công",
     "bbs.config.recording.title": "Ghi hình",
