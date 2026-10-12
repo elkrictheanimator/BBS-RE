@@ -120,6 +120,7 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
     public UIIcon openFilmMenu;
     public UIIcon openCameraEditor;
     public UIIcon openReplayEditor;
+    public UIIcon openActionEditor;
     public UIIcon layoutLock;
 
     private UICopyPasteController layoutPresetsController;
@@ -204,7 +205,17 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
             this.getContext().replaceContextMenu(this::fillFilmContextMenu);
         });
         this.openCameraEditor = new UIIcon(Icons.FRUSTUM, (b) -> this.showPanel(this.cameraEditor));
-        this.openReplayEditor = new UIIcon(Icons.SCENE, (b) -> this.showPanel(this.replayEditor));
+        this.openReplayEditor = new UIIcon(Icons.SCENE, (b) ->
+        {
+            this.showPanel(this.replayEditor);
+            this.replayEditor.setActionsMode(false);
+        });
+        /* The action clips live inside the replay editor; this tab is a shortcut straight to them */
+        this.openActionEditor = new UIIcon(Icons.ACTION, (b) ->
+        {
+            this.showPanel(this.replayEditor);
+            this.replayEditor.setActionsMode(true);
+        });
 
         this.layoutLock = new UIIcon(() -> this.dock.isLocked() ? Icons.LOCKED : Icons.UNLOCKED, (b) -> this.toggleLayoutLock());
         this.layoutLock.tooltip(() -> (this.dock.isLocked() ? UIKeys.FILM_LAYOUT_UNLOCK : UIKeys.FILM_LAYOUT_LOCK).get());
@@ -216,6 +227,7 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
         this.openFilmMenu.tooltip(UIKeys.FILM_OPTIONS);
         this.openCameraEditor.tooltip(UIKeys.FILM_OPEN_CAMERA_EDITOR);
         this.openReplayEditor.tooltip(UIKeys.FILM_OPEN_REPLAY_EDITOR);
+        this.openActionEditor.tooltip(UIKeys.FILM_OPEN_ACTION_EDITOR);
 
         /* What the tour of this editor points at. The two editor buttons are one place: they
          * only mean something as a pair. */
@@ -227,7 +239,8 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
 
         this.actions()
             .editor(this.openCameraEditor, this.cameraEditor::isVisible)
-            .editor(this.openReplayEditor, this.replayEditor::isVisible)
+            .editor(this.openReplayEditor, () -> this.replayEditor.isVisible() && !this.replayEditor.isActionsMode())
+            .editor(this.openActionEditor, () -> this.replayEditor.isVisible() && this.replayEditor.isActionsMode())
             .layout(this.layoutLock, () -> this.dock.isLocked())
             .menu(this.openFilmMenu);
 
@@ -1462,6 +1475,7 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
         this.layoutLock.setEnabled(data != null);
         this.openCameraEditor.setEnabled(data != null);
         this.openReplayEditor.setEnabled(data != null);
+        this.openActionEditor.setEnabled(data != null);
         this.duplicateFilm.setEnabled(data != null);
 
         this.actionEditor.setClips(null);
