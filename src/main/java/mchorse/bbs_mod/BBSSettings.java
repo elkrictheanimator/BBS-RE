@@ -51,6 +51,9 @@ public class BBSSettings {
 	public static ValueInt bannerColorEnd;
 	public static ValueLink bannerImage;
 	public static ValueBoolean backdropGradient;
+	public static ValueFloat bannerFocusX;
+	public static ValueFloat bannerFocusY;
+	public static ValueFloat bannerZoom;
 	public static ValueInt stencilHighlightColor;
 	public static ValueBoolean enableTrackpadIncrements;
 	public static ValueBoolean enableTrackpadScrolling;
@@ -709,6 +712,12 @@ public class BBSSettings {
 		backdropGradient = builder.getBoolean("backdrop_gradient", false);
 		bannerImage.invisible();
 		backdropGradient.invisible();
+		bannerFocusX = builder.getFloat("banner_focus_x", 0.5F, 0F, 1F);
+		bannerFocusY = builder.getFloat("banner_focus_y", 0.5F, 0F, 1F);
+		bannerZoom = builder.getFloat("banner_zoom", 1F, 1F, 4F);
+		bannerFocusX.invisible();
+		bannerFocusY.invisible();
+		bannerZoom.invisible();
 		stencilHighlightColor = builder.getInt("stencil_highlight_color", 0x2EFFFFFF).colorAlpha();
 		overlayBackgroundOpacity = builder.getFloat("overlay_background_opacity", DEFAULT_OVERLAY_BACKGROUND_OPACITY, 0F, 1F).slider();
 		interfaceBlur = builder.getBoolean("interface_blur", true);

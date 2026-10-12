@@ -9,6 +9,7 @@ import mchorse.bbs_mod.ui.framework.elements.buttons.UICirculate;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UIColor;
 import mchorse.bbs_mod.ui.framework.elements.input.UITexturePicker;
+import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.utils.UI;
@@ -72,7 +73,30 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         /* The landing screen's own background takes the same two colours */
         UIToggle backdrop = new UIToggle(IKey.constant("Nền màn hình chính theo gradient"), BBSSettings.backdropGradient.get(), (b) -> BBSSettings.backdropGradient.set(b.getValue()));
 
-        UIElement column = UI.column(5, 10, this.style, image, removeImage, startLabel, this.start, endLabel, this.end, backdrop, hint);
+        /* Framing of the picture: how far it is zoomed, and which part of it the banner shows */
+        UITrackpad zoom = new UITrackpad((v) -> BBSSettings.bannerZoom.set(v.floatValue()));
+        UITrackpad focusX = new UITrackpad((v) -> BBSSettings.bannerFocusX.set(v.floatValue()));
+        UITrackpad focusY = new UITrackpad((v) -> BBSSettings.bannerFocusY.set(v.floatValue()));
+
+        zoom.limit(1, 4).setValue(BBSSettings.bannerZoom.get());
+        focusX.limit(0, 1).setValue(BBSSettings.bannerFocusX.get());
+        focusY.limit(0, 1).setValue(BBSSettings.bannerFocusY.get());
+
+        UIButton reframe = new UIButton(IKey.constant("Đặt lại vị trí ảnh"), (b) ->
+        {
+            BBSSettings.bannerZoom.set(1F);
+            BBSSettings.bannerFocusX.set(0.5F);
+            BBSSettings.bannerFocusY.set(0.5F);
+            zoom.setValue(1);
+            focusX.setValue(0.5);
+            focusY.setValue(0.5);
+        });
+
+        UIElement column = UI.column(5, 10, this.style, image, removeImage,
+            UI.label(IKey.constant("Phóng to ảnh")), zoom,
+            UI.label(IKey.constant("Vị trí ngang (0 trái - 1 phải)")), focusX,
+            UI.label(IKey.constant("Vị trí dọc (0 trên - 1 dưới)")), focusY, reframe,
+            startLabel, this.start, endLabel, this.end, backdrop, hint);
 
         column.relative(this.content).xy(0, 0).w(1F).h(1F);
         this.content.add(column);
