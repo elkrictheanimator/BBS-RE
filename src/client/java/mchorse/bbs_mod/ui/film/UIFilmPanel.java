@@ -125,6 +125,7 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
     /** Height of the labelled Camera / Replay / Action tab strip on top of the main area. */
     private static final int WORKSPACE_BAR_HEIGHT = 18;
     private UIElement workspaceTabs;
+    private UIRESpecialPanel rePanel;
     public UIIcon layoutLock;
 
     private UICopyPasteController layoutPresetsController;
@@ -243,9 +244,12 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
 
         /* Setup elements */
 
+        this.rePanel = new UIRESpecialPanel();
+        this.rePanel.relative(this.main).xy(0, WORKSPACE_BAR_HEIGHT).w(1F).h(1F, -WORKSPACE_BAR_HEIGHT);
+        this.rePanel.setVisible(false);
         this.workspaceTabs = new UIWorkspaceTabBar();
         this.workspaceTabs.relative(this.main).xy(0, 0).w(1F).h(WORKSPACE_BAR_HEIGHT);
-        this.main.add(this.cameraEditor, this.replayEditor, this.workspaceTabs);
+        this.main.add(this.cameraEditor, this.replayEditor, this.rePanel, this.workspaceTabs);
         this.add(this.controller);
         this.overlay.namesList.setFileIcon(Icons.FILM);
 
@@ -457,6 +461,7 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
 
         this.cameraEditor.setVisible(cameraVisible);
         this.replayEditor.setVisible(replayVisible);
+        this.rePanel.setVisible(visible && selected == this.rePanel);
 
         this.cameraEditor.setTimelineVisible(mainActive && cameraVisible);
         this.cameraEditor.setPropertiesVisible(editAreaActive && cameraVisible);
@@ -2137,15 +2142,20 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
     {
         private static final int TAB_PADDING = 8;
 
-        private final IKey[] labels = {UIKeys.FILM_WORKSPACE_CAMERA, UIKeys.FILM_WORKSPACE_REPLAY, UIKeys.FILM_WORKSPACE_ACTION};
-        private final int[] xs = new int[3];
-        private final int[] ws = new int[3];
+        private final IKey[] labels = {UIKeys.FILM_WORKSPACE_CAMERA, UIKeys.FILM_WORKSPACE_REPLAY, UIKeys.FILM_WORKSPACE_ACTION, UIKeys.FILM_WORKSPACE_RE};
+        private final int[] xs = new int[4];
+        private final int[] ws = new int[4];
 
         private boolean isActive(int tab)
         {
             if (tab == 0)
             {
                 return UIFilmPanel.this.cameraEditor.isVisible();
+            }
+
+            if (tab == 3)
+            {
+                return UIFilmPanel.this.rePanel.isVisible();
             }
 
             boolean replay = UIFilmPanel.this.replayEditor.isVisible();
@@ -2209,6 +2219,10 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
                         if (i == 0)
                         {
                             UIFilmPanel.this.showPanel(UIFilmPanel.this.cameraEditor);
+                        }
+                        else if (i == 3)
+                        {
+                            UIFilmPanel.this.showPanel(UIFilmPanel.this.rePanel);
                         }
                         else
                         {

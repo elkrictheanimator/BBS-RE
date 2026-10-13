@@ -847,6 +847,7 @@
 	"bbs.ui.film.workspace.camera": "Camera",
 	"bbs.ui.film.workspace.replay": "Replay",
 	"bbs.ui.film.workspace.action": "Action",
+	"bbs.ui.film.workspace.re": "RE",
 	"bbs.ui.film.open_camera_editor": "Open camera editor",
 	"bbs.ui.film.open_history": "Open undo/redo history...",
 	"bbs.ui.film.open_replay_editor": "Open replay editor",

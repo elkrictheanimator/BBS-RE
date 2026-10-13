@@ -445,6 +445,7 @@
     "bbs.ui.film.workspace.camera": "Camera",
     "bbs.ui.film.workspace.replay": "Replay",
     "bbs.ui.film.workspace.action": "Hành động",
+    "bbs.ui.film.workspace.re": "RE",
     "bbs.ui.film.open_camera_editor": "Mở trình chỉnh sửa máy ảnh",
     "bbs.ui.film.open_history": "Mở lịch sử hoàn tác/làm lại...",
     "bbs.ui.film.open_replay_editor": "Mở trình chỉnh sửa replay",
