@@ -3,6 +3,7 @@ package mchorse.bbs_mod.ui.dashboard.panels.landing;
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.resources.Link;
+import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UICirculate;
@@ -78,7 +79,10 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         backdrop.addLabel(IKey.constant("Nền: Ánh sáng chuyển động"));
         backdrop.addLabel(IKey.constant("Nền: Gradient theo 2 màu"));
         backdrop.addLabel(IKey.constant("Nền: Kiểu 2.5.2"));
+        backdrop.addLabel(IKey.constant("Nền: Ảnh / GIF của bạn"));
         backdrop.setValue(BBSSettings.backdropStyle.get());
+
+        UIButton backdropImage = new UIButton(IKey.constant("Chọn ảnh / GIF nền..."), (b) -> pickBackdropImage(this.getContext(), backdrop));
 
         /* Framing of the picture is done by hand on a small copy of the banner */
         UIBannerFramer framer = new UIBannerFramer(this.aspect);
@@ -94,7 +98,7 @@ public class UIBannerEditorPanel extends UIOverlayPanel
 
         UIElement column = UI.column(5, 10, this.style, image, removeImage,
             framer, reframe,
-            startLabel, this.start, endLabel, this.end, backdrop, hint);
+            startLabel, this.start, endLabel, this.end, backdrop, backdropImage, hint);
 
         column.relative(this.content).xy(0, 0).w(1F).h(1F);
         this.content.add(column);
@@ -104,6 +108,21 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         {
             this.start.picker.removeFromParent();
             this.end.picker.removeFromParent();
+        });
+    }
+
+    /** Pick the picture (or GIF) the landing screen sits on, and switch the background to it. */
+    public static void pickBackdropImage(UIContext context, UICirculate style)
+    {
+        UITexturePicker.open(context, BBSSettings.backdropImage.get(), (link) ->
+        {
+            BBSSettings.backdropImage.set(link);
+            BBSSettings.backdropStyle.set(3);
+
+            if (style != null)
+            {
+                style.setValue(3);
+            }
         });
     }
 }

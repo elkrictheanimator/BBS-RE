@@ -44,14 +44,17 @@ public class UIRESpecialPanel extends UIElement
         backdrop.addLabel(IKey.constant("Nền: Ánh sáng chuyển động"));
         backdrop.addLabel(IKey.constant("Nền: Gradient theo 2 màu"));
         backdrop.addLabel(IKey.constant("Nền: Kiểu 2.5.2"));
+        backdrop.addLabel(IKey.constant("Nền: Ảnh / GIF của bạn"));
         backdrop.setValue(BBSSettings.backdropStyle.get());
+
+        UIButton backdropImage = new UIButton(IKey.constant("Chọn ảnh / GIF nền..."), (b) -> UIBannerEditorPanel.pickBackdropImage(this.getContext(), backdrop));
 
         UIButton banner = new UIButton(IKey.constant("Chỉnh banner..."), (b) -> UIOverlay.addOverlay(this.getContext(), new UIBannerEditorPanel(UILandingScreen.defaultBannerAspect()), 280, 400));
 
         UIScrollView view = UI.scrollView(5, 10,
             this.header("Timeline"), classicOrder, trackHint,
             this.header("Hoạt họa"), UI.label(IKey.constant("Độ vung tay khi đi (0 - 1)")), armSwing,
-            this.header("Giao diện"), banner, backdrop);
+            this.header("Giao diện"), banner, backdrop, backdropImage);
 
         view.relative(this).full(this);
         this.add(view);

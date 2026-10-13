@@ -83,6 +83,13 @@ public class LandingBackdrop
             return;
         }
 
+        /* The user's own picture; a GIF plays, since the texture manager hands out its current frame.
+         * Nothing picked yet (or not loaded): the animated lights below stand in. */
+        if (style == 3 && this.renderPicture(context, area))
+        {
+            return;
+        }
+
         /* Personal gradient: the ground and the lights take the two banner colours */
         boolean gradient = style == 1;
         int top = BBSSettings.bannerColorStart.get() & Colors.RGB;
@@ -105,6 +112,42 @@ public class LandingBackdrop
         this.renderCursorLight(context, area, accent);
         this.renderSparks(context, area, time, accent);
         context.batcher.unclip(context);
+    }
+
+    private boolean renderPicture(UIContext context, Area area)
+    {
+        Link image = BBSSettings.backdropImage.get();
+        Texture texture = image == null ? null : BBSModClient.getTextures().getTexture(image);
+
+        if (texture == null || texture.width <= 0 || texture.height <= 0)
+        {
+            return false;
+        }
+
+        float areaAspect = (float) area.w / Math.max(1, area.h);
+        float texAspect = (float) texture.width / texture.height;
+        float cropW = texture.width;
+        float cropH = texture.height;
+
+        /* Cover the whole screen, centred, the way the banner does */
+        if (areaAspect > texAspect)
+        {
+            cropH = texture.width / areaAspect;
+        }
+        else
+        {
+            cropW = texture.height * areaAspect;
+        }
+
+        float u1 = (texture.width - cropW) * 0.5F;
+        float v1 = (texture.height - cropH) * 0.5F;
+
+        context.batcher.texturedBox(texture, Colors.WHITE, area.x, area.y, area.w, area.h, u1, v1, u1 + cropW, v1 + cropH, texture.width, texture.height);
+
+        /* A light veil, so the card stays readable over a busy picture */
+        context.batcher.box(area.x, area.y, area.ex(), area.ey(), 0x33000000);
+
+        return true;
     }
 
     private void renderClassic(UIContext context, Area area)
