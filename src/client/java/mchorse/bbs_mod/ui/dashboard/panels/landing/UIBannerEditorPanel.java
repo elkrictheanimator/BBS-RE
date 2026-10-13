@@ -3,7 +3,10 @@ package mchorse.bbs_mod.ui.dashboard.panels.landing;
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.resources.Link;
+import mchorse.bbs_mod.ui.film.clips.UIVideoClip;
 import mchorse.bbs_mod.ui.framework.UIContext;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIStringOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UICirculate;
@@ -80,9 +83,11 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         backdrop.addLabel(IKey.constant("Nền: Gradient theo 2 màu"));
         backdrop.addLabel(IKey.constant("Nền: Kiểu 2.5.2"));
         backdrop.addLabel(IKey.constant("Nền: Ảnh / GIF của bạn"));
+        backdrop.addLabel(IKey.constant("Nền: Video (wallpaper)"));
         backdrop.setValue(BBSSettings.backdropStyle.get());
 
         UIButton backdropImage = new UIButton(IKey.constant("Chọn ảnh / GIF nền..."), (b) -> pickBackdropImage(this.getContext(), backdrop));
+        UIButton backdropVideo = new UIButton(IKey.constant("Chọn video nền..."), (b) -> pickWallpaperVideo(this.getContext(), backdrop));
 
         /* Framing of the picture is done by hand on a small copy of the banner */
         UIBannerFramer framer = new UIBannerFramer(this.aspect);
@@ -98,7 +103,7 @@ public class UIBannerEditorPanel extends UIOverlayPanel
 
         UIElement column = UI.column(5, 10, this.style, image, removeImage,
             framer, reframe,
-            startLabel, this.start, endLabel, this.end, backdrop, backdropImage, hint);
+            startLabel, this.start, endLabel, this.end, backdrop, backdropImage, backdropVideo, hint);
 
         column.relative(this.content).xy(0, 0).w(1F).h(1F);
         this.content.add(column);
@@ -124,5 +129,22 @@ public class UIBannerEditorPanel extends UIOverlayPanel
                 style.setValue(3);
             }
         });
+    }
+
+    /** Pick the video wallpaper (any video in the assets/video folder) and switch the background to it. */
+    public static void pickWallpaperVideo(UIContext context, UICirculate style)
+    {
+        UIStringOverlayPanel panel = UIStringOverlayPanel.links(IKey.constant("Chọn video nền"), UIVideoClip.getVideoLinks(), (link) ->
+        {
+            BBSSettings.backgroundVideo.set(link);
+            BBSSettings.backdropStyle.set(4);
+
+            if (style != null)
+            {
+                style.setValue(4);
+            }
+        });
+
+        UIOverlay.addOverlay(context, panel.set(BBSSettings.backgroundVideo.get()));
     }
 }

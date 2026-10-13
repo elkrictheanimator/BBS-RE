@@ -1,5 +1,6 @@
 package mchorse.bbs_mod.ui.film;
 
+import mchorse.bbs_mod.BBSMod;
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.dashboard.panels.landing.UIBannerEditorPanel;
@@ -13,7 +14,10 @@ import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.ui.utils.UI;
+import mchorse.bbs_mod.ui.utils.UIUtils;
 import mchorse.bbs_mod.utils.colors.Colors;
+
+import java.io.File;
 
 /**
  * The "RE" workspace tab: one place for the features that are specific to this build, so they
@@ -45,16 +49,29 @@ public class UIRESpecialPanel extends UIElement
         backdrop.addLabel(IKey.constant("Nền: Gradient theo 2 màu"));
         backdrop.addLabel(IKey.constant("Nền: Kiểu 2.5.2"));
         backdrop.addLabel(IKey.constant("Nền: Ảnh / GIF của bạn"));
+        backdrop.addLabel(IKey.constant("Nền: Video (wallpaper)"));
         backdrop.setValue(BBSSettings.backdropStyle.get());
 
         UIButton backdropImage = new UIButton(IKey.constant("Chọn ảnh / GIF nền..."), (b) -> UIBannerEditorPanel.pickBackdropImage(this.getContext(), backdrop));
+
+        UIButton backdropVideo = new UIButton(IKey.constant("Chọn video nền..."), (b) -> UIBannerEditorPanel.pickWallpaperVideo(this.getContext(), backdrop));
+        UIToggle everywhere = new UIToggle(IKey.constant("Video nền cho cả BBS (kể cả Film editor)"), BBSSettings.videoEverywhere.get(), (b) -> BBSSettings.videoEverywhere.set(b.getValue()));
+        UIButton videoFolder = new UIButton(IKey.constant("Mở thư mục video"), (b) ->
+        {
+            File folder = new File(BBSMod.getAssetsFolder(), "video");
+
+            folder.mkdirs();
+            UIUtils.openFolder(folder);
+        });
+
+        everywhere.tooltip(IKey.constant("Cần chọn video nền trước. Video phát lặp phía sau các bảng của BBS. Nên dùng video 720p ngắn cho máy yếu."));
 
         UIButton banner = new UIButton(IKey.constant("Chỉnh banner..."), (b) -> UIOverlay.addOverlay(this.getContext(), new UIBannerEditorPanel(UILandingScreen.defaultBannerAspect()), 280, 400));
 
         UIScrollView view = UI.scrollView(5, 10,
             this.header("Timeline"), classicOrder, trackHint,
             this.header("Hoạt họa"), UI.label(IKey.constant("Độ vung tay khi đi (0 - 1)")), armSwing,
-            this.header("Giao diện"), banner, backdrop, backdropImage);
+            this.header("Giao diện"), banner, backdrop, backdropImage, backdropVideo, everywhere, videoFolder);
 
         view.relative(this).full(this);
         this.add(view);

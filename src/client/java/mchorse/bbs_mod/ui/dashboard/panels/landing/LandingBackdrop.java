@@ -4,6 +4,7 @@ import mchorse.bbs_mod.BBSModClient;
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.graphics.texture.Texture;
 import mchorse.bbs_mod.resources.Link;
+import mchorse.bbs_mod.ui.dashboard.Wallpaper;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.utils.Area;
 import mchorse.bbs_mod.utils.colors.Colors;
@@ -80,6 +81,12 @@ public class LandingBackdrop
         {
             this.renderClassic(context, area);
 
+            return;
+        }
+
+        /* The video wallpaper; until its first frame is decoded (or with no video picked) the lights stand in */
+        if (style == 4 && Wallpaper.draw(context.batcher, area.x, area.y, area.w, area.h))
+        {
             return;
         }
 
