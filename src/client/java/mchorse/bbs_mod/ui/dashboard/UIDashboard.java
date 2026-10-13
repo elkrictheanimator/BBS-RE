@@ -404,6 +404,12 @@ public class UIDashboard extends UIBaseMenu
 
     private void background(UIRenderingContext context)
     {
+        /* The video wallpaper, when it is meant for every screen: it replaces the picture and the tint */
+        if (BBSSettings.videoEverywhere.get() && Wallpaper.draw(context.batcher, 0, 0, this.width, this.height))
+        {
+            return;
+        }
+
         Link background = BBSSettings.backgroundImage.get();
         int color = BBSSettings.backgroundColor.get();
 

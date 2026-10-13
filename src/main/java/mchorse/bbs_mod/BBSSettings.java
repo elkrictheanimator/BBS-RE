@@ -50,7 +50,13 @@ public class BBSSettings {
 	public static ValueInt bannerColorStart;
 	public static ValueInt bannerColorEnd;
 	public static ValueLink bannerImage;
-	public static ValueBoolean backdropGradient;
+	/** What the landing screen sits on: 0 animated lights, 1 gradient, 2 the plain 2.5.2 background, 3 the user's own picture or GIF, 4 the video wallpaper */
+	public static ValueInt backdropStyle;
+	public static ValueLink backdropImage;
+
+	/** The video wallpaper, and whether it sits behind every BBS screen (the film editor too) */
+	public static ValueLink backgroundVideo;
+	public static ValueBoolean videoEverywhere;
 	public static ValueFloat bannerFocusX;
 	public static ValueFloat bannerFocusY;
 	public static ValueFloat bannerZoom;
@@ -709,9 +715,15 @@ public class BBSSettings {
 		bannerColorStart.invisible();
 		bannerColorEnd.invisible();
 		bannerImage = builder.getRL("banner_image", null);
-		backdropGradient = builder.getBoolean("backdrop_gradient", false);
+		backdropStyle = builder.getInt("backdrop_style", 0, 0, 4);
+		backdropImage = builder.getRL("backdrop_image", null);
+		backdropImage.invisible();
+		backgroundVideo = builder.getRL("background_video", null);
+		videoEverywhere = builder.getBoolean("video_everywhere", false);
+		backgroundVideo.invisible();
+		videoEverywhere.invisible();
 		bannerImage.invisible();
-		backdropGradient.invisible();
+		backdropStyle.invisible();
 		bannerFocusX = builder.getFloat("banner_focus_x", 0.5F, 0F, 1F);
 		bannerFocusY = builder.getFloat("banner_focus_y", 0.5F, 0F, 1F);
 		bannerZoom = builder.getFloat("banner_zoom", 1F, 1F, 4F);

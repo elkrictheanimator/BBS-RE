@@ -3,13 +3,15 @@ package mchorse.bbs_mod.ui.dashboard.panels.landing;
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.resources.Link;
+import mchorse.bbs_mod.ui.film.clips.UIVideoClip;
+import mchorse.bbs_mod.ui.framework.UIContext;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIStringOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UICirculate;
-import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UIColor;
 import mchorse.bbs_mod.ui.framework.elements.input.UITexturePicker;
-import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.utils.UI;
@@ -25,9 +27,13 @@ public class UIBannerEditorPanel extends UIOverlayPanel
     private final UIColor start;
     private final UIColor end;
 
-    public UIBannerEditorPanel()
+    private final float aspect;
+
+    public UIBannerEditorPanel(float aspect)
     {
         super(IKey.constant("Chỉnh banner"));
+
+        this.aspect = Math.max(0.5F, aspect);
 
         this.style = new UICirculate((b) -> BBSSettings.bannerStyle.set(b.getValue()));
         this.style.addLabel(IKey.constant("Kiểu: Ảnh"));
@@ -44,7 +50,7 @@ public class UIBannerEditorPanel extends UIOverlayPanel
 
         UILabel startLabel = UI.label(IKey.constant("Màu đầu"));
         UILabel endLabel = UI.label(IKey.constant("Màu cuối"));
-        UILabel hint = UI.label(IKey.constant("Gradient chỉ hiện khi chọn kiểu Gradient."));
+        UILabel hint = UI.label(IKey.constant("Gradient hiện khi chọn kiểu Gradient (banner) hoặc Nền: Gradient."));
 
         /* Pick any texture as the banner picture; the style switches to it on its own */
         UIButton image = new UIButton(IKey.constant("Chọn ảnh banner..."), (b) ->
@@ -70,33 +76,34 @@ public class UIBannerEditorPanel extends UIOverlayPanel
             }
         });
 
-        /* The landing screen's own background takes the same two colours */
-        UIToggle backdrop = new UIToggle(IKey.constant("Nền màn hình chính theo gradient"), BBSSettings.backdropGradient.get(), (b) -> BBSSettings.backdropGradient.set(b.getValue()));
+        /* What the landing screen itself sits on */
+        UICirculate backdrop = new UICirculate((b) -> BBSSettings.backdropStyle.set(b.getValue()));
 
-        /* Framing of the picture: how far it is zoomed, and which part of it the banner shows */
-        UITrackpad zoom = new UITrackpad((v) -> BBSSettings.bannerZoom.set(v.floatValue()));
-        UITrackpad focusX = new UITrackpad((v) -> BBSSettings.bannerFocusX.set(v.floatValue()));
-        UITrackpad focusY = new UITrackpad((v) -> BBSSettings.bannerFocusY.set(v.floatValue()));
+        backdrop.addLabel(IKey.constant("Nền: Ánh sáng chuyển động"));
+        backdrop.addLabel(IKey.constant("Nền: Gradient theo 2 màu"));
+        backdrop.addLabel(IKey.constant("Nền: Kiểu 2.5.2"));
+        backdrop.addLabel(IKey.constant("Nền: Ảnh / GIF của bạn"));
+        backdrop.addLabel(IKey.constant("Nền: Video (wallpaper)"));
+        backdrop.setValue(BBSSettings.backdropStyle.get());
 
-        zoom.limit(1, 4).setValue(BBSSettings.bannerZoom.get());
-        focusX.limit(0, 1).setValue(BBSSettings.bannerFocusX.get());
-        focusY.limit(0, 1).setValue(BBSSettings.bannerFocusY.get());
+        UIButton backdropImage = new UIButton(IKey.constant("Chọn ảnh / GIF nền..."), (b) -> pickBackdropImage(this.getContext(), backdrop));
+        UIButton backdropVideo = new UIButton(IKey.constant("Chọn video nền..."), (b) -> pickWallpaperVideo(this.getContext(), backdrop));
+
+        /* Framing of the picture is done by hand on a small copy of the banner */
+        UIBannerFramer framer = new UIBannerFramer(this.aspect);
+
+        framer.h(Math.max(40, (int) (240 / this.aspect)));
 
         UIButton reframe = new UIButton(IKey.constant("Đặt lại vị trí ảnh"), (b) ->
         {
             BBSSettings.bannerZoom.set(1F);
             BBSSettings.bannerFocusX.set(0.5F);
             BBSSettings.bannerFocusY.set(0.5F);
-            zoom.setValue(1);
-            focusX.setValue(0.5);
-            focusY.setValue(0.5);
         });
 
         UIElement column = UI.column(5, 10, this.style, image, removeImage,
-            UI.label(IKey.constant("Phóng to ảnh")), zoom,
-            UI.label(IKey.constant("Vị trí ngang (0 trái - 1 phải)")), focusX,
-            UI.label(IKey.constant("Vị trí dọc (0 trên - 1 dưới)")), focusY, reframe,
-            startLabel, this.start, endLabel, this.end, backdrop, hint);
+            framer, reframe,
+            startLabel, this.start, endLabel, this.end, backdrop, backdropImage, backdropVideo, hint);
 
         column.relative(this.content).xy(0, 0).w(1F).h(1F);
         this.content.add(column);
@@ -107,5 +114,37 @@ public class UIBannerEditorPanel extends UIOverlayPanel
             this.start.picker.removeFromParent();
             this.end.picker.removeFromParent();
         });
+    }
+
+    /** Pick the picture (or GIF) the landing screen sits on, and switch the background to it. */
+    public static void pickBackdropImage(UIContext context, UICirculate style)
+    {
+        UITexturePicker.open(context, BBSSettings.backdropImage.get(), (link) ->
+        {
+            BBSSettings.backdropImage.set(link);
+            BBSSettings.backdropStyle.set(3);
+
+            if (style != null)
+            {
+                style.setValue(3);
+            }
+        });
+    }
+
+    /** Pick the video wallpaper (any video in the assets/video folder) and switch the background to it. */
+    public static void pickWallpaperVideo(UIContext context, UICirculate style)
+    {
+        UIStringOverlayPanel panel = UIStringOverlayPanel.links(IKey.constant("Chọn video nền"), UIVideoClip.getVideoLinks(), (link) ->
+        {
+            BBSSettings.backgroundVideo.set(link);
+            BBSSettings.backdropStyle.set(4);
+
+            if (style != null)
+            {
+                style.setValue(4);
+            }
+        });
+
+        UIOverlay.addOverlay(context, panel.set(BBSSettings.backgroundVideo.get()));
     }
 }
