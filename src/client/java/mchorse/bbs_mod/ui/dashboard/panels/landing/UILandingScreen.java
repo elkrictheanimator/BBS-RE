@@ -102,7 +102,7 @@ public class UILandingScreen extends UIElement
         this.banner.add(new UIRenderable((context) -> this.renderBannerCaption(context, this.banner.area)));
 
         /* The pencil: opens the banner editor (style and gradient colours) */
-        UIIcon editBanner = new UIIcon(Icons.EDIT, (b) -> UIOverlay.addOverlay(this.getContext(), new UIBannerEditorPanel(), 280, 380));
+        UIIcon editBanner = new UIIcon(Icons.EDIT, (b) -> UIOverlay.addOverlay(this.getContext(), new UIBannerEditorPanel((float) this.banner.area.w / Math.max(1, this.banner.area.h)), 280, 400));
 
         editBanner.tooltip(IKey.constant("Chỉnh banner"));
         editBanner.relative(this.banner).x(1F, -PADDING - 20).y(PADDING).wh(20, 20);
@@ -418,6 +418,53 @@ public class UILandingScreen extends UIElement
         }
     }
 
+    /** The aspect of the banner on a card of the default size. */
+    public static float defaultBannerAspect()
+    {
+        return (float) CARD_W / BANNER_H;
+    }
+
+    /**
+     * The part of a picture a banner of this aspect shows: {u1, v1, u2, v2} in pixels. The picture
+     * fills the banner, is zoomed by the user's setting, and the window slides over it by the
+     * user's focus.
+     */
+    public static float[] bannerCrop(Texture texture, float areaAspect)
+    {
+        float texW = texture.width;
+        float texH = texture.height;
+        float texAspect = texW / texH;
+        float cropW;
+        float cropH;
+
+        if (areaAspect > texAspect)
+        {
+            cropW = texW;
+            cropH = texW / areaAspect;
+        }
+        else
+        {
+            cropH = texH;
+            cropW = texH * areaAspect;
+        }
+
+        float zoom = Math.max(1F, BBSSettings.bannerZoom.get());
+
+        cropW /= zoom;
+        cropH /= zoom;
+
+        float slackW = Math.max(0F, texW - cropW);
+        float slackH = Math.max(0F, texH - cropH);
+        float focusX = Math.max(0F, Math.min(1F, BBSSettings.bannerFocusX.get()));
+        float focusY = Math.max(0F, Math.min(1F, BBSSettings.bannerFocusY.get()));
+
+        /* Before the user touches anything the window is centred, as it always was */
+        float u1 = slackW * focusX;
+        float v1 = slackH * focusY;
+
+        return new float[] {u1, v1, u1 + cropW, v1 + cropH};
+    }
+
     private void renderBannerImage(UIContext context, Area area, Link bannerLink, float alpha)
     {
         Texture texture = BBSModClient.getTextures().getTexture(bannerLink);
@@ -427,50 +474,8 @@ public class UILandingScreen extends UIElement
             return;
         }
 
-        float texW = texture.width;
-        float texH = texture.height;
-        float areaW = area.w;
-        float areaH = area.h;
+        float[] crop = bannerCrop(texture, (float) area.w / area.h);
 
-        float texAspect = texW / texH;
-        float areaAspect = areaW / areaH;
-
-        float u1;
-        float u2;
-        float v1;
-        float v2;
-
-        if (areaAspect > texAspect)
-        {
-            float cropH = texW / areaAspect;
-
-            u1 = 0;
-            u2 = texW;
-            v1 = (texH - cropH) * 0.5F;
-            v2 = v1 + cropH;
-        }
-        else
-        {
-            float cropW = texH * areaAspect;
-
-            u1 = (texW - cropW) * 0.5F;
-            u2 = u1 + cropW;
-            v1 = 0;
-            v2 = texH;
-        }
-
-        /* The user's framing: zoom in on the picture, and slide the window over it (0..1 on each side) */
-        float zoom = Math.max(1F, BBSSettings.bannerZoom.get());
-        float cropW = (u2 - u1) / zoom;
-        float cropH = (v2 - v1) / zoom;
-        float slackW = texW - cropW;
-        float slackH = texH - cropH;
-
-        u1 = Math.max(0F, Math.min(slackW, slackW * Math.max(0F, Math.min(1F, BBSSettings.bannerFocusX.get()))));
-        v1 = Math.max(0F, Math.min(slackH, slackH * Math.max(0F, Math.min(1F, BBSSettings.bannerFocusY.get()))));
-        u2 = u1 + cropW;
-        v2 = v1 + cropH;
-
-        context.batcher.texturedBox(texture, Colors.setA(Colors.WHITE, alpha), area.x, area.y, area.w, area.h, u1, v1, u2, v2, texture.width, texture.height);
+        context.batcher.texturedBox(texture, Colors.setA(Colors.WHITE, alpha), area.x, area.y, area.w, area.h, crop[0], crop[1], crop[2], crop[3], texture.width, texture.height);
     }
 }

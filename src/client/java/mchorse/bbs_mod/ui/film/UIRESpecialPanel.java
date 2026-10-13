@@ -3,10 +3,12 @@ package mchorse.bbs_mod.ui.film;
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.dashboard.panels.landing.UIBannerEditorPanel;
+import mchorse.bbs_mod.ui.dashboard.panels.landing.UILandingScreen;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UIScrollView;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
+import mchorse.bbs_mod.ui.framework.elements.buttons.UICirculate;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
@@ -37,8 +39,14 @@ public class UIRESpecialPanel extends UIElement
         armSwing.tooltip(IKey.constant("0 = tay đứng yên khi đi, 1 = vung tay như mặc định."));
 
         /* Look */
-        UIToggle backdrop = new UIToggle(IKey.constant("Nền màn hình chính theo gradient"), BBSSettings.backdropGradient.get(), (b) -> BBSSettings.backdropGradient.set(b.getValue()));
-        UIButton banner = new UIButton(IKey.constant("Chỉnh banner..."), (b) -> UIOverlay.addOverlay(this.getContext(), new UIBannerEditorPanel(), 280, 380));
+        UICirculate backdrop = new UICirculate((b) -> BBSSettings.backdropStyle.set(b.getValue()));
+
+        backdrop.addLabel(IKey.constant("Nền: Ánh sáng chuyển động"));
+        backdrop.addLabel(IKey.constant("Nền: Gradient theo 2 màu"));
+        backdrop.addLabel(IKey.constant("Nền: Kiểu 2.5.2"));
+        backdrop.setValue(BBSSettings.backdropStyle.get());
+
+        UIButton banner = new UIButton(IKey.constant("Chỉnh banner..."), (b) -> UIOverlay.addOverlay(this.getContext(), new UIBannerEditorPanel(UILandingScreen.defaultBannerAspect()), 280, 400));
 
         UIScrollView view = UI.scrollView(5, 10,
             this.header("Timeline"), classicOrder, trackHint,
