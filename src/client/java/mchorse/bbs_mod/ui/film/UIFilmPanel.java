@@ -121,6 +121,10 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
     public UIIcon openCameraEditor;
     public UIIcon openReplayEditor;
     public UIIcon openActionEditor;
+
+    /** Height of the labelled Camera / Replay / Action tab strip on top of the main area. */
+    private static final int WORKSPACE_BAR_HEIGHT = 18;
+    private UIElement workspaceTabs;
     public UIIcon layoutLock;
 
     private UICopyPasteController layoutPresetsController;
@@ -184,7 +188,7 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
 
         /* Editors */
         this.cameraEditor = new UIClipsPanel(this, BBSMod.getFactoryCameraClips()).target(this.editArea);
-        this.cameraEditor.full(this.main);
+        this.cameraEditor.relative(this.main).xy(0, WORKSPACE_BAR_HEIGHT).w(1F).h(1F, -WORKSPACE_BAR_HEIGHT);
 
         this.cameraEditor.clips.context((menu) ->
         {
@@ -192,7 +196,8 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
         });
 
         this.replayEditor = new UIReplaysEditor(this);
-        this.replayEditor.full(this.main).setVisible(false);
+        this.replayEditor.relative(this.main).xy(0, WORKSPACE_BAR_HEIGHT).w(1F).h(1F, -WORKSPACE_BAR_HEIGHT);
+        this.replayEditor.setVisible(false);
         this.actionEditor = new UIClipsPanel(this, BBSMod.getFactoryActionClips()).target(this.editArea);
         this.actionEditor.setVisible(false);
         this.replayEditor.attachActionTimeline(this.actionEditor);
@@ -238,7 +243,9 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
 
         /* Setup elements */
 
-        this.main.add(this.cameraEditor, this.replayEditor);
+        this.workspaceTabs = new UIWorkspaceTabBar();
+        this.workspaceTabs.relative(this.main).xy(0, 0).w(1F).h(WORKSPACE_BAR_HEIGHT);
+        this.main.add(this.cameraEditor, this.replayEditor, this.workspaceTabs);
         this.add(this.controller);
         this.overlay.namesList.setFileIcon(Icons.FILM);
 
@@ -2122,5 +2129,102 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
     protected boolean canSave(UIContext context)
     {
         return !this.recorder.isRecording();
+    }
+
+    /* Labelled tab strip (ported from BBS CML): switches between the Camera, Replay (keyframes)
+     * and Action editors. */
+    private class UIWorkspaceTabBar extends UIElement
+    {
+        private static final int TAB_PADDING = 8;
+
+        private final IKey[] labels = {UIKeys.FILM_WORKSPACE_CAMERA, UIKeys.FILM_WORKSPACE_REPLAY, UIKeys.FILM_WORKSPACE_ACTION};
+        private final int[] xs = new int[3];
+        private final int[] ws = new int[3];
+
+        private boolean isActive(int tab)
+        {
+            if (tab == 0)
+            {
+                return UIFilmPanel.this.cameraEditor.isVisible();
+            }
+
+            boolean replay = UIFilmPanel.this.replayEditor.isVisible();
+
+            return replay && (tab == 2) == UIFilmPanel.this.replayEditor.isActionsMode();
+        }
+
+        private void layoutTabs(UIContext context)
+        {
+            int x = this.area.x;
+
+            for (int i = 0; i < this.labels.length; i ++)
+            {
+                this.ws[i] = (int) context.batcher.getFont().getWidth(this.labels[i].get()) + TAB_PADDING * 2;
+                this.xs[i] = x;
+                x += this.ws[i];
+            }
+        }
+
+        @Override
+        public void render(UIContext context)
+        {
+            context.batcher.box(this.area.x, this.area.y, this.area.ex(), this.area.ey(), 0xFF18181C);
+            context.batcher.box(this.area.x, this.area.ey() - 1, this.area.ex(), this.area.ey(), 0xFF3C3C3C);
+
+            int primary = BBSSettings.primaryColor(Colors.A100);
+            int textY = this.area.y + (this.area.h - context.batcher.getFont().getHeight()) / 2;
+
+            this.layoutTabs(context);
+
+            for (int i = 0; i < this.labels.length; i ++)
+            {
+                boolean active = this.isActive(i);
+                boolean hover = context.mouseX >= this.xs[i] && context.mouseX < this.xs[i] + this.ws[i] && this.area.isInside(context);
+
+                if (active)
+                {
+                    context.batcher.box(this.xs[i], this.area.y, this.xs[i] + this.ws[i], this.area.ey(), 0xFF1D1D1D);
+                    context.batcher.box(this.xs[i], this.area.ey() - 2, this.xs[i] + this.ws[i], this.area.ey(), primary);
+                }
+                else if (hover)
+                {
+                    context.batcher.box(this.xs[i], this.area.y, this.xs[i] + this.ws[i], this.area.ey(), 0x22FFFFFF);
+                }
+
+                context.batcher.text(this.labels[i].get(), this.xs[i] + TAB_PADDING, textY, active || hover ? primary : 0xFFFFFFFF);
+            }
+
+            super.render(context);
+        }
+
+        @Override
+        protected boolean subMouseClicked(UIContext context)
+        {
+            if (context.mouseButton == 0 && this.area.isInside(context))
+            {
+                for (int i = 0; i < this.labels.length; i ++)
+                {
+                    if (context.mouseX >= this.xs[i] && context.mouseX < this.xs[i] + this.ws[i])
+                    {
+                        if (i == 0)
+                        {
+                            UIFilmPanel.this.showPanel(UIFilmPanel.this.cameraEditor);
+                        }
+                        else
+                        {
+                            UIFilmPanel.this.showReplayTab(i == 2);
+                        }
+
+                        UIUtils.playClick();
+
+                        break;
+                    }
+                }
+
+                return true;
+            }
+
+            return super.subMouseClicked(context);
+        }
     }
 }
