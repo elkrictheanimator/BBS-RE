@@ -346,7 +346,6 @@ public class UIKeys
     public static final IKey FILM_MOVE_CONTEXT_FILL_ROUNDED = L10n.lang("bbs.ui.film.move.context.fill_rounded");
     public static final IKey FILM_NO_CAMERA_DESCRIPTION = L10n.lang("bbs.ui.film.no_camera-description");
     public static final IKey FILM_NO_CAMERA_TITLE = L10n.lang("bbs.ui.film.no_camera-title");
-    public static final IKey FILM_OPEN_ACTION_EDITOR = L10n.lang("bbs.ui.film.open_action_editor");
     public static final IKey FILM_WORKSPACE_CAMERA = L10n.lang("bbs.ui.film.workspace.camera");
     public static final IKey FILM_WORKSPACE_REPLAY = L10n.lang("bbs.ui.film.workspace.replay");
     public static final IKey FILM_WORKSPACE_ACTION = L10n.lang("bbs.ui.film.workspace.action");

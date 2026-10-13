@@ -851,7 +851,6 @@
 	"bbs.ui.film.open_camera_editor": "Open camera editor",
 	"bbs.ui.film.open_history": "Open undo/redo history...",
 	"bbs.ui.film.open_replay_editor": "Open replay editor",
-	"bbs.ui.film.open_action_editor": "Open action timeline",
 	"bbs.ui.dock.hide": "Hide panel: %s",
 	"bbs.ui.dock.show": "Show panel: %s",
 	"bbs.ui.dock.maximize": "Maximize panel",
