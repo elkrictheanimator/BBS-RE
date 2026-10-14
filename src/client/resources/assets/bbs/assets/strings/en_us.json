@@ -1033,6 +1033,8 @@
 	"bbs.ui.forms.editor.model.cem.climbing": "Climbing",
 	"bbs.ui.forms.editor.model.cem.crawling": "Crawling",
 	"bbs.ui.forms.editor.model.cem.health": "Health",
+	"bbs.ui.forms.editor.model.arm_swing": "Arm swing",
+	"bbs.ui.forms.editor.model.arm_swing-tooltip": "How much the arms swing while the model walks. 1 is the vanilla swing, 0 keeps them still. Add a keyframe to change it during the take. Vanilla-like (procedural) models only.",
 	"bbs.ui.forms.editor.model.cem.health-tooltip": "A factor over the health the entity has: 1 is whole, and lower makes a pack pose the creature as wounded",
 	"bbs.ui.forms.editor.model.cem.in_lava": "In lava",
 	"bbs.ui.forms.editor.model.cem.on_shoulder": "On a shoulder",

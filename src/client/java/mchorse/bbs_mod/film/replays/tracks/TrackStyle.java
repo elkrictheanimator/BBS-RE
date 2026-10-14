@@ -2,6 +2,7 @@ package mchorse.bbs_mod.film.replays.tracks;
 
 import java.util.Objects;
 import mchorse.bbs_mod.l10n.keys.IKey;
+import mchorse.bbs_mod.ui.UIKeys;
 
 import mchorse.bbs_mod.forms.entities.EntityState;
 import mchorse.bbs_mod.film.replays.ReplayKeyframes;
@@ -62,6 +63,9 @@ public class TrackStyle
     {
         setupColors();
         setupIcons();
+
+        register("arm_swing", Icons.LIMB, 0x5ad1a5);
+        registerLabel("arm_swing", UIKeys.FORMS_EDITOR_MODEL_ARM_SWING);
     }
 
     /**

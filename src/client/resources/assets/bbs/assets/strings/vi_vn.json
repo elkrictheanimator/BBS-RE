@@ -539,6 +539,8 @@
     "bbs.ui.forms.editor.context.paste": "Dán bộ phận cơ thể này",
     "bbs.ui.forms.editor.context.remove": "Xóa bộ phận cơ thể này",
     "bbs.ui.forms.editor.finish": "Hoàn tất chỉnh sửa",
+    "bbs.ui.forms.editor.model.arm_swing": "Vung tay khi đi",
+    "bbs.ui.forms.editor.model.arm_swing-tooltip": "Mức độ hai tay đung đưa khi model đi. 1 là vung như bình thường, 0 giữ yên tay. Thêm keyframe để đổi trong lúc quay. Chỉ áp dụng cho model dùng animation tự động.",
     "bbs.ui.forms.editor.model.models": "Model",
     "bbs.ui.forms.editor.model.pick_model": "Chọn 1 model...",
     "bbs.ui.forms.editor.model.pick_texture": "Chọn một texture...",

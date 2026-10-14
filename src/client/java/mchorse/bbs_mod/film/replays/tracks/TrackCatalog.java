@@ -223,6 +223,12 @@ public class TrackCatalog
                 continue;
             }
 
+            /* The arm swing only means something to a vanilla-like (procedural) model. */
+            if (form instanceof ModelForm && name.equals("arm_swing") && (model == null || !model.isProcedural()))
+            {
+                continue;
+            }
+
             /* The root form's own anchor is animatable (it is what parents a replay to another one);
              * a body part's anchor is what glues it to its parent, and animating that is meaningless. */
             if (ANCHOR.equals(name) && !path.isEmpty())
