@@ -89,7 +89,7 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         backdrop.addLabel(IKey.constant("Nền: Video (wallpaper)"));
         backdrop.setValue(BBSSettings.backdropStyle.get());
 
-        UIButton backdropImage = new UIButton(IKey.constant("Chọn ảnh / GIF nền..."), (b) -> pickBackdropImage(this.getContext(), backdrop));
+        UIButton backdropImage = new UIButton(IKey.constant("Chọn ảnh nền (ảnh thường hoặc GIF)..."), (b) -> pickBackdropImage(this.getContext(), backdrop));
         UIButton backdropVideo = new UIButton(IKey.constant("Chọn video nền..."), (b) -> pickWallpaperVideo(this.getContext(), backdrop));
 
         /* Framing of the picture is done by hand on a small copy of the banner */

@@ -1,12 +1,11 @@
 package mchorse.bbs_mod.ui.dashboard;
 
-import mchorse.bbs_mod.BBSModClient;
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.graphics.texture.Texture;
 import mchorse.bbs_mod.resources.Link;
 import mchorse.bbs_mod.ui.framework.elements.utils.Batcher2D;
 import mchorse.bbs_mod.utils.colors.Colors;
-import mchorse.bbs_mod.video.VideoPlayer;
+import mchorse.bbs_mod.video.LoopVideo;
 
 /**
  * The video wallpaper: one looping video, played on the shared clock, drawn wherever a screen
@@ -15,13 +14,8 @@ import mchorse.bbs_mod.video.VideoPlayer;
  */
 public class Wallpaper
 {
-    /** The one owner of the decoder; the video manager keeps one player per owner */
-    private static final Object OWNER = new Object();
-
     /** How opaque the panels stay over the video: enough to read, little enough to see it */
     public static final float SURFACE_OPACITY = 0.72F;
-
-    private static final long STARTED = System.nanoTime();
 
     /** The veil over the video, so panels and text stay readable on a busy picture */
     private static final int VEIL = 0x66000000;
@@ -29,37 +23,7 @@ public class Wallpaper
     /** The wallpaper's frame right now, or null when none is set or it hasn't decoded yet. */
     public static Texture frame()
     {
-        return frame(OWNER, BBSSettings.backgroundVideo.get());
-    }
-
-    /**
-     * The current frame of any video on the shared clock; each owner keeps its own decoder. The
-     * landing banner plays its video this way, next to the wallpaper.
-     */
-    public static Texture frame(Object owner, Link link)
-    {
-        if (link == null)
-        {
-            return null;
-        }
-
-        VideoPlayer player = BBSModClient.getVideos().getPlayer(owner, link);
-
-        if (player == null)
-        {
-            return null;
-        }
-
-        float seconds = (System.nanoTime() - STARTED) / 1_000_000_000F;
-        float duration = player.getDuration();
-
-        /* The length is not known until the file has been probed; until then the clock runs as is */
-        if (duration > 0F)
-        {
-            seconds %= duration;
-        }
-
-        return player.getFrame(seconds);
+        return LoopVideo.frame(BBSSettings.backgroundVideo.get());
     }
 
     /**
