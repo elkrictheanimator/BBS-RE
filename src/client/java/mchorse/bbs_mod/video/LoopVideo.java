@@ -51,6 +51,7 @@ public class LoopVideo
     private static final double MAX_FPS = 60;
     private static final double DEFAULT_FPS = 30;
 
+    private static final long OFFSET_SETTLE_NANOS = 400_000_000L;
     private static final long IDLE_NANOS = 3_000_000_000L;
     private static final long RETRY_NANOS = 5_000_000_000L;
 
@@ -73,6 +74,11 @@ public class LoopVideo
     /* The sound of the video: 0 keeps it silent (and undecoded) */
     private volatile float volume;
     private volatile boolean audioOn;
+
+    /* How much later the sound starts than the picture, in ms (negative: earlier) */
+    private volatile int offsetMs;
+    private volatile int appliedOffset;
+    private volatile long offsetChanged;
 
     /** The shared decoder of a video; null when the link doesn't point at a file. */
     public static LoopVideo get(Link link)
@@ -113,6 +119,12 @@ public class LoopVideo
     /** Same, and the video's sound plays at the given volume (0..1) while the frames are being asked for. */
     public static Texture frame(Link link, String url, float volume)
     {
+        return frame(link, url, volume, 0);
+    }
+
+    /** Same, and the sound starts the given number of milliseconds after the picture (negative: before it). */
+    public static Texture frame(Link link, String url, float volume, int offsetMs)
+    {
         LoopVideo video = get(link, url);
 
         if (video == null)
@@ -121,6 +133,12 @@ public class LoopVideo
         }
 
         video.volume = Math.max(0F, Math.min(1F, volume));
+
+        if (video.offsetMs != offsetMs)
+        {
+            video.offsetMs = offsetMs;
+            video.offsetChanged = System.nanoTime();
+        }
 
         return video.getFrame();
     }
@@ -227,6 +245,12 @@ public class LoopVideo
             this.restart = true;
         }
 
+        /* The offset was moved: start over with it, once the slider has settled for a moment */
+        if (this.running && this.audioOn && this.appliedOffset != this.offsetMs && now - this.offsetChanged > OFFSET_SETTLE_NANOS)
+        {
+            this.restart = true;
+        }
+
         if (!this.running && (this.error == null || now - this.failedAt > RETRY_NANOS))
         {
             this.start();
@@ -253,6 +277,7 @@ public class LoopVideo
         /* Decided here, before the slow part (probing, yt-dlp), so asking for frames meanwhile
          * doesn't take the sound for "switched on later" and restart the decoder forever */
         this.audioOn = this.volume > 0F;
+        this.appliedOffset = this.offsetMs;
 
         Thread thread = new Thread(this::run, "BBS Background Video");
 
@@ -318,41 +343,25 @@ public class LoopVideo
                 }
             }
 
-            ProcessBuilder builder = new ProcessBuilder(
-                ffmpeg, "-hide_banner", "-loglevel", "quiet", "-nostdin",
-                "-re", "-stream_loop", "-1", "-i", input,
-                "-an", "-sn", "-dn",
-                "-vf", "fps=" + this.fps + ",scale=" + w + ":" + h + ":flags=fast_bilinear",
-                "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1"
-            );
+            /* Two processes on the same clock, one for the picture and one for the sound; whichever
+             * the offset says goes first, and the other follows after that many milliseconds */
+            int offset = Math.max(-2000, Math.min(2000, this.appliedOffset));
+            boolean sound = this.audioOn;
 
-            builder.redirectError(ProcessBuilder.Redirect.DISCARD);
-
-            Process started = builder.start();
-
-            process = started;
-
-            /* The sound is its own process, started at the same moment and paced by the same clock:
-             * a video without sound just makes it end at once, and the picture never waits for it */
-            if (this.audioOn)
+            if (sound && offset < 0)
             {
-                ProcessBuilder sound = new ProcessBuilder(
-                    ffmpeg, "-hide_banner", "-loglevel", "quiet", "-nostdin",
-                    "-re", "-stream_loop", "-1", "-i", input,
-                    "-vn", "-sn", "-dn", "-map", "0:a:0?",
-                    "-ac", "2", "-ar", "44100", "-f", "s16le", "pipe:1"
-                );
+                audioProcess = this.startSound(ffmpeg, input);
 
-                sound.redirectError(ProcessBuilder.Redirect.DISCARD);
+                Thread.sleep(-offset);
+            }
 
-                Process soundProcess = sound.start();
+            process = this.startPicture(ffmpeg, input, w, h);
 
-                audioProcess = soundProcess;
+            if (sound && offset >= 0)
+            {
+                Thread.sleep(offset);
 
-                Thread thread = new Thread(() -> this.playSound(soundProcess.getInputStream()), "BBS Background Video Sound");
-
-                thread.setDaemon(true);
-                thread.start();
+                audioProcess = this.startSound(ffmpeg, input);
             }
 
             ReadableByteChannel channel = Channels.newChannel(process.getInputStream());
@@ -415,6 +424,41 @@ public class LoopVideo
         }
     }
 
+    private Process startPicture(String ffmpeg, String input, int w, int h) throws Exception
+    {
+        ProcessBuilder builder = new ProcessBuilder(
+            ffmpeg, "-hide_banner", "-loglevel", "quiet", "-nostdin",
+            "-re", "-stream_loop", "-1", "-i", input,
+            "-an", "-sn", "-dn",
+            "-vf", "fps=" + this.fps + ",scale=" + w + ":" + h + ":flags=fast_bilinear",
+            "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1"
+        );
+
+        builder.redirectError(ProcessBuilder.Redirect.DISCARD);
+
+        return builder.start();
+    }
+
+    private Process startSound(String ffmpeg, String input) throws Exception
+    {
+        ProcessBuilder builder = new ProcessBuilder(
+            ffmpeg, "-hide_banner", "-loglevel", "quiet", "-nostdin",
+            "-re", "-stream_loop", "-1", "-i", input,
+            "-vn", "-sn", "-dn", "-map", "0:a:0?",
+            "-ac", "2", "-ar", "44100", "-f", "s16le", "pipe:1"
+        );
+
+        builder.redirectError(ProcessBuilder.Redirect.DISCARD);
+
+        Process started = builder.start();
+        Thread thread = new Thread(() -> this.playSound(started.getInputStream()), "BBS Background Video Sound");
+
+        thread.setDaemon(true);
+        thread.start();
+
+        return started;
+    }
+
     /**
      * Plays the raw sound ffmpeg sends until the stream ends (the process being killed closes it).
      * A reader keeps the pipe empty and hands the sound over through a queue, so a slow sound
@@ -466,7 +510,7 @@ public class LoopVideo
             AudioFormat format = new AudioFormat(44100F, 16, 2, true, false);
 
             line = AudioSystem.getSourceDataLine(format);
-            line.open(format, 44100);
+            line.open(format, 17640);
             line.start();
 
             while (true)

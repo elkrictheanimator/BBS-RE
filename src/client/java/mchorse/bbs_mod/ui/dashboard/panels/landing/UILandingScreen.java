@@ -418,7 +418,7 @@ public class UILandingScreen extends UIElement
 
         if (style == 4)
         {
-            Texture frame = LoopVideo.frame(BBSSettings.bannerVideo.get(), BBSSettings.bannerVideoUrl.get(), BBSSettings.bannerVolume.get());
+            Texture frame = LoopVideo.frame(BBSSettings.bannerVideo.get(), BBSSettings.bannerVideoUrl.get(), BBSSettings.bannerVolume.get(), BBSSettings.bannerAudioOffset.get());
 
             if (frame != null && frame.width > 0 && frame.height > 0)
             {
