@@ -60,6 +60,8 @@ public class BBSSettings {
 	public static ValueString backgroundVideoUrl;
 	public static ValueString bannerVideoUrl;
 	public static ValueString ytdlpPath;
+	public static ValueInt bannerHeight;
+	public static ValueFloat bannerVolume;
 	public static ValueBoolean videoEverywhere;
 	public static ValueFloat bannerFocusX;
 	public static ValueFloat bannerFocusY;
@@ -747,6 +749,10 @@ public class BBSSettings {
 		bannerVideoUrl.invisible();
 		ytdlpPath = builder.getString("ytdlp_path", "yt-dlp");
 		ytdlpPath.invisible();
+		bannerHeight = builder.getInt("banner_height", 180, 90, 300);
+		bannerHeight.invisible();
+		bannerVolume = builder.getFloat("banner_volume", 0.5F, 0F, 1F);
+		bannerVolume.invisible();
 		backdropStyle.invisible();
 		bannerFocusX = builder.getFloat("banner_focus_x", 0.5F, 0F, 1F);
 		bannerFocusY = builder.getFloat("banner_focus_y", 0.5F, 0F, 1F);
