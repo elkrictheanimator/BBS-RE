@@ -349,11 +349,25 @@ public class BBSSettings {
 		surfaceSource = color;
 	}
 
+	/**
+	 * How opaque the interface's surfaces are, 1 normally. A video wallpaper behind the editors
+	 * lowers it, so it shows through the panels; set by the dashboard each frame it draws one.
+	 * The sunken rung (the timeline's floor) always stays solid.
+	 */
+	public static float surfaceOpacity = 1F;
+
 	private static int surface(int level)
 	{
 		buildSurfaces();
 
-		return SURFACES[level];
+		int color = SURFACES[level];
+
+		if (surfaceOpacity < 1F && level != SURFACE_SUNKEN)
+		{
+			color = Colors.setA(color, Colors.getA(color) * surfaceOpacity);
+		}
+
+		return color;
 	}
 
 	/**
