@@ -8,6 +8,7 @@ import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.resources.Link;
 import mchorse.bbs_mod.settings.values.core.ValueRecentData.Entry;
 import mchorse.bbs_mod.ui.UIKeys;
+import mchorse.bbs_mod.ui.dashboard.Wallpaper;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
@@ -321,8 +322,6 @@ public class UILandingScreen extends UIElement
     {
         FontRenderer font = context.batcher.getFont();
         String brand = "\u00a7lBBS Reality's Edge";
-        String credit = "render by ";
-        String artist = "Kizrum";
         int brandWidth = font.getWidth(brand);
         int versionWidth = this.bannerVersion.isEmpty() ? 0 : font.getWidth(this.bannerVersion) + 16;
         int x = area.x + PADDING;
@@ -348,11 +347,6 @@ public class UILandingScreen extends UIElement
             context.batcher.box(dividerX, textY, dividerX + 1, textY + font.getHeight(), 0x40b4bccb);
             context.batcher.text(this.bannerVersion, dividerX + 8, textY, secondary, false);
         }
-
-        int creditX = area.ex() - PADDING - font.getWidth(credit) - font.getWidth(artist);
-
-        context.batcher.text(credit, creditX, textY, secondary, false);
-        context.batcher.text(artist, creditX + font.getWidth(credit), textY, ink, false);
     }
 
     private void renderBanner(UIContext context, Area area)
@@ -371,6 +365,23 @@ public class UILandingScreen extends UIElement
             }
 
             /* No picture chosen yet: fall through to the default slideshow */
+            style = 0;
+        }
+
+        if (style == 4)
+        {
+            Texture frame = Wallpaper.frame(this, BBSSettings.bannerVideo.get());
+
+            if (frame != null && frame.width > 0 && frame.height > 0)
+            {
+                float[] crop = bannerCrop(frame, (float) area.w / area.h);
+
+                context.batcher.texturedBox(frame, Colors.WHITE, area.x, area.y, area.w, area.h, crop[0], crop[1], crop[2], crop[3], frame.width, frame.height);
+
+                return;
+            }
+
+            /* No video picked yet, or its first frame is still decoding: the slideshow stands in */
             style = 0;
         }
 

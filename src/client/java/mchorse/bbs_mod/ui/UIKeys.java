@@ -349,7 +349,6 @@ public class UIKeys
     public static final IKey FILM_WORKSPACE_CAMERA = L10n.lang("bbs.ui.film.workspace.camera");
     public static final IKey FILM_WORKSPACE_REPLAY = L10n.lang("bbs.ui.film.workspace.replay");
     public static final IKey FILM_WORKSPACE_ACTION = L10n.lang("bbs.ui.film.workspace.action");
-    public static final IKey FILM_WORKSPACE_RE = L10n.lang("bbs.ui.film.workspace.re");
     public static final IKey FILM_OPEN_CAMERA_EDITOR = L10n.lang("bbs.ui.film.open_camera_editor");
     public static final IKey FILM_LAYOUT_BIND_TO_EDITOR = L10n.lang("bbs.ui.film.layout_bind_to_editor");
     public static final IKey FILM_LAYOUT_LOCK = L10n.lang("bbs.ui.film.layout_lock");
@@ -751,6 +750,8 @@ public class UIKeys
     public static final IKey FORMS_EDITOR_MODEL_CEM_CLIMBING = L10n.lang("bbs.ui.forms.editor.model.cem.climbing");
     public static final IKey FORMS_EDITOR_MODEL_CEM_CRAWLING = L10n.lang("bbs.ui.forms.editor.model.cem.crawling");
     public static final IKey FORMS_EDITOR_MODEL_CEM_HEALTH = L10n.lang("bbs.ui.forms.editor.model.cem.health");
+    public static final IKey FORMS_EDITOR_MODEL_ARM_SWING = L10n.lang("bbs.ui.forms.editor.model.arm_swing");
+    public static final IKey FORMS_EDITOR_MODEL_ARM_SWING_TOOLTIP = L10n.lang("bbs.ui.forms.editor.model.arm_swing-tooltip");
     public static final IKey FORMS_EDITOR_MODEL_CEM_HEALTH_TOOLTIP = L10n.lang("bbs.ui.forms.editor.model.cem.health-tooltip");
     public static final IKey FORMS_EDITOR_PICK_FORM = L10n.lang("bbs.ui.forms.editor.pick_form");
     public static final IKey FORMS_EDITOR_SLIM = L10n.lang("bbs.ui.forms.editor.slim");

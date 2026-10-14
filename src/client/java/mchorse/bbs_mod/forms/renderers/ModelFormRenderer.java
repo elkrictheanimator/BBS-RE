@@ -286,6 +286,12 @@ public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITicka
             cem.status.read(this.form);
         }
 
+        /* The arm swing track: read here, off the form, so a keyframe lands the frame it changes */
+        if (this.animator instanceof ProceduralAnimator procedural)
+        {
+            procedural.formArmSwing = this.form.armSwing.get();
+        }
+
         this.animator.applyActions(entity, model, transition);
 
         /* The config's default pose sits under the form's, the same additive layer: the posture the

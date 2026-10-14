@@ -67,6 +67,14 @@ public class ModelForm extends Form implements IPosedForm
     public final ValueFloat cemHealth = new ValueFloat("cem_health", 1F);
 
     /**
+     * How much the arms swing with the stride of a vanilla-like (procedural) model: 1 is the vanilla
+     * swing, 0 keeps them still. A property like any other, so it is a track of its own — a
+     * character can walk with still arms for one shot and swing them in the next, with no
+     * hand-made arm animation. Multiplies the global arm swing setting.
+     */
+    public final ValueFloat armSwing = new ValueFloat("arm_swing", 1F, 0F, 1F);
+
+    /**
      * Runtime per-material texture overrides driven by the per-material animation tracks
      * (keyed by material name). Set each frame by {@code FormProperties} during playback and
      * read first by the renderer's texture resolver; empty means "no track override, use the
@@ -133,6 +141,7 @@ public class ModelForm extends Form implements IPosedForm
         this.add(this.cemClimbing);
         this.add(this.cemCrawling);
         this.add(this.cemHealth);
+        this.add(this.armSwing);
     }
 
     @Override

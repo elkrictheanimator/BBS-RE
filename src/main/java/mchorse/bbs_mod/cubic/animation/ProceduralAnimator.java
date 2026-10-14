@@ -39,6 +39,9 @@ public class ProceduralAnimator implements IAnimator
 
     private IModelInstance model;
 
+    /** The form's own arm swing (its track), set by the renderer before each pass; 1 is the vanilla swing */
+    public float formArmSwing = 1F;
+
     @Override
     public List<String> getActions()
     {
@@ -152,7 +155,7 @@ public class ProceduralAnimator implements IAnimator
         float leaningPitch = target.getLeaningPitch(transition);
 
         /* How much the arms swing with the stride: 1 is vanilla, 0 keeps them still while walking */
-        float armSwing = BBSSettings.armSwing.get();
+        float armSwing = BBSSettings.armSwing.get() * Math.max(0F, Math.min(1F, this.formArmSwing));
 
         /* Holding something up stops the swimming stroke - vanilla checks isUsingItem, and a
          * use pose is exactly what that resolves to here. */
