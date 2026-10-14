@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +47,9 @@ public class LoopVideo
 
     /* More than this is wasted on a background, and costs a weak PC dearly */
     private static final int MAX_WIDTH = 854;
-    private static final int FPS = 24;
+    private static final Pattern FPS_PATTERN = Pattern.compile("(\\d+(?:\\.\\d+)?) fps");
+    private static final double MAX_FPS = 60;
+    private static final double DEFAULT_FPS = 30;
 
     private static final long IDLE_NANOS = 3_000_000_000L;
     private static final long RETRY_NANOS = 5_000_000_000L;
@@ -268,6 +272,7 @@ public class LoopVideo
     }
 
     private int width;
+    private double fps = DEFAULT_FPS;
     private int height;
 
     private void run()
@@ -314,7 +319,7 @@ public class LoopVideo
                 ffmpeg, "-hide_banner", "-loglevel", "quiet", "-nostdin",
                 "-re", "-stream_loop", "-1", "-i", input,
                 "-sn", "-dn", "-map", "0:v:0",
-                "-vf", "fps=" + FPS + ",scale=" + w + ":" + h,
+                "-vf", "fps=" + this.fps + ",scale=" + w + ":" + h + ":flags=fast_bilinear",
                 "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1"
             ));
 
@@ -403,9 +408,50 @@ public class LoopVideo
         }
     }
 
-    /** Plays the raw sound ffmpeg sends until the stream ends (the process being killed closes it). */
+    /**
+     * Plays the raw sound ffmpeg sends until the stream ends (the process being killed closes it).
+     * A reader keeps the pipe empty and hands the sound over through a queue, so a slow sound
+     * device can never hold ffmpeg back and make the picture stall.
+     */
     private void playSound(InputStream stream)
     {
+        BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(64);
+        byte[] end = new byte[0];
+
+        Thread reader = new Thread(() ->
+        {
+            try
+            {
+                byte[] bytes = new byte[8192];
+                int read;
+
+                while ((read = stream.read(bytes)) > 0)
+                {
+                    byte[] chunk = Arrays.copyOf(bytes, read - (read % 4));
+
+                    if (chunk.length == 0)
+                    {
+                        continue;
+                    }
+
+                    while (!queue.offer(chunk))
+                    {
+                        queue.poll();
+                    }
+                }
+            }
+            catch (Exception e)
+            {}
+            finally
+            {
+                queue.clear();
+                queue.offer(end);
+            }
+        }, "BBS Background Video Sound Reader");
+
+        reader.setDaemon(true);
+        reader.start();
+
         SourceDataLine line = null;
 
         try
@@ -413,18 +459,22 @@ public class LoopVideo
             AudioFormat format = new AudioFormat(44100F, 16, 2, true, false);
 
             line = AudioSystem.getSourceDataLine(format);
-            line.open(format, 44100 / 2);
+            line.open(format, 44100);
             line.start();
 
-            byte[] bytes = new byte[4096];
-            int read;
-
-            while ((read = stream.read(bytes)) > 0)
+            while (true)
             {
+                byte[] bytes = queue.take();
+
+                if (bytes.length == 0)
+                {
+                    break;
+                }
+
                 float volume = this.volume;
 
                 /* Volume is applied to the samples, so it follows the slider at once */
-                for (int i = 0; i + 1 < read; i += 2)
+                for (int i = 0; i + 1 < bytes.length; i += 2)
                 {
                     short sample = (short) ((bytes[i] & 0xFF) | (bytes[i + 1] << 8));
 
@@ -433,7 +483,7 @@ public class LoopVideo
                     bytes[i + 1] = (byte) (sample >> 8);
                 }
 
-                line.write(bytes, 0, read - (read % 4));
+                line.write(bytes, 0, bytes.length);
             }
         }
         catch (Exception e)
@@ -466,6 +516,21 @@ public class LoopVideo
         finally
         {
             probe.destroy();
+        }
+
+        /* Keep the video's own frame rate: forcing another one drops frames unevenly, which is the stutter */
+        Matcher rate = FPS_PATTERN.matcher(output);
+
+        this.fps = DEFAULT_FPS;
+
+        if (rate.find())
+        {
+            double parsed = Double.parseDouble(rate.group(1));
+
+            if (parsed >= 1)
+            {
+                this.fps = Math.min(MAX_FPS, parsed);
+            }
         }
 
         Matcher size = SIZE_PATTERN.matcher(output);
