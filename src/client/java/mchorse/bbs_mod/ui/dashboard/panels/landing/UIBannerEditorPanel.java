@@ -120,8 +120,14 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         volume.limit(0, 1);
         volume.setValue(BBSSettings.bannerVolume.get());
 
-        UIElement column = UI.column(5, 10, this.style, image, video, bannerLink, removeImage,
-            heightLabel, height, volumeLabel, volume, framer, reframe,
+        UILabel offsetLabel = UI.label(IKey.constant("Lệch tiếng so với hình (ms): + tiếng chậm hơn, - tiếng sớm hơn"));
+        UITrackpad offset = new UITrackpad((v) -> BBSSettings.bannerAudioOffset.set(v.intValue()));
+
+        offset.limit(BBSSettings.bannerAudioOffset).integer();
+        offset.setValue(BBSSettings.bannerAudioOffset.get());
+
+        UIElement column = UI.scrollView(5, 10, this.style, image, video, bannerLink, removeImage,
+            heightLabel, height, volumeLabel, volume, offsetLabel, offset, framer, reframe,
             startLabel, this.start, endLabel, this.end, backdrop, backdropImage, backdropVideo, backdropLink, hint);
 
         column.relative(this.content).xy(0, 0).w(1F).h(1F);
