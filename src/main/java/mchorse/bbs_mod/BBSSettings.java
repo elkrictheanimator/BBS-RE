@@ -57,6 +57,9 @@ public class BBSSettings {
 
 	/** The video wallpaper, and whether it sits behind every BBS screen (the film editor too) */
 	public static ValueLink backgroundVideo;
+	public static ValueString backgroundVideoUrl;
+	public static ValueString bannerVideoUrl;
+	public static ValueString ytdlpPath;
 	public static ValueBoolean videoEverywhere;
 	public static ValueFloat bannerFocusX;
 	public static ValueFloat bannerFocusY;
@@ -738,6 +741,12 @@ public class BBSSettings {
 		bannerImage.invisible();
 		bannerVideo = builder.getRL("banner_video", null);
 		bannerVideo.invisible();
+		backgroundVideoUrl = builder.getString("background_video_url", "");
+		backgroundVideoUrl.invisible();
+		bannerVideoUrl = builder.getString("banner_video_url", "");
+		bannerVideoUrl.invisible();
+		ytdlpPath = builder.getString("ytdlp_path", "yt-dlp");
+		ytdlpPath.invisible();
 		backdropStyle.invisible();
 		bannerFocusX = builder.getFloat("banner_focus_x", 0.5F, 0F, 1F);
 		bannerFocusY = builder.getFloat("banner_focus_y", 0.5F, 0F, 1F);

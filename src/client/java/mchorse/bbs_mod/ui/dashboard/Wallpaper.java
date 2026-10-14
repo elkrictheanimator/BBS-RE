@@ -23,7 +23,7 @@ public class Wallpaper
     /** The wallpaper's frame right now, or null when none is set or it hasn't decoded yet. */
     public static Texture frame()
     {
-        return LoopVideo.frame(BBSSettings.backgroundVideo.get());
+        return LoopVideo.frame(BBSSettings.backgroundVideo.get(), BBSSettings.backgroundVideoUrl.get());
     }
 
     /**

@@ -1,6 +1,7 @@
 package mchorse.bbs_mod.video;
 
 import mchorse.bbs_mod.BBSMod;
+import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.graphics.texture.Texture;
 import mchorse.bbs_mod.resources.Link;
 import mchorse.bbs_mod.utils.FFMpegUtils;
@@ -42,7 +43,9 @@ public class LoopVideo
     private static final long IDLE_NANOS = 3_000_000_000L;
     private static final long RETRY_NANOS = 5_000_000_000L;
 
+    /* Exactly one of these is set: a file in the assets, or an address on the web */
     private final File file;
+    private final String url;
     private final Object lock = new Object();
 
     private ByteBuffer latest;
@@ -70,7 +73,37 @@ public class LoopVideo
             return null;
         }
 
-        return VIDEOS.computeIfAbsent(file.getAbsolutePath(), (path) -> new LoopVideo(file));
+        return VIDEOS.computeIfAbsent(file.getAbsolutePath(), (path) -> new LoopVideo(file, null));
+    }
+
+    /** The shared decoder of a video: the web address when there is one, otherwise the file the link points at. */
+    public static LoopVideo get(Link link, String url)
+    {
+        if (url == null || url.trim().isEmpty())
+        {
+            return get(link);
+        }
+
+        String address = url.trim();
+
+        return VIDEOS.computeIfAbsent(address, (key) -> new LoopVideo(null, address));
+    }
+
+    public static Texture frame(Link link, String url)
+    {
+        LoopVideo video = get(link, url);
+
+        return video == null ? null : video.getFrame();
+    }
+
+    public static String problem(Link link, String url)
+    {
+        if (url == null || url.trim().isEmpty())
+        {
+            return problem(link);
+        }
+
+        return get(link, url).error;
     }
 
     /** The current frame of a video, or null while there is none yet (or the video can't be played). */
@@ -94,9 +127,62 @@ public class LoopVideo
         return video == null ? "Không tìm thấy file video" : video.error;
     }
 
-    private LoopVideo(File file)
+    private LoopVideo(File file, String url)
     {
         this.file = file;
+        this.url = url;
+    }
+
+    /** What ffmpeg opens: the file, the address, or (for YouTube and the like) the address yt-dlp digs out of the page. */
+    private String resolveInput() throws Exception
+    {
+        if (this.file != null)
+        {
+            return this.file.getAbsolutePath();
+        }
+
+        String lower = this.url.toLowerCase();
+        boolean page = lower.contains("youtube.com") || lower.contains("youtu.be") || lower.contains("twitch.tv") || lower.contains("vimeo.com") || lower.contains("bilibili.com");
+
+        if (!page)
+        {
+            return this.url;
+        }
+
+        String ytdlp = BBSSettings.ytdlpPath.get().trim();
+        ProcessBuilder builder = new ProcessBuilder(ytdlp.isEmpty() ? "yt-dlp" : ytdlp, "-g", "--no-playlist", "-f", "best[height<=720][vcodec!=none]/best[height<=720]/best", this.url);
+        Process process;
+
+        try
+        {
+            process = builder.start();
+        }
+        catch (Exception e)
+        {
+            this.error = "Link này cần yt-dlp: cài yt-dlp rồi thử lại (" + e.getMessage() + ")";
+
+            return null;
+        }
+
+        String output;
+
+        try (InputStream stream = process.getInputStream())
+        {
+            output = new String(stream.readAllBytes(), StandardCharsets.UTF_8).trim();
+        }
+        finally
+        {
+            process.destroy();
+        }
+
+        if (output.isEmpty())
+        {
+            this.error = "yt-dlp không lấy được video từ link này (link sai, riêng tư, hoặc yt-dlp cũ cần cập nhật)";
+
+            return null;
+        }
+
+        return output.split("\\r?\\n")[0];
     }
 
     /** Render thread only: the newest decoded frame, uploaded. Starts the decoder when it is not running. */
@@ -159,7 +245,14 @@ public class LoopVideo
         try
         {
             String ffmpeg = FFMpegUtils.getFFMPEG();
-            int[] size = this.probe(ffmpeg);
+            String input = this.resolveInput();
+
+            if (input == null)
+            {
+                return;
+            }
+
+            int[] size = this.probe(ffmpeg, input);
 
             if (size == null)
             {
@@ -185,7 +278,7 @@ public class LoopVideo
 
             ProcessBuilder builder = new ProcessBuilder(
                 ffmpeg, "-hide_banner", "-loglevel", "quiet",
-                "-re", "-stream_loop", "-1", "-i", this.file.getAbsolutePath(),
+                "-re", "-stream_loop", "-1", "-i", input,
                 "-an", "-sn", "-dn",
                 "-vf", "fps=" + FPS + ",scale=" + w + ":" + h,
                 "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1"
@@ -249,9 +342,9 @@ public class LoopVideo
     }
 
     /** The video's own size, read off ffmpeg's info output; null (with the reason in {@link #error}) when it can't be. */
-    private int[] probe(String ffmpeg) throws Exception
+    private int[] probe(String ffmpeg, String input) throws Exception
     {
-        ProcessBuilder builder = new ProcessBuilder(ffmpeg, "-hide_banner", "-i", this.file.getAbsolutePath());
+        ProcessBuilder builder = new ProcessBuilder(ffmpeg, "-hide_banner", "-i", input);
 
         builder.redirectErrorStream(true);
 

@@ -387,7 +387,7 @@ public class UILandingScreen extends UIElement
 
         if (style == 4)
         {
-            Texture frame = LoopVideo.frame(BBSSettings.bannerVideo.get());
+            Texture frame = LoopVideo.frame(BBSSettings.bannerVideo.get(), BBSSettings.bannerVideoUrl.get());
 
             if (frame != null && frame.width > 0 && frame.height > 0)
             {
@@ -400,7 +400,7 @@ public class UILandingScreen extends UIElement
 
             /* No video picked yet, or its first frame is still decoding: the slideshow stands in, and
              * a video that can't be played says why, so it isn't a mystery */
-            String problem = LoopVideo.problem(BBSSettings.bannerVideo.get());
+            String problem = LoopVideo.problem(BBSSettings.bannerVideo.get(), BBSSettings.bannerVideoUrl.get());
 
             if (problem != null)
             {

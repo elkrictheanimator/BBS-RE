@@ -104,9 +104,12 @@ public class UIBannerEditorPanel extends UIOverlayPanel
             BBSSettings.bannerFocusY.set(0.5F);
         });
 
-        UIElement column = UI.column(5, 10, this.style, image, video, removeImage,
+        UIButton bannerLink = new UIButton(IKey.constant("Dán link video banner (mp4 / YouTube)..."), (b) -> pasteBannerLink(this.getContext(), this.style));
+        UIButton backdropLink = new UIButton(IKey.constant("Dán link video nền (mp4 / YouTube)..."), (b) -> pasteWallpaperLink(this.getContext(), backdrop));
+
+        UIElement column = UI.column(5, 10, this.style, image, video, bannerLink, removeImage,
             framer, reframe,
-            startLabel, this.start, endLabel, this.end, backdrop, backdropImage, backdropVideo, hint);
+            startLabel, this.start, endLabel, this.end, backdrop, backdropImage, backdropVideo, backdropLink, hint);
 
         column.relative(this.content).xy(0, 0).w(1F).h(1F);
         this.content.add(column);
@@ -140,6 +143,7 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         UIStringOverlayPanel panel = UIStringOverlayPanel.links(IKey.constant("Chọn video nền"), UIVideoClip.getVideoLinks(), (link) ->
         {
             BBSSettings.backgroundVideo.set(link);
+            BBSSettings.backgroundVideoUrl.set("");
             BBSSettings.backdropStyle.set(4);
 
             if (style != null)
@@ -157,6 +161,7 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         UIStringOverlayPanel panel = UIStringOverlayPanel.links(IKey.constant("Chọn video banner"), UIVideoClip.getVideoLinks(), (link) ->
         {
             BBSSettings.bannerVideo.set(link);
+            BBSSettings.bannerVideoUrl.set("");
             BBSSettings.bannerStyle.set(4);
 
             if (style != null)
@@ -166,5 +171,52 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         });
 
         UIOverlay.addOverlay(context, panel.set(BBSSettings.bannerVideo.get()));
+    }
+
+    /** Paste a web address (a direct video link, or YouTube if yt-dlp is installed) for the wallpaper. */
+    public static void pasteWallpaperLink(UIContext context, UICirculate style)
+    {
+        pasteLink(context, "Link video nền", BBSSettings.backgroundVideoUrl, () ->
+        {
+            BBSSettings.backdropStyle.set(4);
+
+            if (style != null)
+            {
+                style.setValue(4);
+            }
+        });
+    }
+
+    /** Paste a web address for the banner video. */
+    public static void pasteBannerLink(UIContext context, UICirculate style)
+    {
+        pasteLink(context, "Link video banner", BBSSettings.bannerVideoUrl, () ->
+        {
+            BBSSettings.bannerStyle.set(4);
+
+            if (style != null)
+            {
+                style.setValue(4);
+            }
+        });
+    }
+
+    private static void pasteLink(UIContext context, String title, mchorse.bbs_mod.settings.values.core.ValueString value, Runnable after)
+    {
+        mchorse.bbs_mod.ui.framework.elements.overlay.UIPromptOverlayPanel panel = new mchorse.bbs_mod.ui.framework.elements.overlay.UIPromptOverlayPanel(
+            IKey.constant(title),
+            IKey.constant("Dán link .mp4 / .webm, hoặc link YouTube (cần cài yt-dlp). Để trống để bỏ link."),
+            (text) ->
+            {
+                value.set(text == null ? "" : text.trim());
+
+                if (!value.get().isEmpty())
+                {
+                    after.run();
+                }
+            });
+
+        panel.text.setText(value.get());
+        UIOverlay.addOverlay(context, panel);
     }
 }
