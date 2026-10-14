@@ -43,8 +43,9 @@ public class UILandingScreen extends UIElement
     private static final int CARD_W = 440;
     private static final int CARD_H = 360;
 
-    /** The banner is the top half of the card, exactly. */
+    /** The banner is the top half of the card by default; the setting moves that line, the rest of the card stays. */
     private static final int BANNER_H = CARD_H / 2;
+    private static final int BELOW_BANNER_H = CARD_H - BANNER_H;
     private static final int BANNER_MARGIN = 12;
     private static final int PADDING = 10;
     private static final int HEADER_H = 16;
@@ -54,8 +55,6 @@ public class UILandingScreen extends UIElement
     private static final int GROUP_GAP = 10;
 
     private static final int RECENT_X = PADDING + MENU_W + GUTTER;
-    private static final int CONTENT_Y = BANNER_H + BANNER_MARGIN;
-    private static final int LIST_Y = CONTENT_Y + HEADER_H + HEADER_MARGIN;
 
     /** Section titles sit back a little; the entries under them are what the eye is for. */
     private static final int DIMMED = Colors.setA(Colors.WHITE, 0.7F);
@@ -82,6 +81,9 @@ public class UILandingScreen extends UIElement
     private final UIElement card;
     private final UIElement banner;
     private final UIElement menu;
+    private final UILabel titleLabel;
+    private final UILabel recentLabel;
+    private int appliedBannerH = -1;
     private final UILandingRow folder;
     private final UIRecentDataList recent;
     private final String bannerVersion = getReleaseVersion();
@@ -98,10 +100,10 @@ public class UILandingScreen extends UIElement
 
         /* Centered, with the backdrop showing all around it */
         this.card = new UIElement();
-        this.card.relative(this).xy(0.5F, 0.5F).wh(CARD_W, CARD_H).anchor(0.5F);
+        this.card.relative(this).xy(0.5F, 0.5F).wh(CARD_W, bannerHeight() + BELOW_BANNER_H).anchor(0.5F);
 
         this.banner = new UIElement();
-        this.banner.relative(this.card).xy(0, 0).w(1F).h(BANNER_H);
+        this.banner.relative(this.card).xy(0, 0).w(1F).h(bannerHeight());
         this.banner.add(new UIRenderable((context) -> this.renderBanner(context, this.banner.area)));
         this.banner.add(new UIRenderable((context) -> this.renderBannerCaption(context, this.banner.area)));
 
@@ -112,13 +114,13 @@ public class UILandingScreen extends UIElement
         editBanner.relative(this.banner).x(1F, -PADDING - 20).y(PADDING).wh(20, 20);
         this.banner.add(editBanner);
 
-        UILabel title = UI.label(host.getTitle()).color(DIMMED);
+        UILabel title = this.titleLabel = UI.label(host.getTitle()).color(DIMMED);
         title.labelAnchor(0, 0.5F);
-        title.relative(this.card).xy(PADDING, CONTENT_Y).w(MENU_W).h(HEADER_H);
+        title.relative(this.card).w(MENU_W).h(HEADER_H);
 
-        UILabel recentTitle = UI.label(UIKeys.PANELS_LANDING_RECENT).color(DIMMED);
+        UILabel recentTitle = this.recentLabel = UI.label(UIKeys.PANELS_LANDING_RECENT).color(DIMMED);
         recentTitle.labelAnchor(0, 0.5F);
-        recentTitle.relative(this.card).xy(RECENT_X, CONTENT_Y).w(CARD_W - RECENT_X - PADDING).h(HEADER_H);
+        recentTitle.relative(this.card).w(CARD_W - RECENT_X - PADDING).h(HEADER_H);
 
         /* The menu: what leads into the editor first, what leads out of it after a gap */
         IKey createLabel = host.getCreateLabel();
@@ -156,10 +158,10 @@ public class UILandingScreen extends UIElement
         rows.add(wiki);
 
         this.menu = UI.column(0, rows.toArray(new UIElement[0]));
-        this.menu.relative(this.card).xy(PADDING, LIST_Y).w(MENU_W).h(1F, -(LIST_Y + PADDING));
+        this.menu.relative(this.card).w(MENU_W);
 
         this.recent = new UIRecentDataList((entries) -> this.open(entries.get(0)), host::getTabIcon);
-        this.recent.relative(this.card).xy(RECENT_X, LIST_Y).w(CARD_W - RECENT_X - PADDING).h(1F, -(LIST_Y + PADDING));
+        this.recent.relative(this.card).w(CARD_W - RECENT_X - PADDING);
         this.recent.context(this::fillRecentMenu);
 
         this.card.add(new UIRenderable((context) -> this.renderCard(context, this.card.area)));
@@ -167,7 +169,30 @@ public class UILandingScreen extends UIElement
         this.card.add(new UIRenderable(this::renderEmptyHint), this.recent);
         this.add(new UIRenderable(this::renderBackdrop), this.card);
 
+        this.layoutCard();
         this.refresh();
+    }
+
+    private static int bannerHeight()
+    {
+        return BBSSettings.bannerHeight.get();
+    }
+
+    /** Place everything under the banner for the banner's current height. */
+    private void layoutCard()
+    {
+        int banner = bannerHeight();
+        int contentY = banner + BANNER_MARGIN;
+        int listY = contentY + HEADER_H + HEADER_MARGIN;
+
+        this.appliedBannerH = banner;
+
+        this.card.wh(CARD_W, banner + BELOW_BANNER_H);
+        this.banner.h(banner);
+        this.titleLabel.xy(PADDING, contentY);
+        this.recentLabel.xy(RECENT_X, contentY);
+        this.menu.xy(PADDING, listY).h(1F, -(listY + PADDING));
+        this.recent.xy(RECENT_X, listY).h(1F, -(listY + PADDING));
     }
 
     /** The card in the middle — what a tour points at when it points at the landing screen. */
@@ -354,6 +379,12 @@ public class UILandingScreen extends UIElement
 
     private void renderBanner(UIContext context, Area area)
     {
+        if (this.appliedBannerH != bannerHeight())
+        {
+            this.layoutCard();
+            this.resize();
+        }
+
         this.bannerProblem = null;
         this.drawBanner(context, area);
 
@@ -387,7 +418,7 @@ public class UILandingScreen extends UIElement
 
         if (style == 4)
         {
-            Texture frame = LoopVideo.frame(BBSSettings.bannerVideo.get(), BBSSettings.bannerVideoUrl.get());
+            Texture frame = LoopVideo.frame(BBSSettings.bannerVideo.get(), BBSSettings.bannerVideoUrl.get(), BBSSettings.bannerVolume.get());
 
             if (frame != null && frame.width > 0 && frame.height > 0)
             {
@@ -457,7 +488,7 @@ public class UILandingScreen extends UIElement
     /** The aspect of the banner on a card of the default size. */
     public static float defaultBannerAspect()
     {
-        return (float) CARD_W / BANNER_H;
+        return (float) CARD_W / bannerHeight();
     }
 
     /**

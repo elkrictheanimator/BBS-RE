@@ -11,6 +11,7 @@ import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UICirculate;
 import mchorse.bbs_mod.ui.framework.elements.input.UIColor;
+import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
 import mchorse.bbs_mod.ui.framework.elements.input.UITexturePicker;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
@@ -107,8 +108,20 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         UIButton bannerLink = new UIButton(IKey.constant("Dán link video banner (mp4 / YouTube)..."), (b) -> pasteBannerLink(this.getContext(), this.style));
         UIButton backdropLink = new UIButton(IKey.constant("Dán link video nền (mp4 / YouTube)..."), (b) -> pasteWallpaperLink(this.getContext(), backdrop));
 
+        UILabel heightLabel = UI.label(IKey.constant("Chiều cao banner"));
+        UITrackpad height = new UITrackpad((v) -> BBSSettings.bannerHeight.set(v.intValue()));
+
+        height.limit(BBSSettings.bannerHeight).integer();
+        height.setValue(BBSSettings.bannerHeight.get());
+
+        UILabel volumeLabel = UI.label(IKey.constant("Âm lượng video banner (0 = tắt tiếng)"));
+        UITrackpad volume = new UITrackpad((v) -> BBSSettings.bannerVolume.set(v.floatValue()));
+
+        volume.limit(0, 1);
+        volume.setValue(BBSSettings.bannerVolume.get());
+
         UIElement column = UI.column(5, 10, this.style, image, video, bannerLink, removeImage,
-            framer, reframe,
+            heightLabel, height, volumeLabel, volume, framer, reframe,
             startLabel, this.start, endLabel, this.end, backdrop, backdropImage, backdropVideo, backdropLink, hint);
 
         column.relative(this.content).xy(0, 0).w(1F).h(1F);

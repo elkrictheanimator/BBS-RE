@@ -6,15 +6,22 @@ import mchorse.bbs_mod.graphics.texture.Texture;
 import mchorse.bbs_mod.resources.Link;
 import mchorse.bbs_mod.utils.FFMpegUtils;
 import org.lwjgl.opengl.GL11;
+
 import org.lwjgl.opengl.GL13;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.SourceDataLine;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,9 +61,14 @@ public class LoopVideo
     private Texture texture;
 
     private volatile boolean running;
+    private volatile boolean restart;
     private volatile long lastUsed;
     private volatile long failedAt;
     private volatile String error;
+
+    /* The sound of the video: 0 keeps it silent (and undecoded) */
+    private volatile float volume;
+    private volatile boolean audioOn;
 
     /** The shared decoder of a video; null when the link doesn't point at a file. */
     public static LoopVideo get(Link link)
@@ -91,9 +103,22 @@ public class LoopVideo
 
     public static Texture frame(Link link, String url)
     {
+        return frame(link, url, 0F);
+    }
+
+    /** Same, and the video's sound plays at the given volume (0..1) while the frames are being asked for. */
+    public static Texture frame(Link link, String url, float volume)
+    {
         LoopVideo video = get(link, url);
 
-        return video == null ? null : video.getFrame();
+        if (video == null)
+        {
+            return null;
+        }
+
+        video.volume = Math.max(0F, Math.min(1F, volume));
+
+        return video.getFrame();
     }
 
     public static String problem(Link link, String url)
@@ -192,6 +217,12 @@ public class LoopVideo
 
         this.lastUsed = now;
 
+        /* Sound switched on while the decoder runs without it: start over, with it */
+        if (this.running && this.volume > 0F && !this.audioOn)
+        {
+            this.restart = true;
+        }
+
         if (!this.running && (this.error == null || now - this.failedAt > RETRY_NANOS))
         {
             this.start();
@@ -212,6 +243,7 @@ public class LoopVideo
     private void start()
     {
         this.running = true;
+        this.restart = false;
         this.error = null;
 
         Thread thread = new Thread(this::run, "BBS Background Video");
@@ -276,22 +308,50 @@ public class LoopVideo
                 }
             }
 
-            ProcessBuilder builder = new ProcessBuilder(
-                ffmpeg, "-hide_banner", "-loglevel", "quiet",
+            /* The sound rides the same process, on its error pipe, so it can't drift from the picture */
+            boolean audio = this.volume > 0F;
+            List<String> command = new ArrayList<>(Arrays.asList(
+                ffmpeg, "-hide_banner", "-loglevel", "quiet", "-nostdin",
                 "-re", "-stream_loop", "-1", "-i", input,
-                "-an", "-sn", "-dn",
+                "-sn", "-dn", "-map", "0:v:0",
                 "-vf", "fps=" + FPS + ",scale=" + w + ":" + h,
                 "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1"
-            );
+            ));
 
-            builder.redirectError(ProcessBuilder.Redirect.DISCARD);
+            if (audio)
+            {
+                command.addAll(Arrays.asList("-map", "0:a:0?", "-vn", "-ac", "2", "-ar", "44100", "-f", "s16le", "pipe:2"));
+            }
+            else
+            {
+                command.add(command.indexOf("-sn"), "-an");
+            }
 
-            process = builder.start();
+            ProcessBuilder builder = new ProcessBuilder(command);
+
+            if (!audio)
+            {
+                builder.redirectError(ProcessBuilder.Redirect.DISCARD);
+            }
+
+            this.audioOn = audio;
+
+            Process started = builder.start();
+
+            process = started;
+
+            if (audio)
+            {
+                Thread sound = new Thread(() -> this.playSound(started.getErrorStream()), "BBS Background Video Sound");
+
+                sound.setDaemon(true);
+                sound.start();
+            }
 
             ReadableByteChannel channel = Channels.newChannel(process.getInputStream());
             int frames = 0;
 
-            while (System.nanoTime() - this.lastUsed < IDLE_NANOS)
+            while (!this.restart && System.nanoTime() - this.lastUsed < IDLE_NANOS)
             {
                 scratch.clear();
 
@@ -332,12 +392,60 @@ public class LoopVideo
                 process.destroy();
             }
 
+            this.audioOn = false;
+
             if (this.error != null)
             {
                 this.failedAt = System.nanoTime();
             }
 
             this.running = false;
+        }
+    }
+
+    /** Plays the raw sound ffmpeg sends until the stream ends (the process being killed closes it). */
+    private void playSound(InputStream stream)
+    {
+        SourceDataLine line = null;
+
+        try
+        {
+            AudioFormat format = new AudioFormat(44100F, 16, 2, true, false);
+
+            line = AudioSystem.getSourceDataLine(format);
+            line.open(format, 44100 / 2);
+            line.start();
+
+            byte[] bytes = new byte[4096];
+            int read;
+
+            while ((read = stream.read(bytes)) > 0)
+            {
+                float volume = this.volume;
+
+                /* Volume is applied to the samples, so it follows the slider at once */
+                for (int i = 0; i + 1 < read; i += 2)
+                {
+                    short sample = (short) ((bytes[i] & 0xFF) | (bytes[i + 1] << 8));
+
+                    sample = (short) (sample * volume * volume);
+                    bytes[i] = (byte) sample;
+                    bytes[i + 1] = (byte) (sample >> 8);
+                }
+
+                line.write(bytes, 0, read - (read % 4));
+            }
+        }
+        catch (Exception e)
+        {
+            /* No sound device, or none that takes this format: the picture goes on without it */
+        }
+        finally
+        {
+            if (line != null)
+            {
+                line.close();
+            }
         }
     }
 
