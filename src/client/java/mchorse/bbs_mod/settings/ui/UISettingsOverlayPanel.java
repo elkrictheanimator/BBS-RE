@@ -257,6 +257,7 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
         backdrop.setValue(BBSSettings.backdropStyle.get());
 
         UIButton video = new UIButton(IKey.constant("Nền video: chọn video..."), (b) -> UIBannerEditorPanel.pickWallpaperVideo(b.getContext(), backdrop));
+        UIButton link = new UIButton(IKey.constant("Nền video: dán link (mp4 / YouTube)..."), (b) -> UIBannerEditorPanel.pasteWallpaperLink(b.getContext(), backdrop));
         UIButton image = new UIButton(IKey.constant("Nền ảnh: chọn ảnh / GIF..."), (b) -> UIBannerEditorPanel.pickBackdropImage(b.getContext(), backdrop));
         UIButton folder = new UIButton(IKey.constant("Mở thư mục video"), (b) ->
         {
@@ -268,7 +269,7 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
         UIButton banner = new UIButton(IKey.constant("Chỉnh banner (ảnh, video, vị trí, màu)..."), (b) ->
             UIOverlay.addOverlay(b.getContext(), new UIBannerEditorPanel(UILandingScreen.defaultBannerAspect()), 280, 400));
 
-        this.options.add(backdrop, video, image, folder, banner);
+        this.options.add(backdrop, video, link, image, folder, banner);
     }
 
     private void appendValues(ValueGroup category, boolean filtered)

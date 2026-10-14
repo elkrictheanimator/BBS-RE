@@ -8,7 +8,7 @@ import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.resources.Link;
 import mchorse.bbs_mod.settings.values.core.ValueRecentData.Entry;
 import mchorse.bbs_mod.ui.UIKeys;
-import mchorse.bbs_mod.ui.dashboard.Wallpaper;
+import mchorse.bbs_mod.video.LoopVideo;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
@@ -85,6 +85,9 @@ public class UILandingScreen extends UIElement
     private final UILandingRow folder;
     private final UIRecentDataList recent;
     private final String bannerVersion = getReleaseVersion();
+
+    /** Why the banner's video isn't playing, shown over the banner until it does */
+    private String bannerProblem;
 
     /** Ids the repository reported last; null until it answered, when nothing is filtered out. */
     private Set<String> known;
@@ -351,6 +354,20 @@ public class UILandingScreen extends UIElement
 
     private void renderBanner(UIContext context, Area area)
     {
+        this.bannerProblem = null;
+        this.drawBanner(context, area);
+
+        if (this.bannerProblem != null)
+        {
+            int w = Math.max(10, area.w - 16);
+            String text = context.batcher.getFont().limitToWidth(this.bannerProblem, w);
+
+            context.batcher.textCard(text, area.x + 8, area.ey() - 18, Colors.WHITE, 0xaa000000);
+        }
+    }
+
+    private void drawBanner(UIContext context, Area area)
+    {
         int style = BBSSettings.bannerStyle.get();
 
         if (style == 3)
@@ -370,7 +387,7 @@ public class UILandingScreen extends UIElement
 
         if (style == 4)
         {
-            Texture frame = Wallpaper.frame(this, BBSSettings.bannerVideo.get());
+            Texture frame = LoopVideo.frame(BBSSettings.bannerVideo.get(), BBSSettings.bannerVideoUrl.get());
 
             if (frame != null && frame.width > 0 && frame.height > 0)
             {
@@ -381,7 +398,15 @@ public class UILandingScreen extends UIElement
                 return;
             }
 
-            /* No video picked yet, or its first frame is still decoding: the slideshow stands in */
+            /* No video picked yet, or its first frame is still decoding: the slideshow stands in, and
+             * a video that can't be played says why, so it isn't a mystery */
+            String problem = LoopVideo.problem(BBSSettings.bannerVideo.get(), BBSSettings.bannerVideoUrl.get());
+
+            if (problem != null)
+            {
+                this.bannerProblem = problem;
+            }
+
             style = 0;
         }
 
