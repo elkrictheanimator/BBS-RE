@@ -250,6 +250,10 @@ public class LoopVideo
         this.restart = false;
         this.error = null;
 
+        /* Decided here, before the slow part (probing, yt-dlp), so asking for frames meanwhile
+         * doesn't take the sound for "switched on later" and restart the decoder forever */
+        this.audioOn = this.volume > 0F;
+
         Thread thread = new Thread(this::run, "BBS Background Video");
 
         thread.setDaemon(true);
@@ -314,7 +318,7 @@ public class LoopVideo
             }
 
             /* The sound rides the same process, on its error pipe, so it can't drift from the picture */
-            boolean audio = this.volume > 0F;
+            boolean audio = this.audioOn;
             List<String> command = new ArrayList<>(Arrays.asList(
                 ffmpeg, "-hide_banner", "-loglevel", "quiet", "-nostdin",
                 "-re", "-stream_loop", "-1", "-i", input,
@@ -338,8 +342,6 @@ public class LoopVideo
             {
                 builder.redirectError(ProcessBuilder.Redirect.DISCARD);
             }
-
-            this.audioOn = audio;
 
             Process started = builder.start();
 
