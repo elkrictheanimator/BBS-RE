@@ -26,14 +26,21 @@ public class Wallpaper
     /** The wallpaper's frame right now, or null when none is set or it hasn't decoded yet. */
     public static Texture frame()
     {
-        Link link = BBSSettings.backgroundVideo.get();
+        return frame(OWNER, BBSSettings.backgroundVideo.get());
+    }
 
+    /**
+     * The current frame of any video on the shared clock; each owner keeps its own decoder. The
+     * landing banner plays its video this way, next to the wallpaper.
+     */
+    public static Texture frame(Object owner, Link link)
+    {
         if (link == null)
         {
             return null;
         }
 
-        VideoPlayer player = BBSModClient.getVideos().getPlayer(OWNER, link);
+        VideoPlayer player = BBSModClient.getVideos().getPlayer(owner, link);
 
         if (player == null)
         {

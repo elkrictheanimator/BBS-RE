@@ -40,6 +40,7 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         this.style.addLabel(IKey.constant("Kiểu: Gradient dọc"));
         this.style.addLabel(IKey.constant("Kiểu: Gradient ngang"));
         this.style.addLabel(IKey.constant("Kiểu: Ảnh của bạn"));
+        this.style.addLabel(IKey.constant("Kiểu: Video của bạn"));
         this.style.setValue(BBSSettings.bannerStyle.get());
 
         this.start = new UIColor((c) -> BBSSettings.bannerColorStart.set(c & Colors.RGB));
@@ -64,6 +65,8 @@ public class UIBannerEditorPanel extends UIOverlayPanel
                 this.style.setValue(3);
             });
         });
+
+        UIButton video = new UIButton(IKey.constant("Chọn video banner..."), (b) -> pickBannerVideo(this.getContext(), this.style));
 
         UIButton removeImage = new UIButton(IKey.constant("Bỏ ảnh banner"), (b) ->
         {
@@ -101,7 +104,7 @@ public class UIBannerEditorPanel extends UIOverlayPanel
             BBSSettings.bannerFocusY.set(0.5F);
         });
 
-        UIElement column = UI.column(5, 10, this.style, image, removeImage,
+        UIElement column = UI.column(5, 10, this.style, image, video, removeImage,
             framer, reframe,
             startLabel, this.start, endLabel, this.end, backdrop, backdropImage, backdropVideo, hint);
 
@@ -146,5 +149,22 @@ public class UIBannerEditorPanel extends UIOverlayPanel
         });
 
         UIOverlay.addOverlay(context, panel.set(BBSSettings.backgroundVideo.get()));
+    }
+
+    /** Pick the video the banner plays (any video in the assets/video folder) and switch the banner to it. */
+    public static void pickBannerVideo(UIContext context, UICirculate style)
+    {
+        UIStringOverlayPanel panel = UIStringOverlayPanel.links(IKey.constant("Chọn video banner"), UIVideoClip.getVideoLinks(), (link) ->
+        {
+            BBSSettings.bannerVideo.set(link);
+            BBSSettings.bannerStyle.set(4);
+
+            if (style != null)
+            {
+                style.setValue(4);
+            }
+        });
+
+        UIOverlay.addOverlay(context, panel.set(BBSSettings.bannerVideo.get()));
     }
 }

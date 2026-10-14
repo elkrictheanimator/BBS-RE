@@ -50,6 +50,7 @@ public class BBSSettings {
 	public static ValueInt bannerColorStart;
 	public static ValueInt bannerColorEnd;
 	public static ValueLink bannerImage;
+	public static ValueLink bannerVideo;
 	/** What the landing screen sits on: 0 animated lights, 1 gradient, 2 the plain 2.5.2 background, 3 the user's own picture or GIF, 4 the video wallpaper */
 	public static ValueInt backdropStyle;
 	public static ValueLink backdropImage;
@@ -708,7 +709,7 @@ public class BBSSettings {
 		primaryColor = builder.getInt("primary_color", DEFAULT_PRIMARY_COLOR).color();
 		secondaryColor = builder.getInt("secondary_color", DEFAULT_SECONDARY_COLOR).color();
 		/* Edited from the pencil on the landing screen banner, not from the settings list */
-		bannerStyle = builder.getInt("banner_style", 0, 0, 3);
+		bannerStyle = builder.getInt("banner_style", 0, 0, 4);
 		bannerColorStart = builder.getInt("banner_color_start", 0x1b2a4e);
 		bannerColorEnd = builder.getInt("banner_color_end", 0x8a3ffc);
 		bannerStyle.invisible();
@@ -719,10 +720,10 @@ public class BBSSettings {
 		backdropImage = builder.getRL("backdrop_image", null);
 		backdropImage.invisible();
 		backgroundVideo = builder.getRL("background_video", null);
-		videoEverywhere = builder.getBoolean("video_everywhere", false);
 		backgroundVideo.invisible();
-		videoEverywhere.invisible();
 		bannerImage.invisible();
+		bannerVideo = builder.getRL("banner_video", null);
+		bannerVideo.invisible();
 		backdropStyle.invisible();
 		bannerFocusX = builder.getFloat("banner_focus_x", 0.5F, 0F, 1F);
 		bannerFocusY = builder.getFloat("banner_focus_y", 0.5F, 0F, 1F);
@@ -882,8 +883,12 @@ public class BBSSettings {
 		editorMinutesBackup = builder.getBoolean("minutes_backup", true);
 		editorKeepFrameOnExit = builder.getBoolean("keep_frame_on_exit", false);
 		editorClipAutoName = builder.getBoolean("clip_auto_name", true);
+
+		/* The features that are this build's own, in one place */
+		builder.category("re", Icons.FAVORITE);
 		classicTrackOrder = builder.getBoolean("classic_track_order", true);
 		armSwing = builder.getFloat("arm_swing", 1F, 0F, 1F).slider();
+		videoEverywhere = builder.getBoolean("video_everywhere", false);
 
 		builder.category("recording", Icons.FILM);
 		recordingCountdown = builder.getFloat("countdown", 1.5F, 0F, 30F);
