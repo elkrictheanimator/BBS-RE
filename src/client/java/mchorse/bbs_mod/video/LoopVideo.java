@@ -282,6 +282,7 @@ public class LoopVideo
     private void run()
     {
         Process process = null;
+        Process audioProcess = null;
 
         try
         {
@@ -317,42 +318,41 @@ public class LoopVideo
                 }
             }
 
-            /* The sound rides the same process, on its error pipe, so it can't drift from the picture */
-            boolean audio = this.audioOn;
-            List<String> command = new ArrayList<>(Arrays.asList(
+            ProcessBuilder builder = new ProcessBuilder(
                 ffmpeg, "-hide_banner", "-loglevel", "quiet", "-nostdin",
                 "-re", "-stream_loop", "-1", "-i", input,
-                "-sn", "-dn", "-map", "0:v:0",
+                "-an", "-sn", "-dn",
                 "-vf", "fps=" + this.fps + ",scale=" + w + ":" + h + ":flags=fast_bilinear",
                 "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1"
-            ));
+            );
 
-            if (audio)
-            {
-                command.addAll(Arrays.asList("-map", "0:a:0?", "-vn", "-ac", "2", "-ar", "44100", "-f", "s16le", "pipe:2"));
-            }
-            else
-            {
-                command.add(command.indexOf("-sn"), "-an");
-            }
-
-            ProcessBuilder builder = new ProcessBuilder(command);
-
-            if (!audio)
-            {
-                builder.redirectError(ProcessBuilder.Redirect.DISCARD);
-            }
+            builder.redirectError(ProcessBuilder.Redirect.DISCARD);
 
             Process started = builder.start();
 
             process = started;
 
-            if (audio)
+            /* The sound is its own process, started at the same moment and paced by the same clock:
+             * a video without sound just makes it end at once, and the picture never waits for it */
+            if (this.audioOn)
             {
-                Thread sound = new Thread(() -> this.playSound(started.getErrorStream()), "BBS Background Video Sound");
+                ProcessBuilder sound = new ProcessBuilder(
+                    ffmpeg, "-hide_banner", "-loglevel", "quiet", "-nostdin",
+                    "-re", "-stream_loop", "-1", "-i", input,
+                    "-vn", "-sn", "-dn", "-map", "0:a:0?",
+                    "-ac", "2", "-ar", "44100", "-f", "s16le", "pipe:1"
+                );
 
-                sound.setDaemon(true);
-                sound.start();
+                sound.redirectError(ProcessBuilder.Redirect.DISCARD);
+
+                Process soundProcess = sound.start();
+
+                audioProcess = soundProcess;
+
+                Thread thread = new Thread(() -> this.playSound(soundProcess.getInputStream()), "BBS Background Video Sound");
+
+                thread.setDaemon(true);
+                thread.start();
             }
 
             ReadableByteChannel channel = Channels.newChannel(process.getInputStream());
@@ -397,6 +397,11 @@ public class LoopVideo
             if (process != null)
             {
                 process.destroy();
+            }
+
+            if (audioProcess != null)
+            {
+                audioProcess.destroy();
             }
 
             this.audioOn = false;
