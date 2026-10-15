@@ -125,6 +125,25 @@ public class OBJParser
     }
 
     /**
+     * The file name of a {@code map_Kd} line: the options in front of it ({@code -s 1 1 1}, {@code -o ...}) are
+     * skipped, and a name with spaces in it stays whole. Null when the line names nothing.
+     */
+    private static String mapFileName(String[] tokens)
+    {
+        if (tokens.length < 2)
+        {
+            return null;
+        }
+
+        if (!tokens[1].startsWith("-"))
+        {
+            return String.join(" ", dropFirstArgument(tokens));
+        }
+
+        return tokens[tokens.length - 1];
+    }
+
+    /**
      * Read materials from MTL file. This method isn't necessarily will
      * read any materials because MTL file is optional
      */
@@ -162,9 +181,10 @@ public class OBJParser
                 material.b = Float.parseFloat(tokens[3]);
             }
             /* Read texture */
-            else if (first.equals("map_Kd"))
+            else if (first.equals("map_Kd") && material != null)
             {
                 material.useTexture = true;
+                material.mapKd = mapFileName(tokens);
             }
             else if (first.equals("map_Kd_linear"))
             {

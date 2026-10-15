@@ -178,6 +178,12 @@ public class CubicModelLoader implements IModelLoader
 
             Link texture = IModelLoader.findMaterialTexture(links, model, material.name);
 
+            /* No folder for it: the picture the .mtl names, so a model exported with its textures works as it is */
+            if (texture == null)
+            {
+                texture = IModelLoader.findMapTexture(links, model, material.mapKd);
+            }
+
             if (texture == null)
             {
                 /* No texture yet: surface an empty folder for it and render the flat Kd color meanwhile. */
