@@ -79,6 +79,47 @@ public interface IModelLoader
     }
 
     /**
+     * The picture an OBJ's .mtl names for a material ({@code map_Kd car_body.png}), found anywhere under the
+     * model's folder by its file name alone: the path in the .mtl is whatever the exporting program's machine
+     * had, so only the name is trusted, and a .jpg / .tga named there matches the .png of the same name
+     * (the textures here are PNGs). Null when no such file is in the model.
+     */
+    public static Link findMapTexture(Collection<Link> links, Link model, String mapKd)
+    {
+        if (mapKd == null || mapKd.trim().isEmpty())
+        {
+            return null;
+        }
+
+        String name = mapKd.trim().replace('\\', '/');
+
+        name = name.substring(name.lastIndexOf('/') + 1);
+
+        int dot = name.lastIndexOf('.');
+        String wanted = (dot > 0 ? name.substring(0, dot) : name).toLowerCase();
+        String prefix = model.toString();
+
+        for (Link link : links)
+        {
+            String string = link.toString();
+
+            if (!string.startsWith(prefix) || !string.toLowerCase().endsWith(".png"))
+            {
+                continue;
+            }
+
+            String file = string.substring(string.lastIndexOf('/') + 1);
+
+            if (file.substring(0, file.length() - 4).toLowerCase().equals(wanted))
+            {
+                return link;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Create an empty {@code <model>/textures/<material>/} folder so a model loaded without textures
      * surfaces a per-material folder the user can drop textures into (picked up on the next load).
      * No-op when the model's source can't provide files.
