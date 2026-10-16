@@ -30,6 +30,7 @@ public class UIBodyPartEditor extends UIScrollView
 {
     public UIButton pick;
     public UIToggle useTarget;
+    public UIToggle attach;
     public UIBonePicker bone;
     public UIIconToggles inherit;
     public UIPropTransform transform;
@@ -81,6 +82,18 @@ public class UIBodyPartEditor extends UIScrollView
             if (this.part != null)
             {
                 this.useTarget.setValue(this.part.useTarget.get());
+            }
+        });
+
+        this.attach = new UIToggle(UIKeys.ATTACH_TOGGLE, (b) ->
+        {
+            this.part.attach.set(b.getValue());
+        });
+        this.attach.valueBinding(() ->
+        {
+            if (this.part != null)
+            {
+                this.attach.setValue(this.part.attach.get());
             }
         });
 
@@ -184,7 +197,7 @@ public class UIBodyPartEditor extends UIScrollView
          * where there is a bone to attach to at all — the same condition the picker has. */
         if (!FormUtilsClient.getBones(form).isEmpty())
         {
-            this.add(this.pick, this.bone, this.inherit.labelRow(UIKeys.INHERIT_TITLE), this.useTarget, this.transform);
+            this.add(this.pick, this.bone, this.attach, this.inherit.labelRow(UIKeys.INHERIT_TITLE), this.useTarget, this.transform);
         }
         else
         {

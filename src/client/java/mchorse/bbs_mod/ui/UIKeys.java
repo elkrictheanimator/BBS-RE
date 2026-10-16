@@ -1771,6 +1771,7 @@ public class UIKeys
     public static final IKey INHERIT_POSITION = L10n.lang("bbs.ui.inherit.position");
     public static final IKey INHERIT_ROTATION = L10n.lang("bbs.ui.inherit.rotation");
     public static final IKey INHERIT_SCALE = L10n.lang("bbs.ui.inherit.scale");
+    public static final IKey ATTACH_TOGGLE = L10n.lang("bbs.ui.attach.toggle");
     public static final IKey INHERIT_TITLE = L10n.lang("bbs.ui.inherit.title");
     public static final IKey TRANSFORMS_SCALE = L10n.lang("bbs.ui.transforms.scale");
     public static final IKey TRANSFORMS_TRANSLATE = L10n.lang("bbs.ui.transforms.translate");
