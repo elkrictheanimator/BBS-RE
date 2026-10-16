@@ -1366,6 +1366,7 @@
 	"bbs.ui.inherit.position": "Inherit position",
 	"bbs.ui.inherit.rotation": "Inherit rotation",
 	"bbs.ui.inherit.scale": "Inherit scale",
+	"bbs.ui.attach.toggle": "Attach to bone",
 	"bbs.ui.inherit.title": "Inherit",
 	"bbs.ui.item_stack.context.give": "Give to player",
 	"bbs.ui.item_stack.context.reset": "Reset item stack",

@@ -1140,5 +1140,6 @@
     "studio.ui.utility.reload_terrain": "Địa hình",
     "studio.ui.utility.reload_textures": "texture",
     "studio.ui.utility.resize": "Thay đổi kích thước cửa sổ",
-    "studio.ui.utility.title": "Bảng tiện ích"
+    "studio.ui.utility.title": "Bảng tiện ích",
+	"bbs.ui.attach.toggle": "Gắn vào xương"
 }

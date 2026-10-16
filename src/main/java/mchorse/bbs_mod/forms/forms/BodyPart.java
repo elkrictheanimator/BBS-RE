@@ -37,6 +37,12 @@ public class BodyPart extends ValueGroup
      * without turning with it, a label that follows the head without tilting, a form that keeps its
      * size on a bone the pose stretched.
      */
+    /**
+     * Master switch of the attachment: off, the part ignores its bone altogether and stays on the
+     * parent form's own frame, so it no longer follows the bone's animation. The chosen bone is kept,
+     * so switching back on re-attaches it.
+     */
+    public final ValueBoolean attach = new ValueBoolean("attach", true);
     public final ValueBoolean inheritPosition = new ValueBoolean("inheritPosition", true);
     public final ValueBoolean inheritRotation = new ValueBoolean("inheritRotation", true);
     public final ValueBoolean inheritScale = new ValueBoolean("inheritScale", true);
@@ -50,6 +56,7 @@ public class BodyPart extends ValueGroup
         this.add(this.transform);
         this.add(this.bone);
         this.add(this.useTarget);
+        this.add(this.attach);
         this.add(this.inheritPosition);
         this.add(this.inheritRotation);
         this.add(this.inheritScale);
@@ -73,6 +80,11 @@ public class BodyPart extends ValueGroup
      */
     public Matrix4f filterBoneMatrix(Matrix4f matrix)
     {
+        if (matrix != null && !this.attach.get())
+        {
+            return new Matrix4f(NO_BONE);
+        }
+
         if (matrix == null || this.inheritsWholeBone())
         {
             return matrix;
