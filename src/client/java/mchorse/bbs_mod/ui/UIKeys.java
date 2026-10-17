@@ -1203,6 +1203,7 @@ public class UIKeys
     public static final IKey MODEL_EDITOR_ARMOR_LEFT_BOOT = L10n.lang("bbs.ui.model_editor.armor.left_boot");
     public static final IKey MODEL_EDITOR_ARMOR_RIGHT_BOOT = L10n.lang("bbs.ui.model_editor.armor.right_boot");
     public static final IKey MODEL_EDITOR_FIRST_PERSON = L10n.lang("bbs.ui.model_editor.first_person");
+    public static final IKey POSE_DETACH = L10n.lang("bbs.ui.pose.detach");
     public static final IKey MODEL_EDITOR_BONE_VISIBLE = L10n.lang("bbs.ui.model_editor.bone.visible");
     public static final IKey MODEL_EDITOR_BONE_MIRROR = L10n.lang("bbs.ui.model_editor.bone.mirror");
     public static final IKey MODEL_EDITOR_BONE_PICKING = L10n.lang("bbs.ui.model_editor.bone.picking");

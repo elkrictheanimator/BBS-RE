@@ -226,6 +226,12 @@ public class UIPoseKeyframeFactory extends UIKeyframeFactory<Pose>
         }
 
         @Override
+        protected void setDetach(PoseTransform transform, boolean value)
+        {
+            apply(this.editor, this.keyframe, this.getGroup(transform), (poseT) -> poseT.detach = value);
+        }
+
+        @Override
         protected void setBoneVisible(PoseTransform transform, boolean value)
         {
             apply(this.editor, this.keyframe, this.getGroup(transform), (poseT) -> poseT.visible = value);

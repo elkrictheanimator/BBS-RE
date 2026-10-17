@@ -52,6 +52,7 @@ public class UIPoseEditor extends UIElement
     public UIBoneList groups;
     public UISliderTrackpad fix;
     public UIToggle boneVisible;
+    public UIToggle detach;
     public UIColor color;
     public UIColor overlay;
     public UISliderTrackpad lighting;
@@ -105,6 +106,19 @@ public class UIPoseEditor extends UIElement
             boolean visible = this.boneVisible.getValue();
 
             this.applyChildren((pt) -> this.setBoneVisible(pt, visible));
+        }));
+        this.detach = new UIToggle(UIKeys.POSE_DETACH, false, (toggle) ->
+        {
+            boolean detached = toggle.getValue();
+
+            this.forEachSelectedPose((pt) -> this.setDetach(pt, detached));
+            this.detach.setValue(detached);
+        });
+        this.detach.context((menu) -> menu.action(Icons.DOWNLOAD, UIKeys.POSE_CONTEXT_APPLY, () ->
+        {
+            boolean detached = this.detach.getValue();
+
+            this.applyChildren((pt) -> this.setDetach(pt, detached));
         }));
         this.fix = new UISliderTrackpad((v) -> this.applyFixToSelection(v.floatValue()));
         this.fix.limit(0D, 1D).increment(0.1D).values(0.1, 0.05D, 0.2D);
@@ -197,8 +211,9 @@ public class UIPoseEditor extends UIElement
 
         /* Every row rides the same labelRow grid, so the trackpads and colour swatches pin to one
          * divider column and the names never truncate. */
-        UIElement[] fields = this.poseOnly ? new UIElement[] {this.boneVisible, this.transform, this.categorySection} : new UIElement[] {
+        UIElement[] fields = this.poseOnly ? new UIElement[] {this.boneVisible, this.detach, this.transform, this.categorySection} : new UIElement[] {
             this.boneVisible,
+            this.detach,
             UI.labelRow(UIKeys.POSE_CONTEXT_FIX, this.fix),
             this.transform,
             this.material,
@@ -371,6 +386,7 @@ public class UIPoseEditor extends UIElement
 
         this.fix.setVisible(hasBones);
         this.boneVisible.setVisible(hasBones);
+        this.detach.setVisible(hasBones);
         this.transform.setVisible(hasBones);
         this.material.setVisible(hasBones);
         this.categorySection.setVisible(hasBones);
@@ -618,6 +634,7 @@ public class UIPoseEditor extends UIElement
             this.boneSelection().set("");
             this.fix.setValue(0F);
             this.boneVisible.setValue(true);
+            this.detach.setValue(false);
             this.color.setColor(Colors.WHITE);
             this.overlay.setColor(0x00ffffff);
             this.lighting.setValue(0F);
@@ -634,6 +651,7 @@ public class UIPoseEditor extends UIElement
 
         this.fix.setValue(poseTransform.fix);
         this.boneVisible.setValue(poseTransform.visible);
+        this.detach.setValue(poseTransform.detach);
         this.color.setColor(poseTransform.color.getARGBColor());
         this.overlay.setColor(poseTransform.overlay.getARGBColor());
         this.lighting.setValue(poseTransform.lighting);
@@ -833,6 +851,11 @@ public class UIPoseEditor extends UIElement
     protected void setFix(PoseTransform transform, float value)
     {
         transform.fix = value;
+    }
+
+    protected void setDetach(PoseTransform transform, boolean value)
+    {
+        transform.detach = value;
     }
 
     protected void setColor(PoseTransform transform, int value)
