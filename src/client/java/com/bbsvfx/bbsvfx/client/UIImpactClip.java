@@ -72,6 +72,11 @@ public class UIImpactClip extends UIClip<ImpactClip>
     public UITrackpad cutOffset;
     public UITrackpad cutShift;
     public UITrackpad cutWidth;
+    public UITrackpad cutCount;
+    public UITrackpad cutAngleStep;
+    public UITrackpad cutOffsetStep;
+    public UITrackpad cutScatter;
+    public UITrackpad cutSeed;
     public UIColor cutColor;
 
     public UITrackpad shapes;
@@ -310,6 +315,21 @@ public class UIImpactClip extends UIClip<ImpactClip>
         this.cutWidth = new UITrackpad((value) -> this.clip.cutWidth.set(value.floatValue()));
         this.cutWidth.limit(0F, 0.05F).tooltip(IKey.constant("Cut line thickness"));
 
+        this.cutCount = new UITrackpad((value) -> this.clip.cutCount.set(value.floatValue()));
+        this.cutCount.limit(1F, 8F, true).tooltip(IKey.constant("How many cut lines"));
+
+        this.cutAngleStep = new UITrackpad((value) -> this.clip.cutAngleStep.set(value.floatValue()));
+        this.cutAngleStep.limit(-180F, 180F).tooltip(IKey.constant("Each next line turns by this angle"));
+
+        this.cutOffsetStep = new UITrackpad((value) -> this.clip.cutOffsetStep.set(value.floatValue()));
+        this.cutOffsetStep.limit(-0.5F, 0.5F).tooltip(IKey.constant("Each next line moves sideways by this much"));
+
+        this.cutScatter = new UITrackpad((value) -> this.clip.cutScatter.set(value.floatValue()));
+        this.cutScatter.limit(0F, 1F).tooltip(IKey.constant("Random spread of angle and position per line"));
+
+        this.cutSeed = new UITrackpad((value) -> this.clip.cutSeed.set(value.floatValue()));
+        this.cutSeed.limit(0F, 100F, true).tooltip(IKey.constant("Re-roll the random layout"));
+
         this.cutColor = new UIColor((c) -> this.clip.cutColor.set(c)).noLabel();
         this.cutColor.tooltip(IKey.constant("Cut line colour"));
 
@@ -410,6 +430,8 @@ public class UIImpactClip extends UIClip<ImpactClip>
             IKey.constant("Cut lines (slash that splits the frame)"),
             UI.row(this.cut, this.cutAngle, this.cutOffset),
             UI.row(this.cutShift, this.cutWidth),
+            UI.row(this.cutCount, this.cutAngleStep, this.cutOffsetStep),
+            UI.row(this.cutScatter, this.cutSeed),
             UI.row(this.cutColor)
         ));
 
@@ -490,6 +512,11 @@ public class UIImpactClip extends UIClip<ImpactClip>
         this.cutOffset.setValue(this.clip.cutOffset.get());
         this.cutShift.setValue(this.clip.cutShift.get());
         this.cutWidth.setValue(this.clip.cutWidth.get());
+        this.cutCount.setValue(this.clip.cutCount.get());
+        this.cutAngleStep.setValue(this.clip.cutAngleStep.get());
+        this.cutOffsetStep.setValue(this.clip.cutOffsetStep.get());
+        this.cutScatter.setValue(this.clip.cutScatter.get());
+        this.cutSeed.setValue(this.clip.cutSeed.get());
         this.cutColor.setColor(this.clip.cutColor.get());
 
         this.shapes.setValue(this.clip.shapes.get());

@@ -195,6 +195,11 @@ public final class BbsVfxImpactShader
         program.getUniformOrDefault("CutOffset").set(BbsVfxImpactState.cutOffset);
         program.getUniformOrDefault("CutShift").set(BbsVfxImpactState.cutShift);
         program.getUniformOrDefault("CutWidth").set(BbsVfxImpactState.cutWidth);
+        program.getUniformOrDefault("CutCount").set(BbsVfxImpactState.cutCount);
+        program.getUniformOrDefault("CutAngleStep").set(BbsVfxImpactState.cutAngleStep);
+        program.getUniformOrDefault("CutOffsetStep").set(BbsVfxImpactState.cutOffsetStep);
+        program.getUniformOrDefault("CutScatter").set(BbsVfxImpactState.cutScatter);
+        program.getUniformOrDefault("CutSeed").set(BbsVfxImpactState.cutSeed);
         program.getUniformOrDefault("CutColor").set(BbsVfxImpactState.cutR, BbsVfxImpactState.cutG, BbsVfxImpactState.cutB);
         program.getUniformOrDefault("Aspect").set((float) w / (float) h);
 

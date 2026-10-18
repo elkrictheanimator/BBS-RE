@@ -99,6 +99,11 @@ public class ImpactClip extends CameraClip
     public final ValueFloat cutOffset = new ValueFloat("cutOffset", 0F, -0.5F, 0.5F);
     public final ValueFloat cutShift = new ValueFloat("cutShift", 0.06F, 0F, 0.5F);
     public final ValueFloat cutWidth = new ValueFloat("cutWidth", 0.004F, 0F, 0.05F);
+    public final ValueFloat cutCount = new ValueFloat("cutCount", 1F, 1F, 8F);
+    public final ValueFloat cutAngleStep = new ValueFloat("cutAngleStep", 25F, -180F, 180F);
+    public final ValueFloat cutOffsetStep = new ValueFloat("cutOffsetStep", 0.12F, -0.5F, 0.5F);
+    public final ValueFloat cutScatter = new ValueFloat("cutScatter", 0F, 0F, 1F);
+    public final ValueFloat cutSeed = new ValueFloat("cutSeed", 0F, 0F, 100F);
     public final ValueInt cutColor = new ValueInt("cutColor", 0xFFFFFF).color();
 
     public final ValueFloat shapes = new ValueFloat("shapes", 0F, 0F, 1F);
@@ -224,6 +229,11 @@ public class ImpactClip extends CameraClip
         this.add(this.cutShift);
         this.add(this.cutWidth);
         this.add(this.cutColor);
+        this.add(this.cutCount);
+        this.add(this.cutAngleStep);
+        this.add(this.cutOffsetStep);
+        this.add(this.cutScatter);
+        this.add(this.cutSeed);
         this.add(this.shapes);
         this.add(this.shapesCount);
         this.add(this.shapesSize);
@@ -413,6 +423,12 @@ public class ImpactClip extends CameraClip
         BbsVfxImpactState.cutOffset = this.kf(this.cutOffsetKf, this.cutOffset, t);
         BbsVfxImpactState.cutShift = this.kf(this.cutShiftKf, this.cutShift, t);
         BbsVfxImpactState.cutWidth = this.kf(this.cutWidthKf, this.cutWidth, t);
+
+        BbsVfxImpactState.cutCount = this.cutCount.get();
+        BbsVfxImpactState.cutAngleStep = this.cutAngleStep.get();
+        BbsVfxImpactState.cutOffsetStep = this.cutOffsetStep.get();
+        BbsVfxImpactState.cutScatter = this.cutScatter.get();
+        BbsVfxImpactState.cutSeed = this.cutSeed.get();
 
         Color cutCol = Color.rgb(this.cutColor.get());
         BbsVfxImpactState.cutR = cutCol.r;

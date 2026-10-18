@@ -101,6 +101,7 @@ public final class BbsVfxImpactState
     public static float cutOffset;          /* line position, perpendicular to itself, from the focus (screen height units) */
     public static float cutShift = 0.06F;
     public static float cutWidth = 0.004F;
+    public static float cutCount = 1F, cutAngleStep = 25F, cutOffsetStep = 0.12F, cutScatter, cutSeed;
     public static float cutR = 1F, cutG = 1F, cutB = 1F;
 
     /* Procedural shapes scattered around focus (a mix of 4-point stars and ring circles), plus an
