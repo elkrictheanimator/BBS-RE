@@ -37,6 +37,7 @@ import mchorse.bbs_mod.ui.utils.UIUtils;
 import mchorse.bbs_mod.ui.utils.context.ContextMenuManager;
 import mchorse.bbs_mod.ui.utils.context.MenuVerb;
 import mchorse.bbs_mod.ui.utils.context.UIChoiceMenu;
+import mchorse.bbs_mod.ui.utils.icons.Icon;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.ui.utils.presets.UICopyPasteController;
 import mchorse.bbs_mod.ui.utils.renderers.TimelineRulerRenderer;
@@ -350,18 +351,116 @@ public class UIClips extends UITimelineCanvas
             return;
         }
 
-        context.replaceContextMenu((add) ->
+        context.replaceContextMenu((add) -> this.buildAddMenu(add, preview, null));
+
+        this.addPreview = preview;
+    }
+
+    /* Clip groups for the "add clip" menu: the same flat list was getting long, so camera
+     * clips are split into tabs. Each group is (title, icon, clip names). Anything not listed
+     * lands in "Other". An action-clip timeline has none of these, so it keeps the flat list. */
+    private static final String[][] CLIP_GROUPS = {
+        {"Camera", "idle", "dolly", "path", "keyframe", "translate", "angle", "drag", "shake", "math", "look", "orbit", "remapper", "tracker", "dolly_zoom", "curve", "follow_curve"},
+        {"Media", "audio", "subtitle", "image", "photo", "video"},
+        {"Impact", "impact"}
+    };
+
+    private static final Icon[] CLIP_GROUP_ICONS = {Icons.CAMERA, Icons.PICTURE, Icons.LIGHT};
+
+    private void buildAddMenu(ContextMenuManager add, Vector3i preview, Integer group)
+    {
+        List<Link> keys = new ArrayList<>(this.factory.getKeys());
+        boolean grouped = false;
+
+        for (Link key : keys)
         {
-            UIChoiceMenu.of(this.factory.getKeys())
+            for (String[] g : CLIP_GROUPS)
+            {
+                for (int i = 1; i < g.length; i++)
+                {
+                    grouped |= g[i].equals(key.path);
+                }
+            }
+        }
+
+        add.onClose((m) -> this.addPreview = null);
+
+        if (!grouped)
+        {
+            UIChoiceMenu.of(keys)
                 .icon((type) -> this.factory.getData(type).icon)
                 .label((type) -> UIKeys.C_CLIP.get(type))
                 .color((type) -> this.factory.getData(type).color)
                 .build(add, UIKeys.CAMERA_TIMELINE_KEYS_CLIPS, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
 
-            add.onClose((m) -> this.addPreview = null);
+            return;
+        }
+
+        List<List<Link>> lists = new ArrayList<>();
+        List<Link> other = new ArrayList<>(keys);
+
+        for (String[] g : CLIP_GROUPS)
+        {
+            List<Link> list = new ArrayList<>();
+
+            for (Link key : keys)
+            {
+                for (int i = 1; i < g.length; i++)
+                {
+                    if (g[i].equals(key.path))
+                    {
+                        list.add(key);
+                        other.remove(key);
+                    }
+                }
+            }
+
+            lists.add(list);
+        }
+
+        if (group == null)
+        {
+            add.autoKeys(UIKeys.CAMERA_TIMELINE_KEYS_CLIPS);
+
+            for (int i = 0; i < lists.size(); i++)
+            {
+                final int index = i;
+
+                if (!lists.get(i).isEmpty())
+                {
+                    add.action(CLIP_GROUP_ICONS[i], IKey.constant(CLIP_GROUPS[i][0] + "  >"), () ->
+                    {
+                        this.getContext().replaceContextMenu((m) -> this.buildAddMenu(m, preview, index));
+            this.addPreview = preview;
+                    });
+                }
+            }
+
+            if (!other.isEmpty())
+            {
+                add.action(Icons.PROPERTIES, IKey.constant("Other  >"), () ->
+                {
+                    this.getContext().replaceContextMenu((m) -> this.buildAddMenu(m, preview, -1));
+            this.addPreview = preview;
+                });
+            }
+
+            return;
+        }
+
+        List<Link> list = group >= 0 ? lists.get(group) : other;
+
+        add.action(Icons.ARROW_LEFT, IKey.constant("Back"), () ->
+        {
+            this.getContext().replaceContextMenu((m) -> this.buildAddMenu(m, preview, null));
+            this.addPreview = preview;
         });
 
-        this.addPreview = preview;
+        UIChoiceMenu.of(list)
+            .icon((type) -> this.factory.getData(type).icon)
+            .label((type) -> UIKeys.C_CLIP.get(type))
+            .color((type) -> this.factory.getData(type).color)
+            .build(add, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
     }
 
     private void addClip(Link type, int tick, int layer, int duration)
