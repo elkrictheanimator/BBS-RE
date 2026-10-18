@@ -64,6 +64,18 @@ uniform float CenterStar;
 uniform float CenterCircle;
 uniform vec3 ShapesColor;
 
+uniform float Cut;          // cut lines amount (0..1)
+uniform float CutAngle;     // degrees
+uniform float CutOffset;    // line position from the focus, perpendicular to itself (screen height units)
+uniform float CutShift;     // how far each half slides along the cut (screen height units)
+uniform float CutWidth;     // line thickness (screen height units)
+uniform float CutCount;     // how many cut lines (1..8)
+uniform float CutAngleStep; // each next line turns by this many degrees
+uniform float CutOffsetStep;// each next line moves sideways by this much
+uniform float CutScatter;   // 0..1 random spread of angle/position per line
+uniform float CutSeed;      // changes the random layout
+uniform vec3 CutColor;
+
 uniform float Aspect;
 
 in vec2 texCoord;
@@ -403,6 +415,44 @@ vec3 composite(vec2 uv, float caOff)
 
 void main()
 {
+    // Cut lines: split the picture along a slanted line and slide the two halves apart along it, so the
+    // shot looks sliced. Done first, as a remap of where every later effect samples from.
+    vec2 baseUV = texCoord;
+    float cutLine = 0.0;
+
+    if (Cut > 0.001)
+    {
+        vec2 aspectVec = vec2(Aspect, 1.0);
+        float amt = clamp(Cut, 0.0, 1.0);
+        int count = int(clamp(floor(CutCount + 0.5), 1.0, 8.0));
+
+        for (int i = 0; i < 8; i++)
+        {
+            if (i >= count)
+            {
+                break;
+            }
+
+            // Every line gets its own angle/position: a fixed step per line, plus optional random scatter.
+            float fi = float(i);
+            float r1 = fract(sin((fi + 1.0) * 12.9898 + CutSeed * 78.233) * 43758.5453) * 2.0 - 1.0;
+            float r2 = fract(sin((fi + 1.0) * 39.3468 + CutSeed * 11.135) * 24634.6345) * 2.0 - 1.0;
+            float a = radians(CutAngle + CutAngleStep * fi + r1 * 90.0 * CutScatter);
+            float off = CutOffset + CutOffsetStep * fi + r2 * 0.3 * CutScatter;
+
+            vec2 dirAlong = vec2(cos(a), sin(a));
+            vec2 normal = vec2(-dirAlong.y, dirAlong.x);
+
+            // Cuts compound: each one slices the picture already cut by the previous ones.
+            float d = dot((baseUV - Focus) * aspectVec, normal) - off;
+            float side = d >= 0.0 ? 1.0 : -1.0;
+            baseUV = clamp(baseUV - (dirAlong * CutShift * amt * side) / aspectVec, vec2(0.0), vec2(1.0));
+
+            float dl = dot((texCoord - Focus) * aspectVec, normal) - off;
+            cutLine = max(cutLine, (1.0 - smoothstep(CutWidth * 0.5, CutWidth * 0.5 + 0.0015, abs(dl))) * amt);
+        }
+    }
+
     float caOff = clamp(Chroma, 0.0, 1.0) * 0.05;
     float zb = clamp(ZoomBlur, 0.0, 1.0);
 
@@ -425,15 +475,15 @@ void main()
 
         if (BlurMode < 0.5)
         {
-            uv = mix(texCoord, Focus, s * zb * 0.5);            // zoom (radial)
+            uv = mix(baseUV, Focus, s * zb * 0.5);              // zoom (radial)
         }
         else if (BlurMode < 1.5)
         {
-            uv = texCoord + vec2((s - 0.5) * zb * 0.3, 0.0);    // horizontal
+            uv = baseUV + vec2((s - 0.5) * zb * 0.3, 0.0);      // horizontal
         }
         else
         {
-            uv = texCoord + vec2(0.0, (s - 0.5) * zb * 0.3);    // vertical
+            uv = baseUV + vec2(0.0, (s - 0.5) * zb * 0.3);      // vertical
         }
 
         col += composite(uv, caOff);
@@ -455,6 +505,9 @@ void main()
     // Invert, then flash.
     col = mix(col, vec3(1.0) - col, clamp(Invert, 0.0, 1.0));
     col = mix(col, FlashColor, clamp(Flash, 0.0, 1.0));
+
+    // The cut line itself, over everything.
+    col = mix(col, CutColor, cutLine);
 
     fragColor = vec4(col, alpha);
 }

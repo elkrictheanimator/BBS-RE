@@ -67,6 +67,17 @@ public class UIImpactClip extends UIClip<ImpactClip>
     public UICirculate linesMode;
     public UITrackpad linesSeed;
     public UIColor linesColor;
+    public UITrackpad cut;
+    public UITrackpad cutAngle;
+    public UITrackpad cutOffset;
+    public UITrackpad cutShift;
+    public UITrackpad cutWidth;
+    public UITrackpad cutCount;
+    public UITrackpad cutAngleStep;
+    public UITrackpad cutOffsetStep;
+    public UITrackpad cutScatter;
+    public UITrackpad cutSeed;
+    public UIColor cutColor;
 
     public UITrackpad shapes;
     public UITrackpad shapesCount;
@@ -289,6 +300,39 @@ public class UIImpactClip extends UIClip<ImpactClip>
         this.linesColor = new UIColor((c) -> this.clip.linesColor.set(c)).noLabel();
         this.linesColor.tooltip(IKey.constant("Lines colour"));
 
+        this.cut = new UITrackpad((value) -> this.clip.cut.set(value.floatValue()));
+        this.cut.limit(0F, 1F).tooltip(IKey.constant("Cut lines amount (a slash that splits the frame)"));
+
+        this.cutAngle = new UITrackpad((value) -> this.clip.cutAngle.set(value.floatValue()));
+        this.cutAngle.limit(-180F, 180F).tooltip(IKey.constant("Cut angle (degrees)"));
+
+        this.cutOffset = new UITrackpad((value) -> this.clip.cutOffset.set(value.floatValue()));
+        this.cutOffset.limit(-0.5F, 0.5F).tooltip(IKey.constant("Cut position: moves the line sideways from the focus"));
+
+        this.cutShift = new UITrackpad((value) -> this.clip.cutShift.set(value.floatValue()));
+        this.cutShift.limit(0F, 0.5F).tooltip(IKey.constant("How far the two halves slide apart"));
+
+        this.cutWidth = new UITrackpad((value) -> this.clip.cutWidth.set(value.floatValue()));
+        this.cutWidth.limit(0F, 0.05F).tooltip(IKey.constant("Cut line thickness"));
+
+        this.cutCount = new UITrackpad((value) -> this.clip.cutCount.set(value.floatValue()));
+        this.cutCount.limit(1F, 8F, true).tooltip(IKey.constant("How many cut lines"));
+
+        this.cutAngleStep = new UITrackpad((value) -> this.clip.cutAngleStep.set(value.floatValue()));
+        this.cutAngleStep.limit(-180F, 180F).tooltip(IKey.constant("Each next line turns by this angle"));
+
+        this.cutOffsetStep = new UITrackpad((value) -> this.clip.cutOffsetStep.set(value.floatValue()));
+        this.cutOffsetStep.limit(-0.5F, 0.5F).tooltip(IKey.constant("Each next line moves sideways by this much"));
+
+        this.cutScatter = new UITrackpad((value) -> this.clip.cutScatter.set(value.floatValue()));
+        this.cutScatter.limit(0F, 1F).tooltip(IKey.constant("Random spread of angle and position per line"));
+
+        this.cutSeed = new UITrackpad((value) -> this.clip.cutSeed.set(value.floatValue()));
+        this.cutSeed.limit(0F, 100F, true).tooltip(IKey.constant("Re-roll the random layout"));
+
+        this.cutColor = new UIColor((c) -> this.clip.cutColor.set(c)).noLabel();
+        this.cutColor.tooltip(IKey.constant("Cut line colour"));
+
         this.shapes = new UITrackpad((value) -> this.clip.shapes.set(value.floatValue()));
         this.shapes.limit(0F, 1F).tooltip(IKey.constant("Shapes amount"));
 
@@ -383,6 +427,15 @@ public class UIImpactClip extends UIClip<ImpactClip>
         ));
 
         this.panels.add(BbsVfxUI.section(
+            IKey.constant("Cut lines (slash that splits the frame)"),
+            UI.row(this.cut, this.cutAngle, this.cutOffset),
+            UI.row(this.cutShift, this.cutWidth),
+            UI.row(this.cutCount, this.cutAngleStep, this.cutOffsetStep),
+            UI.row(this.cutScatter, this.cutSeed),
+            UI.row(this.cutColor)
+        ));
+
+        this.panels.add(BbsVfxUI.section(
             IKey.constant("Shapes (stars + ring circles)"),
             UI.row(this.shapes, this.shapesCount, this.shapesSize),
             UI.row(this.shapesSpread, this.shapesDelay),
@@ -454,6 +507,18 @@ public class UIImpactClip extends UIClip<ImpactClip>
         this.linesSeed.setValue(this.clip.linesSeed.get());
         this.linesColor.setColor(this.clip.linesColor.get());
 
+        this.cut.setValue(this.clip.cut.get());
+        this.cutAngle.setValue(this.clip.cutAngle.get());
+        this.cutOffset.setValue(this.clip.cutOffset.get());
+        this.cutShift.setValue(this.clip.cutShift.get());
+        this.cutWidth.setValue(this.clip.cutWidth.get());
+        this.cutCount.setValue(this.clip.cutCount.get());
+        this.cutAngleStep.setValue(this.clip.cutAngleStep.get());
+        this.cutOffsetStep.setValue(this.clip.cutOffsetStep.get());
+        this.cutScatter.setValue(this.clip.cutScatter.get());
+        this.cutSeed.setValue(this.clip.cutSeed.get());
+        this.cutColor.setColor(this.clip.cutColor.get());
+
         this.shapes.setValue(this.clip.shapes.get());
         this.shapesCount.setValue(this.clip.shapesCount.get());
         this.shapesSize.setValue(this.clip.shapesSize.get());
@@ -517,6 +582,9 @@ public class UIImpactClip extends UIClip<ImpactClip>
         this.bbsvfx$section(view, "Lines",
             new KeyframeChannel[]{c.zoomLinesKf, c.linesCountKf, c.linesThicknessKf, c.linesInnerKf, c.linesSeedKf},
             new String[]{"Count", "Thickness", "Inner", "Seed"});
+        this.bbsvfx$section(view, "Cut lines",
+            new KeyframeChannel[]{c.cutKf, c.cutAngleKf, c.cutOffsetKf, c.cutShiftKf, c.cutWidthKf},
+            new String[]{"Angle", "Offset", "Shift", "Width"});
         this.bbsvfx$section(view, "Shapes",
             new KeyframeChannel[]{c.shapesKf, c.shapesCountKf, c.shapesSizeKf, c.shapesSpreadKf, c.shapesDelayKf, c.centerStarKf, c.centerCircleKf},
             new String[]{"Count", "Size", "Spread", "Delay", "Center star", "Center circle"});
@@ -573,6 +641,7 @@ public class UIImpactClip extends UIClip<ImpactClip>
         this.clip.chroma.set(0F);
         this.clip.zoomBlur.set(0F);
         this.clip.zoomLines.set(0F);
+        this.clip.cut.set(0F);
         this.clip.shapes.set(0F);
         this.clip.centerStar.set(0F);
         this.clip.centerCircle.set(0F);
