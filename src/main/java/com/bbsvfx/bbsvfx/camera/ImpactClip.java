@@ -92,6 +92,15 @@ public class ImpactClip extends CameraClip
     public final ValueInt linesSeed = new ValueInt("linesSeed", 0, 0, 9999);
     public final ValueInt linesColor = new ValueInt("linesColor", 0x000000).color();
 
+    /* Cut lines: a slash across the frame; one side of the picture slides along the cut, the way an anime
+     * impact frame "breaks" the shot in two. */
+    public final ValueFloat cut = new ValueFloat("cut", 0F, 0F, 1F);
+    public final ValueFloat cutAngle = new ValueFloat("cutAngle", 30F, -180F, 180F);
+    public final ValueFloat cutOffset = new ValueFloat("cutOffset", 0F, -0.5F, 0.5F);
+    public final ValueFloat cutShift = new ValueFloat("cutShift", 0.06F, 0F, 0.5F);
+    public final ValueFloat cutWidth = new ValueFloat("cutWidth", 0.004F, 0F, 0.05F);
+    public final ValueInt cutColor = new ValueInt("cutColor", 0xFFFFFF).color();
+
     public final ValueFloat shapes = new ValueFloat("shapes", 0F, 0F, 1F);
     public final ValueFloat shapesCount = new ValueFloat("shapesCount", 8F, 1F, 24F);
     public final ValueFloat shapesSize = new ValueFloat("shapesSize", 0.05F, 0.005F, 0.5F);
@@ -119,6 +128,11 @@ public class ImpactClip extends CameraClip
     public final KeyframeChannel<Double> thresholdKf = new KeyframeChannel<>("threshold_kf", KeyframeFactories.DOUBLE);
     public final KeyframeChannel<Double> chromaKf = new KeyframeChannel<>("chroma_kf", KeyframeFactories.DOUBLE);
     public final KeyframeChannel<Double> zoomBlurKf = new KeyframeChannel<>("zoomBlur_kf", KeyframeFactories.DOUBLE);
+    public final KeyframeChannel<Double> cutKf = new KeyframeChannel<>("cut_kf", KeyframeFactories.DOUBLE);
+    public final KeyframeChannel<Double> cutAngleKf = new KeyframeChannel<>("cutAngle_kf", KeyframeFactories.DOUBLE);
+    public final KeyframeChannel<Double> cutOffsetKf = new KeyframeChannel<>("cutOffset_kf", KeyframeFactories.DOUBLE);
+    public final KeyframeChannel<Double> cutShiftKf = new KeyframeChannel<>("cutShift_kf", KeyframeFactories.DOUBLE);
+    public final KeyframeChannel<Double> cutWidthKf = new KeyframeChannel<>("cutWidth_kf", KeyframeFactories.DOUBLE);
     public final KeyframeChannel<Double> zoomLinesKf = new KeyframeChannel<>("zoomLines_kf", KeyframeFactories.DOUBLE);
     public final KeyframeChannel<Double> shapesKf = new KeyframeChannel<>("shapes_kf", KeyframeFactories.DOUBLE);
     public final KeyframeChannel<Double> centerStarKf = new KeyframeChannel<>("centerStar_kf", KeyframeFactories.DOUBLE);
@@ -204,6 +218,12 @@ public class ImpactClip extends CameraClip
         this.add(this.linesMode);
         this.add(this.linesSeed);
         this.add(this.linesColor);
+        this.add(this.cut);
+        this.add(this.cutAngle);
+        this.add(this.cutOffset);
+        this.add(this.cutShift);
+        this.add(this.cutWidth);
+        this.add(this.cutColor);
         this.add(this.shapes);
         this.add(this.shapesCount);
         this.add(this.shapesSize);
@@ -256,6 +276,11 @@ public class ImpactClip extends CameraClip
         this.kf(this.shapesSizeKf, "Shapes size");
         this.kf(this.shapesSpreadKf, "Shapes spread");
         this.kf(this.shapesDelayKf, "Shapes delay");
+        this.kf(this.cutKf, "Cut");
+        this.kf(this.cutAngleKf, "Cut angle");
+        this.kf(this.cutOffsetKf, "Cut offset");
+        this.kf(this.cutShiftKf, "Cut shift");
+        this.kf(this.cutWidthKf, "Cut width");
     }
 
     /** Register a keyframe channel as a serialised child + add it to the editor lists. */
@@ -382,6 +407,17 @@ public class ImpactClip extends CameraClip
         BbsVfxImpactState.linesR = lines.r;
         BbsVfxImpactState.linesG = lines.g;
         BbsVfxImpactState.linesB = lines.b;
+
+        BbsVfxImpactState.cut = this.kf(this.cutKf, this.cut, t) * factor;
+        BbsVfxImpactState.cutAngle = this.kf(this.cutAngleKf, this.cutAngle, t);
+        BbsVfxImpactState.cutOffset = this.kf(this.cutOffsetKf, this.cutOffset, t);
+        BbsVfxImpactState.cutShift = this.kf(this.cutShiftKf, this.cutShift, t);
+        BbsVfxImpactState.cutWidth = this.kf(this.cutWidthKf, this.cutWidth, t);
+
+        Color cutCol = Color.rgb(this.cutColor.get());
+        BbsVfxImpactState.cutR = cutCol.r;
+        BbsVfxImpactState.cutG = cutCol.g;
+        BbsVfxImpactState.cutB = cutCol.b;
 
         /* Debris beat: the scattered shapes use an envelope factor evaluated shapesDelay ticks in the past,
          * so they ramp up that many frames after the main impact (centre star/circle stay on the impact). */

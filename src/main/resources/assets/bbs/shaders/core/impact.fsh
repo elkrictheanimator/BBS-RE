@@ -64,6 +64,13 @@ uniform float CenterStar;
 uniform float CenterCircle;
 uniform vec3 ShapesColor;
 
+uniform float Cut;          // cut lines amount (0..1)
+uniform float CutAngle;     // degrees
+uniform float CutOffset;    // line position from the focus, perpendicular to itself (screen height units)
+uniform float CutShift;     // how far each half slides along the cut (screen height units)
+uniform float CutWidth;     // line thickness (screen height units)
+uniform vec3 CutColor;
+
 uniform float Aspect;
 
 in vec2 texCoord;
@@ -403,6 +410,26 @@ vec3 composite(vec2 uv, float caOff)
 
 void main()
 {
+    // Cut lines: split the picture along a slanted line and slide the two halves apart along it, so the
+    // shot looks sliced. Done first, as a remap of where every later effect samples from.
+    vec2 baseUV = texCoord;
+    float cutLine = 0.0;
+
+    if (Cut > 0.001)
+    {
+        float a = radians(CutAngle);
+        vec2 dirAlong = vec2(cos(a), sin(a));
+        vec2 normal = vec2(-dirAlong.y, dirAlong.x);
+        vec2 aspectVec = vec2(Aspect, 1.0);
+        vec2 q = (texCoord - Focus) * aspectVec;
+        float d = dot(q, normal) - CutOffset;
+        float side = d >= 0.0 ? 1.0 : -1.0;
+
+        baseUV = texCoord - (dirAlong * CutShift * clamp(Cut, 0.0, 1.0) * side) / aspectVec;
+        baseUV = clamp(baseUV, vec2(0.0), vec2(1.0));
+        cutLine = (1.0 - smoothstep(CutWidth * 0.5, CutWidth * 0.5 + 0.0015, abs(d))) * clamp(Cut, 0.0, 1.0);
+    }
+
     float caOff = clamp(Chroma, 0.0, 1.0) * 0.05;
     float zb = clamp(ZoomBlur, 0.0, 1.0);
 
@@ -425,15 +452,15 @@ void main()
 
         if (BlurMode < 0.5)
         {
-            uv = mix(texCoord, Focus, s * zb * 0.5);            // zoom (radial)
+            uv = mix(baseUV, Focus, s * zb * 0.5);              // zoom (radial)
         }
         else if (BlurMode < 1.5)
         {
-            uv = texCoord + vec2((s - 0.5) * zb * 0.3, 0.0);    // horizontal
+            uv = baseUV + vec2((s - 0.5) * zb * 0.3, 0.0);      // horizontal
         }
         else
         {
-            uv = texCoord + vec2(0.0, (s - 0.5) * zb * 0.3);    // vertical
+            uv = baseUV + vec2(0.0, (s - 0.5) * zb * 0.3);      // vertical
         }
 
         col += composite(uv, caOff);
@@ -455,6 +482,9 @@ void main()
     // Invert, then flash.
     col = mix(col, vec3(1.0) - col, clamp(Invert, 0.0, 1.0));
     col = mix(col, FlashColor, clamp(Flash, 0.0, 1.0));
+
+    // The cut line itself, over everything.
+    col = mix(col, CutColor, cutLine);
 
     fragColor = vec4(col, alpha);
 }

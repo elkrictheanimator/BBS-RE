@@ -95,6 +95,14 @@ public final class BbsVfxImpactState
     public static float linesSeed;
     public static float linesR, linesG, linesB;
 
+    /* Cut lines: a slash across the frame; one half slides along it (shift, in screen height units). */
+    public static float cut;
+    public static float cutAngle = 30F;     /* degrees */
+    public static float cutOffset;          /* line position, perpendicular to itself, from the focus (screen height units) */
+    public static float cutShift = 0.06F;
+    public static float cutWidth = 0.004F;
+    public static float cutR = 1F, cutG = 1F, cutB = 1F;
+
     /* Procedural shapes scattered around focus (a mix of 4-point stars and ring circles), plus an
      * optional single star / ring circle placed exactly at the focus. */
     public static float shapes;
@@ -119,12 +127,13 @@ public final class BbsVfxImpactState
         flashStar = 0F;
         invert = flash = grayscale = threshold = chroma = zoomBlur = zoomLines = shapes = 0F;
         centerStar = centerCircle = 0F;
+        cut = 0F;
     }
 
     public static boolean hasEffect()
     {
         return active && (silhouette > EPS || inkBurst > EPS || shockwave > EPS || flashStar > EPS || invert > EPS || flash > EPS || grayscale > EPS || threshold > EPS
             || chroma > EPS || zoomBlur > EPS || zoomLines > EPS || shapes > EPS
-            || centerStar > EPS || centerCircle > EPS);
+            || centerStar > EPS || centerCircle > EPS || cut > EPS);
     }
 }
