@@ -72,6 +72,7 @@ public class BbsVfxStrings
 
         /* Display name of the "Impact" camera modifier clip (impact-frame full-screen effect). */
         l10n.getKey("bbs.ui.camera.clips.bbsvfx:impact").content = ru ? "Импакт-кадр" : "Impact frame";
+        l10n.getKey("bbs.ui.camera.clips.bbsvfx:orbit_path").content = ru ? "Орбита вокруг точки" : "Orbit path";
     }
 
     private static void set(L10n l10n, String suffix, String en, String ru, boolean useRu)

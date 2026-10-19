@@ -165,6 +165,7 @@ public class BbsVfxClient implements ClientModInitializer
         /* Impact-frame camera modifier editor. The common clip type is registered by BBSModFormsMixin;
          * the clip's effect is a full-screen post pass (BbsVfxImpactShader), built in BBSShadersDissolveMixin. */
         UIClip.register(com.bbsvfx.bbsvfx.camera.ImpactClip.class, UIImpactClip::new);
+        UIClip.register(com.bbsvfx.bbsvfx.camera.OrbitPathClip.class, UIOrbitPathClip::new);
 
         /* Draw the destruction-wand box selection as a wireframe. */
         WorldRenderEvents.LAST.register(this::renderSelection);
