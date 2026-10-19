@@ -65,6 +65,17 @@
 		{ "name": "CenterStar", "type": "float", "count": 1, "values": [0.0] },
 		{ "name": "CenterCircle", "type": "float", "count": 1, "values": [0.0] },
 		{ "name": "ShapesColor", "type": "float", "count": 3, "values": [1.0, 1.0, 1.0] },
+		{ "name": "Cut", "type": "float", "count": 1, "values": [0.0] },
+		{ "name": "CutAngle", "type": "float", "count": 1, "values": [30.0] },
+		{ "name": "CutOffset", "type": "float", "count": 1, "values": [0.0] },
+		{ "name": "CutShift", "type": "float", "count": 1, "values": [0.06] },
+		{ "name": "CutWidth", "type": "float", "count": 1, "values": [0.004] },
+		{ "name": "CutCount", "type": "float", "count": 1, "values": [1.0] },
+		{ "name": "CutAngleStep", "type": "float", "count": 1, "values": [25.0] },
+		{ "name": "CutOffsetStep", "type": "float", "count": 1, "values": [0.12] },
+		{ "name": "CutScatter", "type": "float", "count": 1, "values": [0.0] },
+		{ "name": "CutSeed", "type": "float", "count": 1, "values": [0.0] },
+		{ "name": "CutColor", "type": "float", "count": 3, "values": [1.0, 1.0, 1.0] },
 		{ "name": "Aspect", "type": "float", "count": 1, "values": [1.777] }
 	]
 }
