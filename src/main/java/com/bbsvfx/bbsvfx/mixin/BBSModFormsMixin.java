@@ -42,6 +42,9 @@ public abstract class BBSModFormsMixin
         BBSMod.getFactoryCameraClips().register(new Link("bbsvfx", "follow_curve"),
             FollowCurveClip.class, new ClipFactoryData(Icons.ARC, 0x4ba3ff));
 
+        BBSMod.getFactoryCameraClips().register(new Link("bbsvfx", "orbit_path"),
+            com.bbsvfx.bbsvfx.camera.OrbitPathClip.class, new ClipFactoryData(Icons.REFRESH, 0x35c9a8));
+
         BBSMod.getFactoryCameraClips().register(new Link("bbsvfx", "impact"),
             ImpactClip.class, new ClipFactoryData(Icons.FOUR_STAR, 0xff5a3c));
     }
