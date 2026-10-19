@@ -360,7 +360,7 @@ public class UIClips extends UITimelineCanvas
      * clips are split into tabs. Each group is (title, icon, clip names). Anything not listed
      * lands in "Other". An action-clip timeline has none of these, so it keeps the flat list. */
     private static final String[][] CLIP_GROUPS = {
-        {"Camera", "idle", "dolly", "path", "keyframe", "translate", "angle", "drag", "shake", "math", "look", "orbit", "remapper", "tracker", "dolly_zoom", "curve", "follow_curve"},
+        {"Camera", "idle", "dolly", "path", "keyframe", "translate", "angle", "drag", "shake", "math", "look", "orbit", "remapper", "tracker", "dolly_zoom", "curve", "follow_curve", "orbit_path"},
         {"Media", "audio", "subtitle", "image", "photo", "video"},
         {"Impact", "impact"}
     };
