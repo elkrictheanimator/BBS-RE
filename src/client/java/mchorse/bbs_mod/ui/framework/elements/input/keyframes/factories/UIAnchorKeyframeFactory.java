@@ -32,6 +32,8 @@ import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.utils.keyframes.Keyframe;
 import mchorse.bbs_mod.utils.pose.Transform;
 
+import org.joml.Vector3d;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +44,7 @@ public class UIAnchorKeyframeFactory extends UIKeyframeFactory<Anchor>
     private UIButton actor;
     private UIButton attachment;
     private UIToggle keepTransform;
+    private UIButton detach;
     private UIIconToggles inherit;
     public UIPropTransform transform;
 
@@ -123,6 +126,8 @@ public class UIAnchorKeyframeFactory extends UIKeyframeFactory<Anchor>
          * plain fields rather than values, so the cells are bound by getter and setter. */
         this.keepTransform = new UIToggle(UIKeys.GENERIC_KEYFRAMES_ANCHOR_KEEP_TRANSFORM, BBSSettings.anchorKeepTransform.get(), (b) -> BBSSettings.anchorKeepTransform.set(b.getValue()));
         this.keepTransform.tooltip(UIKeys.GENERIC_KEYFRAMES_ANCHOR_KEEP_TRANSFORM_TOOLTIP);
+        this.detach = new UIButton(IKey.constant("Detach (keep position)"), (b) -> this.detach());
+        this.detach.tooltip(IKey.constant("Drop the target without the form jumping: keys its world position here and keeps its rotation/scale. Put the cursor on this keyframe first."));
         this.inherit = new UIIconToggles(null)
             .add(Icons.ALL_DIRECTIONS, UIKeys.INHERIT_POSITION, () -> this.keyframe.getValue().inheritPosition, (v) -> this.retarget((anchor) -> anchor.inheritPosition = v))
             .add(Icons.ORBIT, UIKeys.INHERIT_ROTATION, () -> this.keyframe.getValue().inheritRotation, (v) -> this.retarget((anchor) -> anchor.inheritRotation = v))
@@ -140,7 +145,65 @@ public class UIAnchorKeyframeFactory extends UIKeyframeFactory<Anchor>
         pickAttachment.highlight(() -> this.getPanel() != null && this.getPanel().getController().picker.isPickingTarget(pickAttachment), Direction.BOTTOM);
         pickActor.tooltip(UIKeys.GENERIC_KEYFRAMES_ANCHOR_PICK_ACTOR);
         pickAttachment.tooltip(UIKeys.GENERIC_KEYFRAMES_ANCHOR_PICK_ATTACHMENT);
-        this.scroll.add(UI.row(this.actor, pickActor), UI.row(this.attachment, pickAttachment), this.keepTransform, this.inherit.labelRow(UIKeys.INHERIT_TITLE), this.transform);
+        this.scroll.add(UI.row(this.actor, pickActor), UI.row(this.attachment, pickAttachment), this.keepTransform, this.detach, this.inherit.labelRow(UIKeys.INHERIT_TITLE), this.transform);
+    }
+
+    /**
+     * Drop the anchor's target and key the replay at the spot the form hangs at now, so letting go
+     * of a prop's hand (or any other target) does not make it jump. The position is measured on the
+     * live entity at the film's current frame, so it only makes sense on the keyframe under the
+     * cursor; the anchor edit and the x/y/z keys are one undo step.
+     */
+    private void detach()
+    {
+        UIFilmPanel panel = this.getPanel();
+        Replay replay = panel == null ? null : panel.replayEditor.getReplay();
+
+        if (replay == null)
+        {
+            return;
+        }
+
+        float tick = this.keyframe.getTick();
+
+        if (Math.abs(panel.getCursor() - tick) > 0.5F)
+        {
+            this.getContext().notifyError(IKey.constant("Move the cursor onto this keyframe, then detach"));
+
+            return;
+        }
+
+        panel.getController().picker.cancelTargetPick();
+
+        Map<String, IEntity> entities = panel.getController().getEntities();
+        Vector3d position = new Vector3d();
+        Anchor detached = AnchorRebase.detach(entities, entities.get(replay.getId()), replay, 0F, this.keyframe.getValue().copy(), position);
+
+        if (detached == null)
+        {
+            this.getContext().notifyError(IKey.constant("Can't detach here (relative replay, or the target is missing)"));
+
+            return;
+        }
+
+        BaseValue.edit(replay, (r) ->
+        {
+            r.keyframes.x.insert(tick, position.x);
+            r.keyframes.y.insert(tick, position.y);
+            r.keyframes.z.insert(tick, position.z);
+        });
+        BaseValue.edit(this.keyframe, (keyframe) ->
+        {
+            Anchor anchor = keyframe.getValue();
+
+            anchor.replay = detached.replay;
+            anchor.attachment = detached.attachment;
+            anchor.inheritPosition = detached.inheritPosition;
+            anchor.inheritRotation = detached.inheritRotation;
+            anchor.inheritScale = detached.inheritScale;
+            anchor.transform.copy(detached.transform);
+        });
+        this.transform.setTransform(this.keyframe.getValue().transform);
     }
 
     private void pickTarget(UIIcon owner, boolean bone)
