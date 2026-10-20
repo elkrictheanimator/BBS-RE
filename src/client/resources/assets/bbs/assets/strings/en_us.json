@@ -1,4 +1,5 @@
 {
+	"bbs.ui.pose.detach": "Detach from parent bone",
 	"bbs.ui.film.replays.tab_number": "Switch to track category %s",
 	"bbs.ui.film.backups.title": "Backups",
 	"bbs.ui.film.backups.empty": "No backups found for this film.",

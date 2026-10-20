@@ -1,4 +1,5 @@
 {
+	"bbs.ui.pose.detach": "Tách khỏi xương cha",
     "bbs.config.appearance.axes_scale": "Kích thước trục tọa độ",
     "bbs.config.appearance.axes_scale-comment": "Điều chỉnh kích thước của các trục tọa độ XYZ. Nếu trục quá lớn thì có thể thu nhỏ lại",
     "bbs.config.appearance.click_sound": "Âm thanh nhấp chuột",

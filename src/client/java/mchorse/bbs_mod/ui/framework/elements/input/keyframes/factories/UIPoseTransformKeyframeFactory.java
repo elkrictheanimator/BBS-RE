@@ -21,6 +21,7 @@ public class UIPoseTransformKeyframeFactory extends UIKeyframeFactory<PoseTransf
 {
     public UISliderTrackpad fix;
     public UIToggle boneVisible;
+    public UIToggle detach;
     public UIColor color;
     public UIColor overlay;
     public UISliderTrackpad lighting;
@@ -52,6 +53,13 @@ public class UIPoseTransformKeyframeFactory extends UIKeyframeFactory<PoseTransf
             boolean visible = toggle.getValue();
 
             UIPoseTransforms.apply(editor, keyframe, (poseT) -> poseT.visible = visible);
+        });
+
+        this.detach = new UIToggle(UIKeys.POSE_DETACH, keyframe.getValue().detach, (toggle) ->
+        {
+            boolean detached = toggle.getValue();
+
+            UIPoseTransforms.apply(editor, keyframe, (poseT) -> poseT.detach = detached);
         });
 
         this.color = new UIColor((c) ->
@@ -92,6 +100,7 @@ public class UIPoseTransformKeyframeFactory extends UIKeyframeFactory<PoseTransf
          * this panel is that one without the bone list, so it has to read as the same panel. */
         this.scroll.add(
             this.boneVisible,
+            this.detach,
             UI.labelRow(UIKeys.POSE_CONTEXT_FIX, this.fix),
             this.transform,
             UIPoseEditor.materialSection(this.color, this.overlay, this.lighting)
