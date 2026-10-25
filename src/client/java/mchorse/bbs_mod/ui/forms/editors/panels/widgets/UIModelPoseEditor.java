@@ -52,6 +52,14 @@ public class UIModelPoseEditor extends UIPoseEditor
     }
 
     @Override
+    protected void setDetach(PoseTransform transform, boolean value)
+    {
+        this.valuePose.preNotify(IValueListener.FLAG_UNMERGEABLE);
+        super.setDetach(transform, value);
+        this.valuePose.postNotify(IValueListener.FLAG_UNMERGEABLE);
+    }
+
+    @Override
     protected void setBoneVisible(PoseTransform transform, boolean value)
     {
         this.valuePose.preNotify(IValueListener.FLAG_UNMERGEABLE);

@@ -11,6 +11,7 @@ import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.ui.forms.editors.forms.UIForm;
 import mchorse.bbs_mod.ui.forms.editors.panels.widgets.UIModelPicker;
 import mchorse.bbs_mod.ui.forms.editors.panels.widgets.UIModelPoseEditor;
+import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.input.UITexturePicker;
@@ -32,6 +33,7 @@ public class UIModelFormPanel extends UIFormPanel<ModelForm>
 
     /** Only for a model that carries a CEM program — see {@link mchorse.bbs_mod.cubic.jem.CemStatus}. */
     public UISection cemSection;
+    private UIElement armSwingRow;
 
     public UIButton pickModel;
     public UIButton pick;
@@ -92,6 +94,13 @@ public class UIModelFormPanel extends UIFormPanel<ModelForm>
         this.options.add(this.pickModel, this.pick, this.poseEditor);
 
         this.buildCemSection();
+
+        /* One slider, and the key beside it adds a keyframe: the arms swing less or more from that frame on */
+        UITrackpad armSwing = UIValues.trackpad(() -> this.form.armSwing);
+
+        armSwing.limit(0D, 1D);
+        this.armSwingRow = UI.labelRow(UIKeys.FORMS_EDITOR_MODEL_ARM_SWING, armSwing);
+        this.armSwingRow.tooltip(UIKeys.FORMS_EDITOR_MODEL_ARM_SWING_TOOLTIP);
     }
 
     /**
@@ -188,6 +197,14 @@ public class UIModelFormPanel extends UIFormPanel<ModelForm>
         if (!modelShapeKeys.isEmpty())
         {
             this.options.add(this.shapeKeysSection);
+        }
+
+        /* The arm swing only does something for a vanilla-like (procedural) model */
+        this.armSwingRow.removeFromParent();
+
+        if (model != null && model.isProcedural())
+        {
+            this.options.add(this.armSwingRow);
         }
 
         /* Nothing reads these unless a CEM program is what animates the model, so they only show there. */

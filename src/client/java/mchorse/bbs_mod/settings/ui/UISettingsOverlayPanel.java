@@ -9,17 +9,23 @@ import mchorse.bbs_mod.settings.value.ValueKeyCombo;
 import mchorse.bbs_mod.settings.values.base.BaseValue;
 import mchorse.bbs_mod.settings.values.core.ValueGroup;
 import mchorse.bbs_mod.ui.UIKeys;
+import mchorse.bbs_mod.ui.dashboard.panels.landing.UIBannerEditorPanel;
+import mchorse.bbs_mod.ui.dashboard.panels.landing.UILandingScreen;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UIScrollView;
 import mchorse.bbs_mod.ui.framework.elements.UISection;
+import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
+import mchorse.bbs_mod.ui.framework.elements.buttons.UICirculate;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIClickable;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.input.text.UITextbox;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.utils.FontRenderer;
 import mchorse.bbs_mod.ui.framework.elements.utils.RowStyle;
 import mchorse.bbs_mod.ui.utils.Area;
+import mchorse.bbs_mod.ui.utils.UIUtils;
 import mchorse.bbs_mod.ui.utils.ScrollDirection;
 import mchorse.bbs_mod.ui.utils.context.ContextMenuManager;
 import mchorse.bbs_mod.ui.utils.icons.Icon;
@@ -27,6 +33,7 @@ import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.Direction;
 import mchorse.bbs_mod.utils.colors.Colors;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -177,6 +184,11 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
             {
                 this.options.add(new UISectionHeader(this, this.category));
                 this.appendValues(this.category, false);
+
+                if (this.category.getId().equals("re"))
+                {
+                    this.appendREControls();
+                }
             }
         }
         else
@@ -227,6 +239,37 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
         menu.action(Icons.FILM, UIKeys.VIDEO_SETTINGS_PRESETS_SHORTS_1080P, () -> this.applyVideoPreset(1080, 1920));
         menu.action(Icons.FILM, UIKeys.VIDEO_SETTINGS_PRESETS_1440P, () -> this.applyVideoPreset(2560, 1440));
         menu.action(Icons.FILM, UIKeys.VIDEO_SETTINGS_PRESETS_4K, () -> this.applyVideoPreset(3840, 2160));
+    }
+
+    /**
+     * The part of the "re" section that is not a plain value: the landing screen's background and
+     * banner, each with its own picker (a video, or a picture / GIF), so they sit together here.
+     */
+    private void appendREControls()
+    {
+        UICirculate backdrop = new UICirculate((b) -> BBSSettings.backdropStyle.set(b.getValue()));
+
+        backdrop.addLabel(IKey.constant("Nền: Ánh sáng chuyển động"));
+        backdrop.addLabel(IKey.constant("Nền: Gradient theo 2 màu"));
+        backdrop.addLabel(IKey.constant("Nền: Kiểu 2.5.2"));
+        backdrop.addLabel(IKey.constant("Nền: Ảnh / GIF của bạn"));
+        backdrop.addLabel(IKey.constant("Nền: Video (wallpaper)"));
+        backdrop.setValue(BBSSettings.backdropStyle.get());
+
+        UIButton video = new UIButton(IKey.constant("Nền video: chọn video..."), (b) -> UIBannerEditorPanel.pickWallpaperVideo(b.getContext(), backdrop));
+        UIButton link = new UIButton(IKey.constant("Nền video: dán link (mp4 / YouTube)..."), (b) -> UIBannerEditorPanel.pasteWallpaperLink(b.getContext(), backdrop));
+        UIButton image = new UIButton(IKey.constant("Nền ảnh: chọn ảnh / GIF..."), (b) -> UIBannerEditorPanel.pickBackdropImage(b.getContext(), backdrop));
+        UIButton folder = new UIButton(IKey.constant("Mở thư mục video"), (b) ->
+        {
+            File videos = new File(BBSMod.getAssetsFolder(), "video");
+
+            videos.mkdirs();
+            UIUtils.openFolder(videos);
+        });
+        UIButton banner = new UIButton(IKey.constant("Chỉnh banner (ảnh, video, vị trí, màu)..."), (b) ->
+            UIOverlay.addOverlay(b.getContext(), new UIBannerEditorPanel(UILandingScreen.defaultBannerAspect()), 280, 400));
+
+        this.options.add(backdrop, video, link, image, folder, banner);
     }
 
     private void appendValues(ValueGroup category, boolean filtered)

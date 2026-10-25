@@ -2,6 +2,7 @@ package mchorse.bbs_mod.film.replays.tracks;
 
 import mchorse.bbs_mod.ui.utils.icons.Icon;
 
+import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.cubic.ModelInstance;
 import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
 import mchorse.bbs_mod.film.replays.FormProperties;
@@ -128,7 +129,7 @@ public class TrackCatalog
             if (track.parent() == null || !present.containsKey(track.parent()))
             {
                 /* Pose and its overlays/bones precede the form's transform group. */
-                if (track.kind() == TrackKind.PROPERTY && track.id().subject().equals("transform"))
+                if (!BBSSettings.classicTrackOrder.get() && track.kind() == TrackKind.PROPERTY && track.id().subject().equals("transform"))
                 {
                     TrackDescriptor pose = present.get(TrackId.property(track.id().formPath(), FormProperties.POSE_PROPERTY));
 
@@ -222,6 +223,12 @@ public class TrackCatalog
                 continue;
             }
 
+            /* The arm swing only means something to a vanilla-like (procedural) model. */
+            if (form instanceof ModelForm && name.equals("arm_swing") && (model == null || !model.isProcedural()))
+            {
+                continue;
+            }
+
             /* The root form's own anchor is animatable (it is what parents a replay to another one);
              * a body part's anchor is what glues it to its parent, and animating that is meaningless. */
             if (ANCHOR.equals(name) && !path.isEmpty())
@@ -248,13 +255,18 @@ public class TrackCatalog
             TrackDescriptor track = new TrackDescriptor(id, channel, form, TrackStyle.label(id),
                 TrackStyle.icon(name), TrackStyle.color(name), property);
 
-            if (name.startsWith("pose_overlay"))
+            /* In the 2.5.2 layout (the default) the overlays stay flat rows beside their base track and
+             * only the bones fold under the pose; otherwise an overlay folds under what it overlays. */
+            if (!BBSSettings.classicTrackOrder.get())
             {
-                track = track.under(TrackId.property(path, FormProperties.POSE_PROPERTY));
-            }
-            else if (name.startsWith("transform_overlay"))
-            {
-                track = track.under(TrackId.property(path, "transform"));
+                if (name.startsWith("pose_overlay"))
+                {
+                    track = track.under(TrackId.property(path, FormProperties.POSE_PROPERTY));
+                }
+                else if (name.startsWith("transform_overlay"))
+                {
+                    track = track.under(TrackId.property(path, "transform"));
+                }
             }
 
             if (TrackId.MATERIAL_PROP_OVERLAY.equals(name))

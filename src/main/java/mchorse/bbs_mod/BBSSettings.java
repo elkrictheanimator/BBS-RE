@@ -46,6 +46,27 @@ public class BBSSettings {
 	public static ValueStringKeys disabledMorphFormCategories;
 	public static ValueLanguage language;
 	public static ValueInt primaryColor;
+	public static ValueInt bannerStyle;
+	public static ValueInt bannerColorStart;
+	public static ValueInt bannerColorEnd;
+	public static ValueLink bannerImage;
+	public static ValueLink bannerVideo;
+	/** What the landing screen sits on: 0 animated lights, 1 gradient, 2 the plain 2.5.2 background, 3 the user's own picture or GIF, 4 the video wallpaper */
+	public static ValueInt backdropStyle;
+	public static ValueLink backdropImage;
+
+	/** The video wallpaper, and whether it sits behind every BBS screen (the film editor too) */
+	public static ValueLink backgroundVideo;
+	public static ValueString backgroundVideoUrl;
+	public static ValueString bannerVideoUrl;
+	public static ValueString ytdlpPath;
+	public static ValueInt bannerHeight;
+	public static ValueFloat bannerVolume;
+	public static ValueInt bannerAudioOffset;
+	public static ValueBoolean videoEverywhere;
+	public static ValueFloat bannerFocusX;
+	public static ValueFloat bannerFocusY;
+	public static ValueFloat bannerZoom;
 	public static ValueInt stencilHighlightColor;
 	public static ValueBoolean enableTrackpadIncrements;
 	public static ValueBoolean enableTrackpadScrolling;
@@ -199,6 +220,8 @@ public class BBSSettings {
 	public static ValueBoolean editorPreviewIconsAutoHide;
 	public static ValueBoolean editorPreviewSelectionHud;
 	public static ValueBoolean editorKeepFrameOnExit;
+	public static ValueBoolean classicTrackOrder;
+	public static ValueFloat armSwing;
 
 	public static ValueFloat recordingCountdown;
 	public static ValueBoolean recordingSwipeDamage;
@@ -332,11 +355,25 @@ public class BBSSettings {
 		surfaceSource = color;
 	}
 
+	/**
+	 * How opaque the interface's surfaces are, 1 normally. A video wallpaper behind the editors
+	 * lowers it, so it shows through the panels; set by the dashboard each frame it draws one.
+	 * The sunken rung (the timeline's floor) always stays solid.
+	 */
+	public static float surfaceOpacity = 1F;
+
 	private static int surface(int level)
 	{
 		buildSurfaces();
 
-		return SURFACES[level];
+		int color = SURFACES[level];
+
+		if (surfaceOpacity < 1F && level != SURFACE_SUNKEN)
+		{
+			color = Colors.setA(color, Colors.getA(color) * surfaceOpacity);
+		}
+
+		return color;
 	}
 
 	/**
@@ -691,6 +728,41 @@ public class BBSSettings {
 		builder.category("personalization", Icons.COLOR);
 		primaryColor = builder.getInt("primary_color", DEFAULT_PRIMARY_COLOR).color();
 		secondaryColor = builder.getInt("secondary_color", DEFAULT_SECONDARY_COLOR).color();
+		/* Edited from the pencil on the landing screen banner, not from the settings list */
+		bannerStyle = builder.getInt("banner_style", 0, 0, 4);
+		bannerColorStart = builder.getInt("banner_color_start", 0x1b2a4e);
+		bannerColorEnd = builder.getInt("banner_color_end", 0x8a3ffc);
+		bannerStyle.invisible();
+		bannerColorStart.invisible();
+		bannerColorEnd.invisible();
+		bannerImage = builder.getRL("banner_image", null);
+		backdropStyle = builder.getInt("backdrop_style", 0, 0, 4);
+		backdropImage = builder.getRL("backdrop_image", null);
+		backdropImage.invisible();
+		backgroundVideo = builder.getRL("background_video", null);
+		backgroundVideo.invisible();
+		bannerImage.invisible();
+		bannerVideo = builder.getRL("banner_video", null);
+		bannerVideo.invisible();
+		backgroundVideoUrl = builder.getString("background_video_url", "");
+		backgroundVideoUrl.invisible();
+		bannerVideoUrl = builder.getString("banner_video_url", "");
+		bannerVideoUrl.invisible();
+		ytdlpPath = builder.getString("ytdlp_path", "yt-dlp");
+		ytdlpPath.invisible();
+		bannerHeight = builder.getInt("banner_height", 180, 90, 300);
+		bannerHeight.invisible();
+		bannerVolume = builder.getFloat("banner_volume", 0.5F, 0F, 1F);
+		bannerVolume.invisible();
+		bannerAudioOffset = builder.getInt("banner_audio_offset", 0, -2000, 2000);
+		bannerAudioOffset.invisible();
+		backdropStyle.invisible();
+		bannerFocusX = builder.getFloat("banner_focus_x", 0.5F, 0F, 1F);
+		bannerFocusY = builder.getFloat("banner_focus_y", 0.5F, 0F, 1F);
+		bannerZoom = builder.getFloat("banner_zoom", 1F, 1F, 4F);
+		bannerFocusX.invisible();
+		bannerFocusY.invisible();
+		bannerZoom.invisible();
 		stencilHighlightColor = builder.getInt("stencil_highlight_color", 0x2EFFFFFF).colorAlpha();
 		overlayBackgroundOpacity = builder.getFloat("overlay_background_opacity", DEFAULT_OVERLAY_BACKGROUND_OPACITY, 0F, 1F).slider();
 		interfaceBlur = builder.getBoolean("interface_blur", true);
@@ -843,6 +915,12 @@ public class BBSSettings {
 		editorMinutesBackup = builder.getBoolean("minutes_backup", true);
 		editorKeepFrameOnExit = builder.getBoolean("keep_frame_on_exit", false);
 		editorClipAutoName = builder.getBoolean("clip_auto_name", true);
+
+		/* The features that are this build's own, in one place */
+		builder.category("re", Icons.FAVORITE);
+		classicTrackOrder = builder.getBoolean("classic_track_order", true);
+		armSwing = builder.getFloat("arm_swing", 1F, 0F, 1F).slider();
+		videoEverywhere = builder.getBoolean("video_everywhere", false);
 
 		builder.category("recording", Icons.FILM);
 		recordingCountdown = builder.getFloat("countdown", 1.5F, 0F, 30F);

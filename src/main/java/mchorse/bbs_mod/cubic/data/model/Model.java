@@ -290,6 +290,7 @@ public class Model implements IMapSerializable, IModel
 
             group.lighting = transform.lighting;
             group.poseVisible &= transform.visible;
+            group.poseDetach |= transform.detach;
             group.color.copy(transform.color);
             group.overlay.copy(transform.overlay);
             group.current.translate.add(transform.translate);

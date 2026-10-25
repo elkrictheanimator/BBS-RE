@@ -15,6 +15,8 @@ public class PoseTransform extends Transform
 
     public float fix;
     public boolean visible = true;
+    /* The bone ignores its ancestors' animation: it rides their rest pose instead (cubic models). */
+    public boolean detach;
     public final Color color = new Color().set(Colors.WHITE);
     /* Color overlay for the bone (RGB = color, A = strength); neutral at zero strength. */
     public final Color overlay = new Color(1F, 1F, 1F, 0F);
@@ -27,6 +29,7 @@ public class PoseTransform extends Transform
 
         this.fix = 0F;
         this.visible = true;
+        this.detach = false;
         this.color.set(Colors.WHITE);
         this.overlay.set(1F, 1F, 1F, 0F);
         this.lighting = 0F;
@@ -40,6 +43,7 @@ public class PoseTransform extends Transform
             if (a >= 1F)
             {
                 this.visible = pose.visible;
+                this.detach = pose.detach;
             }
 
             this.fix = Lerps.lerp(this.fix, pose.fix, a);
@@ -72,6 +76,7 @@ public class PoseTransform extends Transform
             PoseTransform postB1 = (PoseTransform) postB;
 
             this.visible = x < 1F ? a1.visible : b1.visible;
+            this.detach = x < 1F ? a1.detach : b1.detach;
             this.fix = (float) interp.interpolate(IInterp.context.set(preA1.fix, a1.fix, b1.fix, postB1.fix, x));
 
             this.color.set(
@@ -104,6 +109,7 @@ public class PoseTransform extends Transform
             PoseTransform postB1 = (PoseTransform) postB;
 
             this.visible = x < 1F ? a1.visible : b1.visible;
+            this.detach = x < 1F ? a1.detach : b1.detach;
             this.fix = (float) AutoBezier.get(preA1.fix, a1.fix, b1.fix, postB1.fix, pt, at, bt, qt, clamped, x);
 
             this.color.set(
@@ -133,6 +139,7 @@ public class PoseTransform extends Transform
         {
             result = result && this.fix == poseTransform.fix;
             result = result && this.visible == poseTransform.visible;
+            result = result && this.detach == poseTransform.detach;
             result = result && this.color.equals(poseTransform.color);
             result = result && this.overlay.equals(poseTransform.overlay);
             result = result && this.lighting == poseTransform.lighting;
@@ -148,6 +155,7 @@ public class PoseTransform extends Transform
 
         hash = 31 * hash + Float.floatToIntBits(this.fix);
         hash = 31 * hash + Boolean.hashCode(this.visible);
+        hash = 31 * hash + Boolean.hashCode(this.detach);
         hash = 31 * hash + this.color.getARGBColor();
         hash = 31 * hash + this.overlay.getARGBColor();
         hash = 31 * hash + Float.floatToIntBits(this.lighting);
@@ -172,6 +180,7 @@ public class PoseTransform extends Transform
         {
             this.fix = poseTransform.fix;
             this.visible = poseTransform.visible;
+            this.detach = poseTransform.detach;
             this.color.copy(poseTransform.color);
             this.overlay.copy(poseTransform.overlay);
             this.lighting = poseTransform.lighting;
@@ -189,6 +198,7 @@ public class PoseTransform extends Transform
         {
             this.fix += pose.fix;
             this.visible &= pose.visible;
+            this.detach |= pose.detach;
             this.color.mul(pose.color);
             OverlayBlend.stack(this.overlay, pose.overlay);
             this.lighting += pose.lighting;
@@ -202,6 +212,7 @@ public class PoseTransform extends Transform
 
         data.putFloat("fix", this.fix);
         data.putBool("visible", this.visible);
+        data.putBool("detach", this.detach);
         data.putInt("color", this.color.getARGBColor());
         data.putInt("overlay", this.overlay.getARGBColor());
         data.putFloat("lighting", this.lighting);
@@ -214,6 +225,7 @@ public class PoseTransform extends Transform
 
         this.fix = data.getFloat("fix");
         this.visible = data.getBool("visible", true);
+        this.detach = data.getBool("detach", false);
         this.color.set(data.getInt("color", Colors.WHITE));
         this.overlay.set(data.getInt("overlay", 0x00ffffff));
         this.lighting = data.getFloat("lighting");

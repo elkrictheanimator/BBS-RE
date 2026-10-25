@@ -1,6 +1,10 @@
 package mchorse.bbs_mod.ui.dashboard.panels.landing;
 
+import mchorse.bbs_mod.BBSModClient;
 import mchorse.bbs_mod.BBSSettings;
+import mchorse.bbs_mod.graphics.texture.Texture;
+import mchorse.bbs_mod.resources.Link;
+import mchorse.bbs_mod.ui.dashboard.Wallpaper;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.utils.Area;
 import mchorse.bbs_mod.utils.colors.Colors;
@@ -53,6 +57,10 @@ public class LandingBackdrop
 
     private final Oklab oklab = new Oklab();
 
+    /* The personal gradient, when on: its top colour (-1 when off) and bottom colour */
+    private int gradientTop = -1;
+    private int gradientBottom;
+
     /* The cursor as the scene sees it: eased toward the real one, and how much it is "here" */
     private float cursorX;
     private float cursorY;
@@ -62,18 +70,110 @@ public class LandingBackdrop
     public void render(UIContext context, Area area)
     {
         float time = context.getTickTransition() / 20F;
+        int style = BBSSettings.backdropStyle.get();
         int base = BBSSettings.baseSurface();
         int accent = BBSSettings.primaryColor.get() & Colors.RGB;
 
         this.followCursor(context, area, time);
 
-        context.batcher.gradientVBox(area.x, area.y, area.ex(), area.ey(), Colors.A100 | base, Colors.A100 | Colors.mulRGB(base, GROUND_BOTTOM));
+        /* The plain background of BBS 2.5.2: the user's own tint, or picture, and nothing moving */
+        if (style == 2)
+        {
+            this.renderClassic(context, area);
+
+            return;
+        }
+
+        /* The video wallpaper; until its first frame is decoded (or with no video picked) the lights stand in */
+        if (style == 4 && Wallpaper.draw(context.batcher, area.x, area.y, area.w, area.h))
+        {
+            return;
+        }
+
+        /* The user's own picture; a GIF plays, since the texture manager hands out its current frame.
+         * Nothing picked yet (or not loaded): the animated lights below stand in. */
+        if (style == 3 && this.renderPicture(context, area))
+        {
+            return;
+        }
+
+        /* Personal gradient: the ground and the lights take the two banner colours */
+        boolean gradient = style == 1;
+        int top = BBSSettings.bannerColorStart.get() & Colors.RGB;
+        int bottom = BBSSettings.bannerColorEnd.get() & Colors.RGB;
+
+        if (gradient)
+        {
+            context.batcher.gradientVBox(area.x, area.y, area.ex(), area.ey(), Colors.A100 | Colors.mulRGB(top, 0.5F), Colors.A100 | Colors.mulRGB(bottom, 0.5F));
+        }
+        else
+        {
+            context.batcher.gradientVBox(area.x, area.y, area.ex(), area.ey(), Colors.A100 | base, Colors.A100 | Colors.mulRGB(base, GROUND_BOTTOM));
+        }
+
+        this.gradientTop = gradient ? top : -1;
+        this.gradientBottom = bottom;
 
         context.batcher.clip(area, context);
         this.renderLights(context, area, time, accent);
         this.renderCursorLight(context, area, accent);
         this.renderSparks(context, area, time, accent);
         context.batcher.unclip(context);
+    }
+
+    private boolean renderPicture(UIContext context, Area area)
+    {
+        Link image = BBSSettings.backdropImage.get();
+        Texture texture = image == null ? null : BBSModClient.getTextures().getTexture(image);
+
+        if (texture == null || texture.width <= 0 || texture.height <= 0)
+        {
+            return false;
+        }
+
+        float areaAspect = (float) area.w / Math.max(1, area.h);
+        float texAspect = (float) texture.width / texture.height;
+        float cropW = texture.width;
+        float cropH = texture.height;
+
+        /* Cover the whole screen, centred, the way the banner does */
+        if (areaAspect > texAspect)
+        {
+            cropH = texture.width / areaAspect;
+        }
+        else
+        {
+            cropW = texture.height * areaAspect;
+        }
+
+        float u1 = (texture.width - cropW) * 0.5F;
+        float v1 = (texture.height - cropH) * 0.5F;
+
+        context.batcher.texturedBox(texture, Colors.WHITE, area.x, area.y, area.w, area.h, u1, v1, u1 + cropW, v1 + cropH, texture.width, texture.height);
+
+        /* A light veil, so the card stays readable over a busy picture */
+        context.batcher.box(area.x, area.y, area.ex(), area.ey(), 0x33000000);
+
+        return true;
+    }
+
+    private void renderClassic(UIContext context, Area area)
+    {
+        Link image = BBSSettings.backgroundImage.get();
+        int color = BBSSettings.backgroundColor.get();
+        Texture texture = image == null ? null : BBSModClient.getTextures().getTexture(image);
+
+        /* The ground first, so a see-through tint still has something dark under it */
+        context.batcher.box(area.x, area.y, area.ex(), area.ey(), Colors.A100 | BBSSettings.baseSurface());
+
+        if (texture == null)
+        {
+            context.batcher.box(area.x, area.y, area.ex(), area.ey(), color);
+        }
+        else
+        {
+            context.batcher.texturedBox(texture, color, area.x, area.y, area.w, area.h, 0, 0, area.w, area.h, area.w, area.h);
+        }
     }
 
     private void followCursor(UIContext context, Area area, float time)
@@ -99,6 +199,8 @@ public class LandingBackdrop
         float lookX = (this.cursorX - area.mx()) / area.w * this.presence;
         float lookY = (this.cursorY - area.my()) / area.h * this.presence;
 
+        int index = 0;
+
         for (float[] light : LIGHTS)
         {
             double phase = time / light[5] * Math.PI * 2;
@@ -106,7 +208,11 @@ public class LandingBackdrop
             int x = area.x + (int) ((light[0] + Math.sin(phase) * light[3] - lookX * parallax) * area.w);
             int y = area.y + (int) ((light[1] + Math.cos(phase * 0.7) * light[4] - lookY * parallax) * area.h);
             int radius = (int) (light[2] * area.h);
-            int color = this.turnHue(accent, light[6]);
+            int color = this.gradientTop >= 0
+                ? Colors.lerp(this.gradientTop, this.gradientBottom, index / (float) (LIGHTS.length - 1))
+                : this.turnHue(accent, light[6]);
+
+            index += 1;
 
             context.batcher.dropCircleShadow(x, y, radius, 0, SEGMENTS, Colors.setA(color, LIGHT_ALPHA), Colors.setA(color, 0F));
         }

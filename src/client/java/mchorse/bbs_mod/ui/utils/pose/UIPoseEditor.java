@@ -2,6 +2,7 @@ package mchorse.bbs_mod.ui.utils.pose;
 
 import mchorse.bbs_mod.cubic.IBoneHierarchy;
 import mchorse.bbs_mod.data.types.MapType;
+import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.Keys;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
@@ -12,6 +13,8 @@ import mchorse.bbs_mod.ui.framework.elements.input.UIDeltaPropTransform;
 import mchorse.bbs_mod.ui.framework.elements.input.UIPropTransform;
 import mchorse.bbs_mod.ui.framework.elements.input.UISliderTrackpad;
 import mchorse.bbs_mod.ui.framework.elements.input.list.UIStringList;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIPromptOverlayPanel;
 import mchorse.bbs_mod.ui.utils.BoneSelection;
 import mchorse.bbs_mod.ui.utils.IBoneSelectionHost;
 import mchorse.bbs_mod.ui.utils.UI;
@@ -49,11 +52,18 @@ public class UIPoseEditor extends UIElement
     public UIBoneList groups;
     public UISliderTrackpad fix;
     public UIToggle boneVisible;
+    public UIToggle detach;
     public UIColor color;
     public UIColor overlay;
     public UISliderTrackpad lighting;
     public UIPropTransform transform;
     public UISection material;
+
+    /** Named groups of bones (saved per pose group in bone_categories.json). Picking a category selects its bones. */
+    public UIStringList categories;
+    public UISection categorySection;
+
+    private final BoneCategoriesManager boneCategories = new BoneCategoriesManager();
 
     private String group = "";
     private boolean hasBones = true;
@@ -96,6 +106,19 @@ public class UIPoseEditor extends UIElement
             boolean visible = this.boneVisible.getValue();
 
             this.applyChildren((pt) -> this.setBoneVisible(pt, visible));
+        }));
+        this.detach = new UIToggle(UIKeys.POSE_DETACH, false, (toggle) ->
+        {
+            boolean detached = toggle.getValue();
+
+            this.forEachSelectedPose((pt) -> this.setDetach(pt, detached));
+            this.detach.setValue(detached);
+        });
+        this.detach.context((menu) -> menu.action(Icons.DOWNLOAD, UIKeys.POSE_CONTEXT_APPLY, () ->
+        {
+            boolean detached = this.detach.getValue();
+
+            this.applyChildren((pt) -> this.setDetach(pt, detached));
         }));
         this.fix = new UISliderTrackpad((v) -> this.applyFixToSelection(v.floatValue()));
         this.fix.limit(0D, 1D).increment(0.1D).values(0.1, 0.05D, 0.2D);
@@ -141,6 +164,8 @@ public class UIPoseEditor extends UIElement
 
         this.keys().register(Keys.TRANSFORMATIONS_TOGGLE_FIX, this::toggleFix).category(UIKeys.TRANSFORMS_KEYS_CATEGORY);
 
+        this.createCategories();
+
         this.column().vertical().stretch();
         this.buildLayout(false);
     }
@@ -182,14 +207,17 @@ public class UIPoseEditor extends UIElement
 
         this.material = materialSection(this.color, this.overlay, this.lighting);
         this.material.setVisible(this.hasBones);
+        this.categorySection.setVisible(this.hasBones);
 
         /* Every row rides the same labelRow grid, so the trackpads and colour swatches pin to one
          * divider column and the names never truncate. */
-        UIElement[] fields = this.poseOnly ? new UIElement[] {this.boneVisible, this.transform} : new UIElement[] {
+        UIElement[] fields = this.poseOnly ? new UIElement[] {this.boneVisible, this.detach, this.transform, this.categorySection} : new UIElement[] {
             this.boneVisible,
+            this.detach,
             UI.labelRow(UIKeys.POSE_CONTEXT_FIX, this.fix),
             this.transform,
-            this.material
+            this.material,
+            this.categorySection
         };
 
         if (wide)
@@ -272,6 +300,8 @@ public class UIPoseEditor extends UIElement
     {
         this.pose = pose;
         this.group = group;
+
+        this.refreshCategories();
     }
 
     public void fillGroups(Collection<String> groups, boolean reset)
@@ -356,8 +386,10 @@ public class UIPoseEditor extends UIElement
 
         this.fix.setVisible(hasBones);
         this.boneVisible.setVisible(hasBones);
+        this.detach.setVisible(hasBones);
         this.transform.setVisible(hasBones);
         this.material.setVisible(hasBones);
+        this.categorySection.setVisible(hasBones);
 
         List<String> list = this.groups.list.getList();
         int i = Math.max(reset ? 0 : list.indexOf(this.boneSelection().get()), 0);
@@ -422,6 +454,115 @@ public class UIPoseEditor extends UIElement
 
         this.groups.list.setCurrent(bones);
         this.pickBones(this.groups.list.getCurrent());
+    }
+
+    /* Bone categories */
+
+    private void createCategories()
+    {
+        this.categories = new UIStringList(this::selectCategory);
+        this.categories.background().h(UIStringList.DEFAULT_HEIGHT * 5);
+        this.categories.context((menu) ->
+        {
+            String category = this.categories.getCurrentFirst();
+            boolean hasCategory = category != null && !category.isEmpty();
+
+            menu.action(Icons.ADD, IKey.raw("Add category"), () ->
+            {
+                this.promptCategoryName(IKey.raw("Category name..."), (name) ->
+                {
+                    this.boneCategories.addCategory(this.group, name);
+                    this.refreshCategories();
+                });
+            });
+
+            if (hasCategory)
+            {
+                menu.action(Icons.EDIT, IKey.raw("Rename category"), () ->
+                {
+                    this.promptCategoryName(IKey.raw("New name..."), (name) ->
+                    {
+                        this.boneCategories.renameCategory(this.group, category, name);
+                        this.refreshCategories();
+                    });
+                });
+                menu.action(Icons.ADD, IKey.raw("Add selected bones"), () ->
+                {
+                    for (String bone : new ArrayList<>(this.groups.list.getCurrent()))
+                    {
+                        this.boneCategories.addBone(this.group, category, bone);
+                    }
+                });
+                menu.action(Icons.REMOVE, IKey.raw("Remove selected bones"), () ->
+                {
+                    for (String bone : new ArrayList<>(this.groups.list.getCurrent()))
+                    {
+                        this.boneCategories.removeBone(this.group, category, bone);
+                    }
+                });
+                menu.action(Icons.TRASH, IKey.raw("Remove category"), Colors.RED, () ->
+                {
+                    this.boneCategories.removeCategory(this.group, category);
+                    this.refreshCategories();
+                });
+            }
+        });
+
+        this.categorySection = new UISection(IKey.raw("Bone categories")).remember(SECTION_FOLDS, "bone_categories", false);
+        this.categorySection.fields.add(this.categories);
+    }
+
+    private void promptCategoryName(IKey message, Consumer<String> callback)
+    {
+        UIPromptOverlayPanel panel = new UIPromptOverlayPanel(IKey.raw("Bone categories"), message, (name) ->
+        {
+            if (name != null && !name.trim().isEmpty())
+            {
+                callback.accept(name.trim());
+            }
+        });
+
+        UIOverlay.addOverlay(this.getContext(), panel);
+    }
+
+    protected void refreshCategories()
+    {
+        if (this.categories == null)
+        {
+            return;
+        }
+
+        this.categories.clear();
+        this.categories.add(this.boneCategories.getCategories(this.group));
+        this.categories.sort();
+    }
+
+    /**
+     * Picking a category selects all of its bones in the bone list, so every edit the pose
+     * editor already does to a multi-selection (transform, colour, glow, visibility...)
+     * hits the whole category at once.
+     */
+    private void selectCategory(List<String> picked)
+    {
+        if (picked == null || picked.isEmpty() || this.pose == null)
+        {
+            return;
+        }
+
+        List<String> bones = new ArrayList<>();
+
+        for (String bone : this.boneCategories.getBones(this.group, picked.get(0)))
+        {
+            if (this.hasBone(bone))
+            {
+                bones.add(bone);
+            }
+        }
+
+        if (!bones.isEmpty())
+        {
+            this.restoreSelection(bones);
+        }
     }
 
     /* Subclass overridable methods */
@@ -493,6 +634,7 @@ public class UIPoseEditor extends UIElement
             this.boneSelection().set("");
             this.fix.setValue(0F);
             this.boneVisible.setValue(true);
+            this.detach.setValue(false);
             this.color.setColor(Colors.WHITE);
             this.overlay.setColor(0x00ffffff);
             this.lighting.setValue(0F);
@@ -509,6 +651,7 @@ public class UIPoseEditor extends UIElement
 
         this.fix.setValue(poseTransform.fix);
         this.boneVisible.setValue(poseTransform.visible);
+        this.detach.setValue(poseTransform.detach);
         this.color.setColor(poseTransform.color.getARGBColor());
         this.overlay.setColor(poseTransform.overlay.getARGBColor());
         this.lighting.setValue(poseTransform.lighting);
@@ -708,6 +851,11 @@ public class UIPoseEditor extends UIElement
     protected void setFix(PoseTransform transform, float value)
     {
         transform.fix = value;
+    }
+
+    protected void setDetach(PoseTransform transform, boolean value)
+    {
+        transform.detach = value;
     }
 
     protected void setColor(PoseTransform transform, int value)

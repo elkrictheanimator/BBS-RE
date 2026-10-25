@@ -19,6 +19,9 @@ public class OBJMaterial
     public boolean linear = false;
     public Link texture;
 
+    /** The picture the .mtl names for the material (map_Kd), as written there; null when it names none. */
+    public String mapKd;
+
     public OBJMaterial(String name)
     {
         this.name = name;
