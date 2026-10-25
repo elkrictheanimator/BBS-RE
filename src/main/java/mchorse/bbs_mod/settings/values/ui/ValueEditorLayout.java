@@ -30,6 +30,7 @@ public class ValueEditorLayout extends BaseValue
     public static final String FILM = "film";
     public static final String FILM_CAMERA = "film.camera";
     public static final String FILM_REPLAY = "film.replay";
+    public static final String FILM_ACTION = "film.action";
     public static final String PARTICLE = "particle";
 
     private final Map<String, EditorLayoutNode> layouts = new LinkedHashMap<>();

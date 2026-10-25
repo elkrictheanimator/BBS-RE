@@ -37,6 +37,7 @@ import mchorse.bbs_mod.ui.utils.UIUtils;
 import mchorse.bbs_mod.ui.utils.context.ContextMenuManager;
 import mchorse.bbs_mod.ui.utils.context.MenuVerb;
 import mchorse.bbs_mod.ui.utils.context.UIChoiceMenu;
+import mchorse.bbs_mod.ui.utils.icons.Icon;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.ui.utils.presets.UICopyPasteController;
 import mchorse.bbs_mod.ui.utils.renderers.TimelineRulerRenderer;
@@ -350,18 +351,145 @@ public class UIClips extends UITimelineCanvas
             return;
         }
 
-        context.replaceContextMenu((add) ->
+        context.replaceContextMenu((add) -> this.buildAddMenu(add, preview, null));
+
+        this.addPreview = preview;
+    }
+
+    /* The "add clip" menu: the everyday camera clips are listed right away; the rest sit behind tab
+     * rows at the top (Media, Impact, and "Other" for anything an addon adds). An action-clip timeline
+     * has none of these names, so it keeps the plain flat list. Each tab is (title, clip names). */
+    private static final String[] CLIP_DIRECT = {"idle", "dolly", "path", "keyframe", "translate", "angle", "drag", "shake", "math", "look", "orbit", "orbit_path", "remapper", "tracker", "dolly_zoom", "curve", "follow_curve"};
+
+    private static final String[][] CLIP_TABS = {
+        {"Media", "audio", "subtitle", "image", "photo", "video"},
+        {"Impact", "impact"}
+    };
+
+    private static final Icon[] CLIP_TAB_ICONS = {Icons.PICTURE, Icons.LIGHT};
+
+    private static boolean clipIn(String[] names, int from, Link key)
+    {
+        for (int i = from; i < names.length; i++)
         {
-            UIChoiceMenu.of(this.factory.getKeys())
+            if (names[i].equals(key.path))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void buildAddMenu(ContextMenuManager add, Vector3i preview, Integer tab)
+    {
+        List<Link> keys = new ArrayList<>(this.factory.getKeys());
+        List<Link> direct = new ArrayList<>();
+        List<List<Link>> tabs = new ArrayList<>();
+        List<Link> other = new ArrayList<>();
+
+        for (int i = 0; i < CLIP_TABS.length; i++)
+        {
+            tabs.add(new ArrayList<>());
+        }
+
+        for (Link key : keys)
+        {
+            int target = -2;
+
+            if (clipIn(CLIP_DIRECT, 0, key))
+            {
+                target = -2;
+            }
+            else
+            {
+                target = -1;
+
+                for (int i = 0; i < CLIP_TABS.length; i++)
+                {
+                    if (clipIn(CLIP_TABS[i], 1, key))
+                    {
+                        target = i;
+                    }
+                }
+            }
+
+            if (target == -2)
+            {
+                direct.add(key);
+            }
+            else if (target == -1)
+            {
+                other.add(key);
+            }
+            else
+            {
+                tabs.get(target).add(key);
+            }
+        }
+
+        add.onClose((m) -> this.addPreview = null);
+
+        /* Nothing recognised (an action timeline): the plain flat list. */
+        if (direct.isEmpty() && tabs.stream().allMatch(List::isEmpty))
+        {
+            UIChoiceMenu.of(keys)
                 .icon((type) -> this.factory.getData(type).icon)
                 .label((type) -> UIKeys.C_CLIP.get(type))
                 .color((type) -> this.factory.getData(type).color)
                 .build(add, UIKeys.CAMERA_TIMELINE_KEYS_CLIPS, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
 
-            add.onClose((m) -> this.addPreview = null);
-        });
+            return;
+        }
 
-        this.addPreview = preview;
+        if (tab != null)
+        {
+            List<Link> list = tab >= 0 ? tabs.get(tab) : other;
+
+            add.action(Icons.ARROW_LEFT, IKey.constant("Back"), () ->
+            {
+                this.getContext().replaceContextMenu((m) -> this.buildAddMenu(m, preview, null));
+                this.addPreview = preview;
+            });
+
+            UIChoiceMenu.of(list)
+                .icon((type) -> this.factory.getData(type).icon)
+                .label((type) -> UIKeys.C_CLIP.get(type))
+                .color((type) -> this.factory.getData(type).color)
+                .build(add, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
+
+            return;
+        }
+
+        /* Top level: tab rows first, then the everyday clips. */
+        for (int i = 0; i < tabs.size(); i++)
+        {
+            final int index = i;
+
+            if (!tabs.get(i).isEmpty())
+            {
+                add.action(CLIP_TAB_ICONS[i], IKey.constant(CLIP_TABS[i][0] + "  >"), () ->
+                {
+                    this.getContext().replaceContextMenu((m) -> this.buildAddMenu(m, preview, index));
+                    this.addPreview = preview;
+                });
+            }
+        }
+
+        if (!other.isEmpty())
+        {
+            add.action(Icons.PROPERTIES, IKey.constant("Other  >"), () ->
+            {
+                this.getContext().replaceContextMenu((m) -> this.buildAddMenu(m, preview, -1));
+                this.addPreview = preview;
+            });
+        }
+
+        UIChoiceMenu.of(direct)
+            .icon((type) -> this.factory.getData(type).icon)
+            .label((type) -> UIKeys.C_CLIP.get(type))
+            .color((type) -> this.factory.getData(type).color)
+            .build(add, UIKeys.CAMERA_TIMELINE_KEYS_CLIPS, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
     }
 
     private void addClip(Link type, int tick, int layer, int duration)

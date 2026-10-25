@@ -4,6 +4,7 @@ import mchorse.bbs_mod.film.replays.Replay;
 import mchorse.bbs_mod.forms.entities.IEntity;
 import mchorse.bbs_mod.forms.forms.utils.Anchor;
 import org.joml.Matrix4f;
+import org.joml.Vector3d;
 
 import java.util.Map;
 
@@ -36,6 +37,64 @@ public class AnchorRebase
      * sides are measured as the settled value, so a rebase performed mid-blend still answers about
      * the anchors themselves rather than about the crossfade between them.</p>
      */
+    /**
+     * Let go of the anchor's target without the form moving: the world position the form hangs at
+     * right now is handed back through {@code position} (the caller keys the replay's x/y/z with
+     * it) and the returned anchor has no target, keeping only the form's orientation and scale as
+     * a transform in the replay's own frame — so nothing jumps when the target is dropped.
+     * Returns null when it cannot (a replay in relative mode ignores anchors, or the frame is
+     * missing or degenerate).
+     *
+     * <p>Like {@link #keepWorldTransform} it is measured at the film's current frame, so the
+     * caller should only use it on the keyframe under the cursor.</p>
+     */
+    public static Anchor detach(Map<String, IEntity> entities, IEntity entity, Replay replay, float transition, Anchor from, Vector3d position)
+    {
+        if (entity == null || replay == null || replay.relative.get())
+        {
+            return null;
+        }
+
+        /* Measured against the world origin, so the translation IS the world position. */
+        Matrix4f world = FilmMatrices.getAnchorMatrix(entities, entity, replay, 0D, 0D, 0D, transition, from.copy());
+        Matrix4f basis = FilmMatrices.getMatrixForRenderWithRotation(entity, 0D, 0D, 0D, transition);
+
+        if (world == null || basis == null || !world.isFinite() || !basis.isFinite())
+        {
+            return null;
+        }
+
+        position.set(world.m30(), world.m31(), world.m32());
+
+        /* The replay's frame once it stands where the form is; whatever the target added on top
+         * of it (rotation, scale) becomes the new anchor's transform. */
+        Matrix4f frame = new Matrix4f(basis).setTranslation(world.m30(), world.m31(), world.m32());
+
+        if (Math.abs(frame.determinant()) < 1E-9F)
+        {
+            return null;
+        }
+
+        Matrix4f local = frame.invert().mul(world);
+
+        if (!local.isFinite())
+        {
+            return null;
+        }
+
+        Anchor anchor = from.copy();
+
+        anchor.replay = Anchor.NO_ATTACHMENT;
+        anchor.attachment = "";
+        anchor.inheritPosition = true;
+        anchor.inheritRotation = true;
+        anchor.inheritScale = true;
+        anchor.transform.fromMatrix(local);
+        anchor.transform.translate.zero();
+
+        return anchor;
+    }
+
     public static boolean keepWorldTransform(Map<String, IEntity> entities, IEntity entity, Replay replay, float transition, Anchor from, Anchor to)
     {
         if (replay != null && replay.relative.get())

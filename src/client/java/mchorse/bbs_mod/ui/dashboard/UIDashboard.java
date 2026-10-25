@@ -381,6 +381,9 @@ public class UIDashboard extends UIBaseMenu
     @Override
     protected void preRenderMenu(UIRenderingContext context)
     {
+        /* Solid unless the video wallpaper is drawn below this frame */
+        BBSSettings.surfaceOpacity = 1F;
+
         if (!this.main.isVisible())
         {
             if (this.panels.panel != null)
@@ -404,6 +407,16 @@ public class UIDashboard extends UIBaseMenu
 
     private void background(UIRenderingContext context)
     {
+        /* The video wallpaper, when it is meant for every screen: it replaces the picture and the tint */
+        if (BBSSettings.videoEverywhere.get() && Wallpaper.draw(context.batcher, 0, 0, this.width, this.height))
+        {
+            /* The panels are drawn over it, so let it show through them (the film editor paints
+             * its whole area, and would otherwise hide the video completely) */
+            BBSSettings.surfaceOpacity = Wallpaper.SURFACE_OPACITY;
+
+            return;
+        }
+
         Link background = BBSSettings.backgroundImage.get();
         int color = BBSSettings.backgroundColor.get();
 

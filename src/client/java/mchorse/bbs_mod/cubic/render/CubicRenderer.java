@@ -2,13 +2,16 @@ package mchorse.bbs_mod.cubic.render;
 
 import mchorse.bbs_mod.cubic.data.model.Model;
 import mchorse.bbs_mod.cubic.data.model.ModelGroup;
+import mchorse.bbs_mod.utils.MatrixStackUtils;
 import mchorse.bbs_mod.utils.joml.Matrices;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.util.math.MatrixStack;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,9 +28,14 @@ public class CubicRenderer
      */
     public static boolean processRenderModel(ICubicRenderer renderProcessor, BufferBuilder builder, MatrixStack stack, Model model)
     {
+        /* Where the model starts: a detached bone is rebuilt from here, not from its parent */
+        Matrix4f basePosition = new Matrix4f(stack.peek().getPositionMatrix());
+        Matrix3f baseNormal = new Matrix3f(stack.peek().getNormalMatrix());
+        List<ModelGroup> ancestors = new ArrayList<>();
+
         for (ModelGroup group : model.topGroups)
         {
-            if (processRenderRecursively(renderProcessor, builder, stack, model, group))
+            if (processRenderRecursively(renderProcessor, builder, stack, model, group, ancestors, basePosition, baseNormal))
             {
                 return true;
             }
@@ -39,9 +47,25 @@ public class CubicRenderer
     /**
      * Apply the render processor, recursively
      */
-    private static boolean processRenderRecursively(ICubicRenderer renderProcessor, BufferBuilder builder, MatrixStack stack, Model model, ModelGroup group)
+    private static boolean processRenderRecursively(ICubicRenderer renderProcessor, BufferBuilder builder, MatrixStack stack, Model model, ModelGroup group, List<ModelGroup> ancestors, Matrix4f basePosition, Matrix3f baseNormal)
     {
         stack.push();
+
+        if (group.poseDetach && !ancestors.isEmpty())
+        {
+            /* The bone ignores what its ancestors do: start over from the model's own frame and walk
+             * down the chain with every ancestor at rest, so the bone keeps its place but not their motion */
+            MatrixStack.Entry top = stack.peek();
+
+            top.getPositionMatrix().set(basePosition);
+            top.getNormalMatrix().set(baseNormal);
+
+            for (ModelGroup ancestor : ancestors)
+            {
+                applyAtRest(stack, ancestor);
+            }
+        }
+
         renderProcessor.applyGroupTransformations(stack, group);
 
         if (group.isVisible())
@@ -54,19 +78,40 @@ public class CubicRenderer
             }
         }
 
+        ancestors.add(group);
+
         for (ModelGroup childGroup : group.children)
         {
-            if (processRenderRecursively(renderProcessor, builder, stack, model, childGroup))
+            if (processRenderRecursively(renderProcessor, builder, stack, model, childGroup, ancestors, basePosition, baseNormal))
             {
+                ancestors.remove(ancestors.size() - 1);
                 stack.pop();
 
                 return true;
             }
         }
 
+        ancestors.remove(ancestors.size() - 1);
         stack.pop();
 
         return false;
+    }
+
+    /** A bone's frame in its bind pose: what {@link ICubicRenderer#applyGroupTransformations} gives with nothing animated. */
+    private static void applyAtRest(MatrixStack stack, ModelGroup group)
+    {
+        Vector3f rotate = group.initial.rotate;
+        Vector3f scale = group.initial.scale;
+
+        ICubicRenderer.moveToGroupPivot(stack, group);
+
+        if (rotate.x != 0F || rotate.y != 0F || rotate.z != 0F)
+        {
+            stack.multiply(Matrices.toLocalRotationZYXDegrees(rotate));
+        }
+
+        MatrixStackUtils.scaleStack(stack, scale.x, scale.y, scale.z);
+        ICubicRenderer.moveBackFromGroupPivot(stack, group);
     }
 
     /**

@@ -8,8 +8,11 @@ import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.resources.Link;
 import mchorse.bbs_mod.settings.values.core.ValueRecentData.Entry;
 import mchorse.bbs_mod.ui.UIKeys;
+import mchorse.bbs_mod.video.LoopVideo;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
+import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.ui.framework.elements.utils.FontRenderer;
 import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.framework.elements.utils.UIRenderable;
@@ -40,8 +43,9 @@ public class UILandingScreen extends UIElement
     private static final int CARD_W = 440;
     private static final int CARD_H = 360;
 
-    /** The banner is the top half of the card, exactly. */
+    /** The banner is the top half of the card by default; the setting moves that line, the rest of the card stays. */
     private static final int BANNER_H = CARD_H / 2;
+    private static final int BELOW_BANNER_H = CARD_H - BANNER_H;
     private static final int BANNER_MARGIN = 12;
     private static final int PADDING = 10;
     private static final int HEADER_H = 16;
@@ -51,8 +55,6 @@ public class UILandingScreen extends UIElement
     private static final int GROUP_GAP = 10;
 
     private static final int RECENT_X = PADDING + MENU_W + GUTTER;
-    private static final int CONTENT_Y = BANNER_H + BANNER_MARGIN;
-    private static final int LIST_Y = CONTENT_Y + HEADER_H + HEADER_MARGIN;
 
     /** Section titles sit back a little; the entries under them are what the eye is for. */
     private static final int DIMMED = Colors.setA(Colors.WHITE, 0.7F);
@@ -79,9 +81,15 @@ public class UILandingScreen extends UIElement
     private final UIElement card;
     private final UIElement banner;
     private final UIElement menu;
+    private final UILabel titleLabel;
+    private final UILabel recentLabel;
+    private int appliedBannerH = -1;
     private final UILandingRow folder;
     private final UIRecentDataList recent;
     private final String bannerVersion = getReleaseVersion();
+
+    /** Why the banner's video isn't playing, shown over the banner until it does */
+    private String bannerProblem;
 
     /** Ids the repository reported last; null until it answered, when nothing is filtered out. */
     private Set<String> known;
@@ -92,20 +100,27 @@ public class UILandingScreen extends UIElement
 
         /* Centered, with the backdrop showing all around it */
         this.card = new UIElement();
-        this.card.relative(this).xy(0.5F, 0.5F).wh(CARD_W, CARD_H).anchor(0.5F);
+        this.card.relative(this).xy(0.5F, 0.5F).wh(CARD_W, bannerHeight() + BELOW_BANNER_H).anchor(0.5F);
 
         this.banner = new UIElement();
-        this.banner.relative(this.card).xy(0, 0).w(1F).h(BANNER_H);
+        this.banner.relative(this.card).xy(0, 0).w(1F).h(bannerHeight());
         this.banner.add(new UIRenderable((context) -> this.renderBanner(context, this.banner.area)));
         this.banner.add(new UIRenderable((context) -> this.renderBannerCaption(context, this.banner.area)));
 
-        UILabel title = UI.label(host.getTitle()).color(DIMMED);
-        title.labelAnchor(0, 0.5F);
-        title.relative(this.card).xy(PADDING, CONTENT_Y).w(MENU_W).h(HEADER_H);
+        /* The pencil: opens the banner editor (style and gradient colours) */
+        UIIcon editBanner = new UIIcon(Icons.EDIT, (b) -> UIOverlay.addOverlay(this.getContext(), new UIBannerEditorPanel((float) this.banner.area.w / Math.max(1, this.banner.area.h)), 280, 400));
 
-        UILabel recentTitle = UI.label(UIKeys.PANELS_LANDING_RECENT).color(DIMMED);
+        editBanner.tooltip(IKey.constant("Chỉnh banner"));
+        editBanner.relative(this.banner).x(1F, -PADDING - 20).y(PADDING).wh(20, 20);
+        this.banner.add(editBanner);
+
+        UILabel title = this.titleLabel = UI.label(host.getTitle()).color(DIMMED);
+        title.labelAnchor(0, 0.5F);
+        title.relative(this.card).w(MENU_W).h(HEADER_H);
+
+        UILabel recentTitle = this.recentLabel = UI.label(UIKeys.PANELS_LANDING_RECENT).color(DIMMED);
         recentTitle.labelAnchor(0, 0.5F);
-        recentTitle.relative(this.card).xy(RECENT_X, CONTENT_Y).w(CARD_W - RECENT_X - PADDING).h(HEADER_H);
+        recentTitle.relative(this.card).w(CARD_W - RECENT_X - PADDING).h(HEADER_H);
 
         /* The menu: what leads into the editor first, what leads out of it after a gap */
         IKey createLabel = host.getCreateLabel();
@@ -143,10 +158,10 @@ public class UILandingScreen extends UIElement
         rows.add(wiki);
 
         this.menu = UI.column(0, rows.toArray(new UIElement[0]));
-        this.menu.relative(this.card).xy(PADDING, LIST_Y).w(MENU_W).h(1F, -(LIST_Y + PADDING));
+        this.menu.relative(this.card).w(MENU_W);
 
         this.recent = new UIRecentDataList((entries) -> this.open(entries.get(0)), host::getTabIcon);
-        this.recent.relative(this.card).xy(RECENT_X, LIST_Y).w(CARD_W - RECENT_X - PADDING).h(1F, -(LIST_Y + PADDING));
+        this.recent.relative(this.card).w(CARD_W - RECENT_X - PADDING);
         this.recent.context(this::fillRecentMenu);
 
         this.card.add(new UIRenderable((context) -> this.renderCard(context, this.card.area)));
@@ -154,7 +169,30 @@ public class UILandingScreen extends UIElement
         this.card.add(new UIRenderable(this::renderEmptyHint), this.recent);
         this.add(new UIRenderable(this::renderBackdrop), this.card);
 
+        this.layoutCard();
         this.refresh();
+    }
+
+    private static int bannerHeight()
+    {
+        return BBSSettings.bannerHeight.get();
+    }
+
+    /** Place everything under the banner for the banner's current height. */
+    private void layoutCard()
+    {
+        int banner = bannerHeight();
+        int contentY = banner + BANNER_MARGIN;
+        int listY = contentY + HEADER_H + HEADER_MARGIN;
+
+        this.appliedBannerH = banner;
+
+        this.card.wh(CARD_W, banner + BELOW_BANNER_H);
+        this.banner.h(banner);
+        this.titleLabel.xy(PADDING, contentY);
+        this.recentLabel.xy(RECENT_X, contentY);
+        this.menu.xy(PADDING, listY).h(1F, -(listY + PADDING));
+        this.recent.xy(RECENT_X, listY).h(1F, -(listY + PADDING));
     }
 
     /** The card in the middle — what a tour points at when it points at the landing screen. */
@@ -168,7 +206,7 @@ public class UILandingScreen extends UIElement
     {
         String version = getReleaseVersion();
 
-        return "BBS FS" + (version.isEmpty() ? "" : " " + version);
+        return "BBS Reality's Edge" + (version.isEmpty() ? "" : " " + version);
     }
 
     private static String getReleaseVersion()
@@ -311,9 +349,7 @@ public class UILandingScreen extends UIElement
     private void renderBannerCaption(UIContext context, Area area)
     {
         FontRenderer font = context.batcher.getFont();
-        String brand = "\u00a7lBBS FS";
-        String credit = "render by ";
-        String artist = "Kizrum";
+        String brand = "\u00a7lBBS Reality's Edge";
         int brandWidth = font.getWidth(brand);
         int versionWidth = this.bannerVersion.isEmpty() ? 0 : font.getWidth(this.bannerVersion) + 16;
         int x = area.x + PADDING;
@@ -339,15 +375,89 @@ public class UILandingScreen extends UIElement
             context.batcher.box(dividerX, textY, dividerX + 1, textY + font.getHeight(), 0x40b4bccb);
             context.batcher.text(this.bannerVersion, dividerX + 8, textY, secondary, false);
         }
-
-        int creditX = area.ex() - PADDING - font.getWidth(credit) - font.getWidth(artist);
-
-        context.batcher.text(credit, creditX, textY, secondary, false);
-        context.batcher.text(artist, creditX + font.getWidth(credit), textY, ink, false);
     }
 
     private void renderBanner(UIContext context, Area area)
     {
+        if (this.appliedBannerH != bannerHeight())
+        {
+            this.layoutCard();
+            this.resize();
+        }
+
+        this.bannerProblem = null;
+        this.drawBanner(context, area);
+
+        if (this.bannerProblem != null)
+        {
+            int w = Math.max(10, area.w - 16);
+            String text = context.batcher.getFont().limitToWidth(this.bannerProblem, w);
+
+            context.batcher.textCard(text, area.x + 8, area.ey() - 18, Colors.WHITE, 0xaa000000);
+        }
+    }
+
+    private void drawBanner(UIContext context, Area area)
+    {
+        int style = BBSSettings.bannerStyle.get();
+
+        if (style == 3)
+        {
+            Link custom = BBSSettings.bannerImage.get();
+
+            if (custom != null && BBSModClient.getTextures().getTexture(custom) != null)
+            {
+                this.renderBannerImage(context, area, custom, 1F);
+
+                return;
+            }
+
+            /* No picture chosen yet: fall through to the default slideshow */
+            style = 0;
+        }
+
+        if (style == 4)
+        {
+            Texture frame = LoopVideo.frame(BBSSettings.bannerVideo.get(), BBSSettings.bannerVideoUrl.get(), BBSSettings.bannerVolume.get(), BBSSettings.bannerAudioOffset.get());
+
+            if (frame != null && frame.width > 0 && frame.height > 0)
+            {
+                float[] crop = bannerCrop(frame, (float) area.w / area.h);
+
+                context.batcher.texturedBox(frame, Colors.WHITE, area.x, area.y, area.w, area.h, crop[0], crop[1], crop[2], crop[3], frame.width, frame.height);
+
+                return;
+            }
+
+            /* No video picked yet, or its first frame is still decoding: the slideshow stands in, and
+             * a video that can't be played says why, so it isn't a mystery */
+            String problem = LoopVideo.problem(BBSSettings.bannerVideo.get(), BBSSettings.bannerVideoUrl.get());
+
+            if (problem != null)
+            {
+                this.bannerProblem = problem;
+            }
+
+            style = 0;
+        }
+
+        if (style != 0)
+        {
+            int a = Colors.A100 | (BBSSettings.bannerColorStart.get() & Colors.RGB);
+            int b = Colors.A100 | (BBSSettings.bannerColorEnd.get() & Colors.RGB);
+
+            if (style == 1)
+            {
+                context.batcher.gradientVBox(area.x, area.y, area.ex(), area.ey(), a, b);
+            }
+            else
+            {
+                context.batcher.gradientHBox(area.x, area.y, area.ex(), area.ey(), a, b);
+            }
+
+            return;
+        }
+
         /* Warm the texture cache before timing the slideshow, including after a reload. */
         for (Link link : BANNERS)
         {
@@ -375,6 +485,53 @@ public class UILandingScreen extends UIElement
         }
     }
 
+    /** The aspect of the banner on a card of the default size. */
+    public static float defaultBannerAspect()
+    {
+        return (float) CARD_W / bannerHeight();
+    }
+
+    /**
+     * The part of a picture a banner of this aspect shows: {u1, v1, u2, v2} in pixels. The picture
+     * fills the banner, is zoomed by the user's setting, and the window slides over it by the
+     * user's focus.
+     */
+    public static float[] bannerCrop(Texture texture, float areaAspect)
+    {
+        float texW = texture.width;
+        float texH = texture.height;
+        float texAspect = texW / texH;
+        float cropW;
+        float cropH;
+
+        if (areaAspect > texAspect)
+        {
+            cropW = texW;
+            cropH = texW / areaAspect;
+        }
+        else
+        {
+            cropH = texH;
+            cropW = texH * areaAspect;
+        }
+
+        float zoom = Math.max(1F, BBSSettings.bannerZoom.get());
+
+        cropW /= zoom;
+        cropH /= zoom;
+
+        float slackW = Math.max(0F, texW - cropW);
+        float slackH = Math.max(0F, texH - cropH);
+        float focusX = Math.max(0F, Math.min(1F, BBSSettings.bannerFocusX.get()));
+        float focusY = Math.max(0F, Math.min(1F, BBSSettings.bannerFocusY.get()));
+
+        /* Before the user touches anything the window is centred, as it always was */
+        float u1 = slackW * focusX;
+        float v1 = slackH * focusY;
+
+        return new float[] {u1, v1, u1 + cropW, v1 + cropH};
+    }
+
     private void renderBannerImage(UIContext context, Area area, Link bannerLink, float alpha)
     {
         Texture texture = BBSModClient.getTextures().getTexture(bannerLink);
@@ -384,38 +541,8 @@ public class UILandingScreen extends UIElement
             return;
         }
 
-        float texW = texture.width;
-        float texH = texture.height;
-        float areaW = area.w;
-        float areaH = area.h;
+        float[] crop = bannerCrop(texture, (float) area.w / area.h);
 
-        float texAspect = texW / texH;
-        float areaAspect = areaW / areaH;
-
-        float u1;
-        float u2;
-        float v1;
-        float v2;
-
-        if (areaAspect > texAspect)
-        {
-            float cropH = texW / areaAspect;
-
-            u1 = 0;
-            u2 = texW;
-            v1 = (texH - cropH) * 0.5F;
-            v2 = v1 + cropH;
-        }
-        else
-        {
-            float cropW = texH * areaAspect;
-
-            u1 = (texW - cropW) * 0.5F;
-            u2 = u1 + cropW;
-            v1 = 0;
-            v2 = texH;
-        }
-
-        context.batcher.texturedBox(texture, Colors.setA(Colors.WHITE, alpha), area.x, area.y, area.w, area.h, u1, v1, u2, v2, texture.width, texture.height);
+        context.batcher.texturedBox(texture, Colors.setA(Colors.WHITE, alpha), area.x, area.y, area.w, area.h, crop[0], crop[1], crop[2], crop[3], texture.width, texture.height);
     }
 }

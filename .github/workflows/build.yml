@@ -1,0 +1,28 @@
+name: Build
+
+on:
+  push:
+    branches: [ re-1.20.1 ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Build
+        run: |
+          chmod +x gradlew
+          ./gradlew build --no-daemon -Dorg.gradle.jvmargs=-Xmx3G
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bbs-re-jar-1.20.1
+          path: build/libs/*.jar

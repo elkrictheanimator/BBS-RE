@@ -12,6 +12,7 @@ import mchorse.bbs_mod.cubic.physics.ModelPhysicsRuntime;
 import mchorse.bbs_mod.cubic.model.loaders.BOBJModelLoader;
 import mchorse.bbs_mod.cubic.model.loaders.CubicModelLoader;
 import mchorse.bbs_mod.cubic.model.loaders.GeoCubicModelLoader;
+import mchorse.bbs_mod.cubic.model.loaders.GlbModelLoader;
 import mchorse.bbs_mod.cubic.model.loaders.IModelLoader;
 import mchorse.bbs_mod.cubic.model.loaders.JemModelLoader;
 import mchorse.bbs_mod.cubic.model.loaders.VoxModelLoader;
@@ -102,6 +103,7 @@ public class ModelManager implements IWatchDogListener
         List<IModelLoader> loaders = new ArrayList<>();
 
         loaders.add(new BOBJModelLoader());
+        loaders.add(new GlbModelLoader());
         loaders.add(new CubicModelLoader());
         loaders.add(new GeoCubicModelLoader());
         loaders.add(new JemModelLoader());
@@ -405,6 +407,7 @@ public class ModelManager implements IWatchDogListener
             || link.path.endsWith(".geo.json")
             || link.path.endsWith(".bobj")
             || link.path.endsWith(".obj")
+            || link.path.endsWith(".glb")
             || link.path.endsWith(".animation.json")
             || link.path.endsWith(".jem")
             || link.path.endsWith(".jpm")

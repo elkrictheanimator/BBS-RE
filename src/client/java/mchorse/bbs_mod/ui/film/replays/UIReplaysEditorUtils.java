@@ -21,6 +21,7 @@ import mchorse.bbs_mod.film.replays.FormProperties;
 import mchorse.bbs_mod.film.replays.tracks.TrackDescriptor;
 import mchorse.bbs_mod.film.replays.tracks.TrackId;
 import mchorse.bbs_mod.film.replays.tracks.TrackKind;
+import mchorse.bbs_mod.film.replays.tracks.TrackStyle;
 import mchorse.bbs_mod.film.FilmTarget;
 import mchorse.bbs_mod.film.replays.Replay;
 import mchorse.bbs_mod.forms.FormUtils;
@@ -186,12 +187,51 @@ public class UIReplaysEditorUtils
     {
         Map<TrackId, UIKeyframeSheet> rows = new HashMap<>();
 
+        /* Pose and transform tracks (the form's own, plus the overlays) read alike once every part is
+         * on one timeline. They are named per family - "Pose", "Pose (1)", "Pose (2)"... then "Pose Overlay",
+         * "Pose Overlay (1)"... then the same for Transform - and listed in exactly that order, wherever the
+         * catalog happened to put them. A track the user has renamed keeps their name. */
+        String poseWord = TrackStyle.label(TrackId.property("", "pose")).get();
+        String transformWord = TrackStyle.label(TrackId.property("", "transform")).get();
+        String[] words = {poseWord, poseWord + " Overlay", transformWord, transformWord + " Overlay"};
+        int[] counts = new int[4];
+        List<UIKeyframeSheet> familySheets = new ArrayList<>();
+        List<Integer> familySlots = new ArrayList<>();
+        List<Integer> familyOf = new ArrayList<>();
+
         for (TrackDescriptor track : catalog)
         {
             UIKeyframeSheet sheet = new UIKeyframeSheet(track);
+            /* The 2.5.2 layout keeps the form's own order: no renaming, no regrouping of these rows */
+            int family = BBSSettings.classicTrackOrder.get() ? -1 : familyOf(track.id());
+
+            if (family >= 0)
+            {
+                int n = counts[family]++;
+
+                if (sheet.title == sheet.defaultTitle)
+                {
+                    sheet.title = IKey.constant(n == 0 ? words[family] : words[family] + " (" + n + ")");
+                }
+
+                familySheets.add(sheet);
+                familySlots.add(sheets.size());
+                familyOf.add(family);
+            }
 
             rows.put(track.id(), sheet);
             sheets.add(sheet);
+        }
+
+        /* Reorder only these rows, into the slots they already occupy, so nothing else moves. */
+        List<UIKeyframeSheet> ordered = new ArrayList<>(familySheets);
+        final List<UIKeyframeSheet> source = familySheets;
+        final List<Integer> families = familyOf;
+        ordered.sort((x, y) -> Integer.compare(families.get(source.indexOf(x)), families.get(source.indexOf(y))));
+
+        for (int i = 0; i < ordered.size(); i++)
+        {
+            sheets.set(familySlots.get(i), ordered.get(i));
         }
 
         for (TrackDescriptor track : catalog)
@@ -201,6 +241,24 @@ public class UIReplaysEditorUtils
                 rows.get(track.id()).setParent(rows.get(track.parent()));
             }
         }
+    }
+
+    /** 0 pose, 1 pose overlay, 2 transform, 3 transform overlay; -1 for anything else. */
+    private static int familyOf(TrackId id)
+    {
+        if (id == null || id.kind() != TrackKind.PROPERTY)
+        {
+            return -1;
+        }
+
+        String subject = id.subject();
+
+        if (subject.equals("pose")) return 0;
+        if (subject.startsWith("pose_overlay")) return 1;
+        if (subject.equals("transform")) return 2;
+        if (subject.startsWith("transform_overlay")) return 3;
+
+        return -1;
     }
 
     /** Remove links to filtered rows while keeping their surviving children accessible. */
@@ -725,11 +783,9 @@ public class UIReplaysEditorUtils
             IUIKeyframeGraph graph = keyframeEditor.view.getGraph();
             Keyframe selected = graph.getSelected();
             UIKeyframeSheet currentSheet = selected != null ? graph.getSheet(selected) : null;
-            TrackId currentPath = currentSheet == null ? null : TrackId.parse(currentSheet.id, TrackKind.BONE);
-            if (currentPath != null && !path.equals(currentPath.formPath()))
-            {
-                return;
-            }
+            /* Every part's tracks are on the timeline at once, so a keyframe selected on ANOTHER part must
+             * not block this pick: falling through selects this part's own track, which is what makes
+             * the gizmo (and auto-keyframing) follow the part that was clicked instead of staying put. */
             if (isPoseSheet(currentSheet, path))
             {
                 float tick = keyframeEditor.view.getTick();
@@ -902,6 +958,20 @@ public class UIReplaysEditorUtils
         }
         else
         {
+            /* Auto-keyframing is on and this bone's track has nothing at all: key it at the playhead
+             * now, so the edit that follows lands on a keyframe in the right place instead of on a
+             * track nobody can see a change in. Only for an empty track, so clicking around never
+             * litters a track that already has keys. */
+            if (keyframeEditor.view.getAutoKeyframeTick() != null && sheet.channel.isEmpty())
+            {
+                Keyframe created = graph.addKeyframe(sheet, tick, null);
+
+                if (created != null)
+                {
+                    graph.selectKeyframe(created);
+                }
+            }
+
             updatePoseEditorBoneSelection(keyframeEditor, boneForEditor);
         }
     }
