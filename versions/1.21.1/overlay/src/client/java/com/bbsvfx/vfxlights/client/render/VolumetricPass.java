@@ -267,7 +267,7 @@ public final class VolumetricPass
          * reduces to the plain camera. */
         Matrix4f basicInv = new Matrix4f(mc.gameRenderer.getBasicProjectionMatrix(
             ((com.bbsvfx.vfxlights.mixin.client.GameRendererAccessor) mc.gameRenderer)
-                .vfxlights$getFov(context.camera(), context.tickDelta(), true))).invert();
+                .vfxlights$getFov(context.camera(), com.bbsvfx.bbsvfx.client.BbsVfxRenderCompat.tickDelta(context), true))).invert();
 
         Matrix4f bobTransform = basicInv.mul(viewProj);
         org.joml.Vector3f bobT = new org.joml.Vector3f(

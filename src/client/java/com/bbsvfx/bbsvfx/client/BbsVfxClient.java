@@ -97,7 +97,7 @@ public class BbsVfxClient implements ClientModInitializer
         /* Beam heat-haze (mirage) shader: re-samples the rendered scene with noise-displaced UVs. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
             context.register(net.minecraft.util.Identifier.of(MOD_ID, "beam_heat"),
-                net.minecraft.client.render.VertexFormats.POSITION_COLOR_TEXTURE,
+                BbsVfxRenderCompat.positionColorTexture(),
                 program -> BeamHeat.PROGRAM = program));
 
         /* Dome shell: screen-space raymarched hemisphere volume (reads scene depth, tints the world behind
