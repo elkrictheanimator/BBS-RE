@@ -2,12 +2,16 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, multi ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mc: [ "1.20.1", "1.20.4", "1.21.1" ]
     steps:
       - uses: actions/checkout@v4
 
@@ -17,6 +21,9 @@ jobs:
           java-version: 21
           cache: gradle
 
+      - name: Switch the tree to Minecraft ${{ matrix.mc }}
+        run: python3 scripts/apply_version.py ${{ matrix.mc }}
+
       - name: Build
         run: |
           chmod +x gradlew
@@ -24,5 +31,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: bbs-re-jar
+          name: bbs-re-${{ matrix.mc }}
           path: build/libs/*.jar

@@ -43,6 +43,8 @@ public class BbsVfxClient implements ClientModInitializer
     @Override
     public void onInitializeClient()
     {
+        long t0 = System.nanoTime();
+
         BBSMod.events.register(new BbsVfxStrings());
         BbsVfxStrings.apply(BBSModClient.getL10n());
 
@@ -213,7 +215,7 @@ public class BbsVfxClient implements ClientModInitializer
          * accumulate + composite themselves run post-composite in BBSRenderingImpactMixin. */
         WorldRenderEvents.AFTER_ENTITIES.register(BbsVfxOIT::captureDepth);
 
-        LOG.info("BbsVfxClient.onInitializeClient — addon client initialized");
+        LOG.info("BbsVfxClient.onInitializeClient — addon client initialized in {} ms", (System.nanoTime() - t0) / 1_000_000L);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
