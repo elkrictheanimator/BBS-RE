@@ -2179,9 +2179,7 @@ public final class ShadowMapper
         }
 
         net.minecraft.client.render.BufferBuilder builder =
-            net.minecraft.client.render.null;
-
-        builder.begin(net.minecraft.client.render.VertexFormat.DrawMode.QUADS,
+            com.bbsvfx.bbsvfx.client.BbsVfxRenderCompat.begin(net.minecraft.client.render.VertexFormat.DrawMode.QUADS,
             net.minecraft.client.render.VertexFormats.POSITION_COLOR);
 
         for (int i = 0; i < occluders.glassPositions.size(); i++)
@@ -2214,9 +2212,7 @@ public final class ShadowMapper
         OccluderCache.Entry occluders, Matrix4f view, Matrix4f projection)
     {
         net.minecraft.client.render.BufferBuilder builder =
-            net.minecraft.client.render.null;
-
-        builder.begin(net.minecraft.client.render.VertexFormat.DrawMode.QUADS,
+            com.bbsvfx.bbsvfx.client.BbsVfxRenderCompat.begin(net.minecraft.client.render.VertexFormat.DrawMode.QUADS,
             net.minecraft.client.render.VertexFormats.POSITION_COLOR);
 
         org.joml.Vector4f corner = new org.joml.Vector4f();
