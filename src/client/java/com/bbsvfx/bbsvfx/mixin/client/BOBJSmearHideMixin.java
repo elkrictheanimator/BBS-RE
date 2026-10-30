@@ -52,7 +52,8 @@ public abstract class BOBJSmearHideMixin
 
     @Inject(
         method = "updateMesh",
-        at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL15;glBufferData(I[FI)V", ordinal = 0))
+        at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL15;glBufferData(I[FI)V", ordinal = 0),
+        require = 0)
     private void bbsvfx$collapseHiddenBones(StencilMap stencilMap, CallbackInfo ci)
     {
         Set<String> hide = SmearRenderState.hide;
