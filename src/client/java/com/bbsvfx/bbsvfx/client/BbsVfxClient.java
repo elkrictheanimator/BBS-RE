@@ -83,6 +83,9 @@ public class BbsVfxClient implements ClientModInitializer
         /* Custom core shader for the Destruction Box GPU path (shatter displacement in the vertex shader).
          * Loaded from assets/bbsvfx/shaders/core/destruction_box.{json,vsh,fsh}. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
+            diagShaderRegistration());
+
+        CoreShaderRegistrationCallback.EVENT.register(context ->
             context.register(net.minecraft.util.Identifier.of(MOD_ID, "destruction_box"),
                 net.minecraft.client.render.VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
                 program -> DestructionShader.PROGRAM = program));
@@ -97,7 +100,7 @@ public class BbsVfxClient implements ClientModInitializer
         /* Beam heat-haze (mirage) shader: re-samples the rendered scene with noise-displaced UVs. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
             context.register(net.minecraft.util.Identifier.of(MOD_ID, "beam_heat"),
-                net.minecraft.client.render.VertexFormats.POSITION_COLOR_TEXTURE,
+                BbsVfxRenderCompat.positionColorTexture(),
                 program -> BeamHeat.PROGRAM = program));
 
         /* Dome shell: screen-space raymarched hemisphere volume (reads scene depth, tints the world behind
@@ -216,6 +219,28 @@ public class BbsVfxClient implements ClientModInitializer
         WorldRenderEvents.AFTER_ENTITIES.register(BbsVfxOIT::captureDepth);
 
         LOG.info("BbsVfxClient.onInitializeClient — addon client initialized in {} ms", (System.nanoTime() - t0) / 1_000_000L);
+    }
+
+    private static final java.util.concurrent.atomic.AtomicInteger SHADER_REGISTRATIONS = new java.util.concurrent.atomic.AtomicInteger();
+
+    /** Diagnostic: core shaders were seen compiling dozens of times during one startup. Log who triggers it. */
+    private static void diagShaderRegistration()
+    {
+        int n = SHADER_REGISTRATIONS.incrementAndGet();
+
+        if (n <= 3 || n % 20 == 0)
+        {
+            StackTraceElement[] frames = new Throwable().getStackTrace();
+            StringBuilder out = new StringBuilder();
+
+            for (int i = 0; i < Math.min(frames.length, 40); i++)
+            {
+                out.append("\n    at ").append(frames[i]);
+            }
+
+            LOG.warn("[bbsvfx-diag] core shader registration #{} (ms since start: {}){}", n,
+                java.lang.management.ManagementFactory.getRuntimeMXBean().getUptime(), out);
+        }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

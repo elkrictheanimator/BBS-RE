@@ -148,7 +148,7 @@ public class VfxLightsClient implements ClientModInitializer
             if (world != null)
             {
                 com.bbsvfx.vfxlights.light.Light.updateEffectClock(
-                    (world.getTime() % 100_000L + context.tickDelta()) / 20F);
+                    (world.getTime() % 100_000L + com.bbsvfx.bbsvfx.client.BbsVfxRenderCompat.tickDelta(context)) / 20F);
             }
 
             boolean enabled = com.bbsvfx.vfxlights.VfxLightsModule.isEnabled();

@@ -255,11 +255,16 @@ public final class OccluderCache
         if (boxes == 0)
         {
             /* Nothing to upload; ending an empty builder would still allocate a draw with no vertices. */
-            builder.end().release();
+            net.minecraft.client.render.BuiltBuffer empty = builder.endNullable();
+
+            if (empty != null)
+            {
+                empty.close();
+            }
         }
         else
         {
-            BufferBuilder.BuiltBuffer built = builder.end();
+            net.minecraft.client.render.BuiltBuffer built = builder.end();
 
             if (entry.buffer == null)
             {
@@ -328,7 +333,7 @@ public final class OccluderCache
                 x0 + 1.01F, y0 + 1.01F, z0 + 1.01F, r, g, b);
         }
 
-        BufferBuilder.BuiltBuffer built = builder.end();
+        net.minecraft.client.render.BuiltBuffer built = builder.end();
 
         if (entry.glassBuffer == null)
         {
@@ -422,7 +427,7 @@ public final class OccluderCache
             matrices.pop();
         }
 
-        BufferBuilder.BuiltBuffer built = builder.end();
+        net.minecraft.client.render.BuiltBuffer built = builder.end();
 
         if (entry.cutoutBuffer == null)
         {
