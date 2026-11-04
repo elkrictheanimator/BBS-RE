@@ -46,10 +46,12 @@ public class ColorFx
     public int frames = 1;
     public float fps = 12F;
     public float tiling = 1F;
+    /** Brightness gradient: ramps along the same axis/offset/length, from the lit look to full bright (1) and past it. 0 = off. */
+    public float glow;
 
     public boolean isOff()
     {
-        return this.strength <= 0F;
+        return this.strength <= 0F && this.glow <= 0F;
     }
 
     public void reset()
@@ -68,6 +70,7 @@ public class ColorFx
         this.frames = 1;
         this.fps = 12F;
         this.tiling = 1F;
+        this.glow = 0F;
     }
 
     public void copy(ColorFx fx)
@@ -86,6 +89,7 @@ public class ColorFx
         this.frames = fx.frames;
         this.fps = fx.fps;
         this.tiling = fx.tiling;
+        this.glow = fx.glow;
     }
 
     /** Plain blend toward another effect (a pose crossfade): numbers mix, choices switch at the end. */
@@ -111,6 +115,7 @@ public class ColorFx
         this.cycles = Lerps.lerp(this.cycles, fx.cycles, a);
         this.fps = Lerps.lerp(this.fps, fx.fps, a);
         this.tiling = Lerps.lerp(this.tiling, fx.tiling, a);
+        this.glow = Lerps.lerp(this.glow, fx.glow, a);
     }
 
     /** Keyframe interpolation (the curve of the segment). */
@@ -131,6 +136,7 @@ public class ColorFx
         this.cycles = (float) interp.interpolate(IInterp.context.set(preA.cycles, a.cycles, b.cycles, postB.cycles, x));
         this.fps = (float) interp.interpolate(IInterp.context.set(preA.fps, a.fps, b.fps, postB.fps, x));
         this.tiling = (float) interp.interpolate(IInterp.context.set(preA.tiling, a.tiling, b.tiling, postB.tiling, x));
+        this.glow = (float) Math.max(0D, interp.interpolate(IInterp.context.set(preA.glow, a.glow, b.glow, postB.glow, x)));
     }
 
     public void autoInterpolate(ColorFx preA, ColorFx a, ColorFx b, ColorFx postB, float pt, float at, float bt, float qt, boolean clamped, float x)
@@ -150,6 +156,7 @@ public class ColorFx
         this.cycles = (float) AutoBezier.get(preA.cycles, a.cycles, b.cycles, postB.cycles, pt, at, bt, qt, clamped, x);
         this.fps = (float) AutoBezier.get(preA.fps, a.fps, b.fps, postB.fps, pt, at, bt, qt, clamped, x);
         this.tiling = (float) AutoBezier.get(preA.tiling, a.tiling, b.tiling, postB.tiling, pt, at, bt, qt, clamped, x);
+        this.glow = (float) Math.max(0D, AutoBezier.get(preA.glow, a.glow, b.glow, postB.glow, pt, at, bt, qt, clamped, x));
     }
 
     private void choices(ColorFx a, ColorFx b, float x)
@@ -167,7 +174,7 @@ public class ColorFx
     /** Stacking two layers of the same bone: the later one wins while it is on. */
     public void add(ColorFx fx)
     {
-        if (fx.strength > 0F)
+        if (!fx.isOff())
         {
             this.copy(fx);
         }
@@ -184,7 +191,7 @@ public class ColorFx
         return this.strength == fx.strength && this.color2.equals(fx.color2) && this.axis == fx.axis
             && this.length == fx.length && this.offset == fx.offset && this.mode == fx.mode && this.space == fx.space
             && this.style == fx.style && this.speed == fx.speed && this.cycles == fx.cycles
-            && this.image.equals(fx.image) && this.frames == fx.frames && this.fps == fx.fps && this.tiling == fx.tiling;
+            && this.image.equals(fx.image) && this.frames == fx.frames && this.fps == fx.fps && this.tiling == fx.tiling && this.glow == fx.glow;
     }
 
     @Override
@@ -205,6 +212,7 @@ public class ColorFx
         hash = 31 * hash + this.frames;
         hash = 31 * hash + Float.floatToIntBits(this.fps);
         hash = 31 * hash + Float.floatToIntBits(this.tiling);
+        hash = 31 * hash + Float.floatToIntBits(this.glow);
 
         return hash;
     }
@@ -212,7 +220,7 @@ public class ColorFx
     /** Written only when the effect is on, so poses without it stay exactly as they were. */
     public void toData(MapType data)
     {
-        if (this.strength <= 0F)
+        if (this.isOff())
         {
             return;
         }
@@ -233,6 +241,7 @@ public class ColorFx
         map.putInt("frames", this.frames);
         map.putFloat("fps", this.fps);
         map.putFloat("tiling", this.tiling);
+        map.putFloat("glow", this.glow);
 
         data.put("color_fx", map);
     }
@@ -262,5 +271,6 @@ public class ColorFx
         this.frames = Math.max(1, map.getInt("frames", 1));
         this.fps = map.has("fps") ? map.getFloat("fps") : 12F;
         this.tiling = map.has("tiling") ? map.getFloat("tiling") : 1F;
+        this.glow = map.getFloat("glow");
     }
 }

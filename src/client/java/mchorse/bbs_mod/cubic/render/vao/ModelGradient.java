@@ -27,7 +27,7 @@ public final class ModelGradient
         public float ax, ay, az;
         public float start, invLength;
         public float mode, style;
-        public float speed, cycles, tiling, fps, frames;
+        public float speed, cycles, tiling, fps, frames, glow;
         public int texture;
     }
 
@@ -51,7 +51,7 @@ public final class ModelGradient
     {
         ColorFx fx = group.fx;
 
-        if (fx.strength <= 0F)
+        if (fx.isOff())
         {
             return null;
         }
@@ -85,6 +85,7 @@ public final class ModelGradient
         p.tiling = fx.tiling == 0F ? 1F : fx.tiling;
         p.fps = fx.fps;
         p.frames = Math.max(1, fx.frames);
+        p.glow = fx.glow;
 
         if (fx.style == ColorFx.STYLE_IMAGE)
         {
@@ -130,6 +131,7 @@ public final class ModelGradient
         if (p == null)
         {
             color.set(0F, 0F, 0F, 0F);
+            set(shader, "GradGlow", 0F);
 
             return;
         }
@@ -143,6 +145,7 @@ public final class ModelGradient
         set(shader, "GradTime", (System.currentTimeMillis() % 3_600_000L) / 1000F);
         set(shader, "GradAnim", p.speed, p.cycles, p.tiling, p.fps);
         set(shader, "GradFrames", p.frames);
+        set(shader, "GradGlow", p.glow);
     }
 
     private static void set(ShaderProgram shader, String name, float... values)

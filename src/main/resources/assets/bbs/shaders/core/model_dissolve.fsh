@@ -20,6 +20,7 @@ uniform float GradMode;
 uniform float GradStyle;
 uniform float GradTime;
 uniform float GradFrames;
+uniform float GradGlow;
 uniform vec4 GradAnim;
 
 in float vertexDistance;
@@ -60,7 +61,10 @@ void main()
         discard;
     }
 
-    float gt = GradColor.a > 0.0 ? clamp(gradT, 0.0, 1.0) * GradColor.a : 0.0;
+    float ramp = clamp(gradT, 0.0, 1.0);
+    float gt = GradColor.a > 0.0 ? ramp * GradColor.a : 0.0;
+    // Brightness gradient: 0..1 blends the lit look toward full bright, above 1 it overbrightens.
+    float glow = GradGlow > 0.0 ? ramp * GradGlow : 0.0;
     vec3 src = GradColor.rgb;
     float emissive = 0.0;
 
@@ -105,7 +109,8 @@ void main()
     }
 
     color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);
-    color *= mix(lightMapColor, vec4(1.0), gt * emissive);
+    color *= mix(lightMapColor, vec4(1.0), clamp(max(gt * emissive, glow), 0.0, 1.0));
+    color.rgb *= 1.0 + max(glow - 1.0, 0.0);
 
     fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
 }

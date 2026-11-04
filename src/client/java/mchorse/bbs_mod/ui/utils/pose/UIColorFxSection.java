@@ -44,6 +44,7 @@ public class UIColorFxSection extends UISection
     public final UITrackpad frames;
     public final UITrackpad fps;
     public final UITrackpad tiling;
+    public final UITrackpad glow;
 
     public UIColorFxSection(IKey title, String foldKey, Consumer<Consumer<ColorFx>> editor)
     {
@@ -100,8 +101,13 @@ public class UIColorFxSection extends UISection
         this.tiling = new UITrackpad((v) -> this.edit((fx) -> fx.tiling = v.floatValue()));
         this.tiling.tooltip(IKey.raw("How many times the picture repeats over the texture"));
 
+        this.glow = new UITrackpad((v) -> this.edit((fx) -> fx.glow = v.floatValue()));
+        this.glow.limit(0D, 4D);
+        this.glow.tooltip(IKey.raw("Brightens along the gradient, from the normal lit look at the near end to full bright at the far end (1), and brighter than that above 1. Works without any colour"));
+
         this.fields.add(
             UI.labelRow(IKey.raw("Strength"), this.strength),
+            UI.labelRow(IKey.raw("Glow"), this.glow),
             UI.labelRow(IKey.raw("Color 2"), this.color2),
             UI.labelRow(IKey.raw("Style"), this.style),
             UI.labelRow(IKey.raw("Mode"), this.mode),
@@ -157,5 +163,6 @@ public class UIColorFxSection extends UISection
         this.frames.setValue(value.frames);
         this.fps.setValue(value.fps);
         this.tiling.setValue(value.tiling);
+        this.glow.setValue(value.glow);
     }
 }

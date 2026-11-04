@@ -292,7 +292,7 @@ public class Model implements IMapSerializable, IModel
             group.poseVisible &= transform.visible;
             group.poseDetach |= transform.detach;
 
-            if (transform.fx.strength > 0F)
+            if (!transform.fx.isOff())
             {
                 group.fx.copy(transform.fx);
             }
