@@ -7,6 +7,7 @@ import mchorse.bbs_mod.client.BBSRendering;
 import mchorse.bbs_mod.client.BBSShaders;
 import mchorse.bbs_mod.cubic.render.vao.BOBJModelVAO;
 import mchorse.bbs_mod.cubic.render.vao.IModelVAO;
+import mchorse.bbs_mod.cubic.render.vao.ModelGradient;
 import mchorse.bbs_mod.cubic.render.vao.ModelVAORenderer;
 import mchorse.bbs_mod.forms.renderers.utils.FormOverlay;
 import mchorse.bbs_mod.graphics.texture.Texture;
@@ -407,6 +408,7 @@ public class FormTranslucentQueue
         private final float r, g, b, a;
         private final int light;
         private final int overlay;
+        private final float[] gradient = ModelGradient.current();
 
         /** The two-pass translucent replay (BBS model shader). */
         public ModelVAOCommand(IModelVAO vao, Texture texture, Matrix4f modelView, Matrix3f normalMat, float r, float g, float b, float a, int light, int overlay, boolean cull)
@@ -444,9 +446,13 @@ public class FormTranslucentQueue
 
             int previousOverlay = this.bindOverlay();
 
+            float[] previousGradient = ModelGradient.current();
+
+            ModelGradient.set(this.gradient);
             setPassMode(shader, this.passMode);
             ModelVAORenderer.render(shader, this.vao, this.modelView, this.normalMat, this.r, this.g, this.b, this.a, this.light, this.overlay);
             setPassMode(shader, PASS_SINGLE);
+            ModelGradient.set(previousGradient);
             this.unbindOverlay(previousOverlay);
         }
     }

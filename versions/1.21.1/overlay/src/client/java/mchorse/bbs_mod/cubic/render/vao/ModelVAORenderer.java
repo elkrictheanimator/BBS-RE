@@ -113,6 +113,8 @@ public class ModelVAORenderer
             shader.colorModulator.set(1F, 1F, 1F, 1F);
         }
 
+        ModelGradient.upload(shader);
+
         if (shader.gameTime != null)
         {
             shader.gameTime.set(RenderSystem.getShaderGameTime());

@@ -6,6 +6,7 @@ import mchorse.bbs_mod.cubic.ModelInstance;
 import mchorse.bbs_mod.cubic.data.model.Model;
 import mchorse.bbs_mod.cubic.data.model.ModelGroup;
 import mchorse.bbs_mod.cubic.render.vao.ModelVAO;
+import mchorse.bbs_mod.cubic.render.vao.ModelGradient;
 import mchorse.bbs_mod.cubic.render.vao.ModelVAORenderer;
 import mchorse.bbs_mod.cubic.weld.WeldBinding;
 import mchorse.bbs_mod.forms.FormTranslucentQueue;
@@ -228,6 +229,8 @@ public class CubicVAORenderer extends CubicCubeRenderer
                 else RenderSystem.disableCull();
             }
 
+            ModelGradient.set(plain ? ModelGradient.of(group, this.r, this.g, this.b) : null);
+
             if (FormTranslucentQueue.needsSplit(this.program, this.stencilMap, texture, a))
             {
                 Matrix4f modelView = ModelVAORenderer.captureModelView(stack);
@@ -255,6 +258,8 @@ public class CubicVAORenderer extends CubicCubeRenderer
             {
                 ModelVAORenderer.render(this.program, entry.getValue(), stack, r, g, b, a, light, overlay);
             }
+
+            ModelGradient.set(null);
 
             if (cullOverride)
             {

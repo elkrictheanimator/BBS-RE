@@ -11,8 +11,14 @@ uniform vec4 FogColor;
 // bbsvfx: smear-frame dissolve. 0 = intact (normal rendering), 1 = fully dissolved.
 uniform float Dissolve;
 
+// bbsvfx: colour gradient. GradColor.a = strength (0 = off); GradMode 0 = tint like Color, 1 = wash like Color overlay.
+uniform vec4 GradColor;
+uniform float GradMode;
+
 in float vertexDistance;
 in vec4 vertexColor;
+in vec4 vertexColorB;
+in float gradT;
 in vec4 lightMapColor;
 in vec4 overlayColor;
 in vec2 texCoord0;
@@ -40,7 +46,18 @@ void main()
         discard;
     }
 
-    color *= vertexColor * ColorModulator;
+    float gt = GradColor.a > 0.0 ? clamp(gradT, 0.0, 1.0) * GradColor.a : 0.0;
+
+    if (GradMode < 0.5)
+    {
+        color *= mix(vertexColor, vertexColorB, gt) * ColorModulator;
+    }
+    else
+    {
+        color *= vertexColor * ColorModulator;
+        color.rgb = mix(color.rgb, GradColor.rgb, gt);
+    }
+
     color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);
     color *= lightMapColor;
 
