@@ -22,6 +22,13 @@ public class PoseTransform extends Transform
     public final Color overlay = new Color(1F, 1F, 1F, 0F);
     public float lighting;
 
+    /* Colour gradient along the bone: the bone colour blends into color2 over gradientLength model units
+     * (1/16 block) from the bone's pivot, along gradientAxis (0 = X, 1 = Y, 2 = Z). Strength 0 = off. */
+    public final Color color2 = new Color().set(Colors.WHITE);
+    public float gradient;
+    public int gradientAxis = 1;
+    public float gradientLength = 16F;
+
     @Override
     public void identity()
     {
@@ -33,6 +40,10 @@ public class PoseTransform extends Transform
         this.color.set(Colors.WHITE);
         this.overlay.set(1F, 1F, 1F, 0F);
         this.lighting = 0F;
+        this.color2.set(Colors.WHITE);
+        this.gradient = 0F;
+        this.gradientAxis = 1;
+        this.gradientLength = 16F;
     }
 
     @Override
@@ -44,6 +55,7 @@ public class PoseTransform extends Transform
             {
                 this.visible = pose.visible;
                 this.detach = pose.detach;
+                this.gradientAxis = pose.gradientAxis;
             }
 
             this.fix = Lerps.lerp(this.fix, pose.fix, a);
@@ -59,6 +71,12 @@ public class PoseTransform extends Transform
             this.overlay.a = Lerps.lerp(this.overlay.a, pose.overlay.a, a);
 
             this.lighting = Lerps.lerp(this.lighting, pose.lighting, a);
+
+            this.color2.r = Lerps.lerp(this.color2.r, pose.color2.r, a);
+            this.color2.g = Lerps.lerp(this.color2.g, pose.color2.g, a);
+            this.color2.b = Lerps.lerp(this.color2.b, pose.color2.b, a);
+            this.gradient = Lerps.lerp(this.gradient, pose.gradient, a);
+            this.gradientLength = Lerps.lerp(this.gradientLength, pose.gradientLength, a);
         }
 
         super.lerp(transform, a);
@@ -94,6 +112,16 @@ public class PoseTransform extends Transform
             );
 
             this.lighting = (float) interp.interpolate(IInterp.context.set(preA1.lighting, a1.lighting, b1.lighting, postB1.lighting, x));
+
+            this.gradientAxis = x < 1F ? a1.gradientAxis : b1.gradientAxis;
+            this.color2.set(
+                (float) MathUtils.clamp(interp.interpolate(IInterp.context.set(preA1.color2.r, a1.color2.r, b1.color2.r, postB1.color2.r, x)), 0F, 1F),
+                (float) MathUtils.clamp(interp.interpolate(IInterp.context.set(preA1.color2.g, a1.color2.g, b1.color2.g, postB1.color2.g, x)), 0F, 1F),
+                (float) MathUtils.clamp(interp.interpolate(IInterp.context.set(preA1.color2.b, a1.color2.b, b1.color2.b, postB1.color2.b, x)), 0F, 1F),
+                1F
+            );
+            this.gradient = (float) MathUtils.clamp(interp.interpolate(IInterp.context.set(preA1.gradient, a1.gradient, b1.gradient, postB1.gradient, x)), 0F, 1F);
+            this.gradientLength = (float) interp.interpolate(IInterp.context.set(preA1.gradientLength, a1.gradientLength, b1.gradientLength, postB1.gradientLength, x));
         }
     }
 
@@ -127,6 +155,16 @@ public class PoseTransform extends Transform
             );
 
             this.lighting = (float) AutoBezier.get(preA1.lighting, a1.lighting, b1.lighting, postB1.lighting, pt, at, bt, qt, clamped, x);
+
+            this.gradientAxis = x < 1F ? a1.gradientAxis : b1.gradientAxis;
+            this.color2.set(
+                (float) MathUtils.clamp(AutoBezier.get(preA1.color2.r, a1.color2.r, b1.color2.r, postB1.color2.r, pt, at, bt, qt, clamped, x), 0F, 1F),
+                (float) MathUtils.clamp(AutoBezier.get(preA1.color2.g, a1.color2.g, b1.color2.g, postB1.color2.g, pt, at, bt, qt, clamped, x), 0F, 1F),
+                (float) MathUtils.clamp(AutoBezier.get(preA1.color2.b, a1.color2.b, b1.color2.b, postB1.color2.b, pt, at, bt, qt, clamped, x), 0F, 1F),
+                1F
+            );
+            this.gradient = (float) MathUtils.clamp(AutoBezier.get(preA1.gradient, a1.gradient, b1.gradient, postB1.gradient, pt, at, bt, qt, clamped, x), 0F, 1F);
+            this.gradientLength = (float) AutoBezier.get(preA1.gradientLength, a1.gradientLength, b1.gradientLength, postB1.gradientLength, pt, at, bt, qt, clamped, x);
         }
     }
 
@@ -143,6 +181,10 @@ public class PoseTransform extends Transform
             result = result && this.color.equals(poseTransform.color);
             result = result && this.overlay.equals(poseTransform.overlay);
             result = result && this.lighting == poseTransform.lighting;
+            result = result && this.color2.equals(poseTransform.color2);
+            result = result && this.gradient == poseTransform.gradient;
+            result = result && this.gradientAxis == poseTransform.gradientAxis;
+            result = result && this.gradientLength == poseTransform.gradientLength;
         }
 
         return result;
@@ -159,6 +201,10 @@ public class PoseTransform extends Transform
         hash = 31 * hash + this.color.getARGBColor();
         hash = 31 * hash + this.overlay.getARGBColor();
         hash = 31 * hash + Float.floatToIntBits(this.lighting);
+        hash = 31 * hash + this.color2.getARGBColor();
+        hash = 31 * hash + Float.floatToIntBits(this.gradient);
+        hash = 31 * hash + this.gradientAxis;
+        hash = 31 * hash + Float.floatToIntBits(this.gradientLength);
 
         return hash;
     }
@@ -184,6 +230,10 @@ public class PoseTransform extends Transform
             this.color.copy(poseTransform.color);
             this.overlay.copy(poseTransform.overlay);
             this.lighting = poseTransform.lighting;
+            this.color2.copy(poseTransform.color2);
+            this.gradient = poseTransform.gradient;
+            this.gradientAxis = poseTransform.gradientAxis;
+            this.gradientLength = poseTransform.gradientLength;
         }
 
         super.copy(transform);
@@ -202,6 +252,14 @@ public class PoseTransform extends Transform
             this.color.mul(pose.color);
             OverlayBlend.stack(this.overlay, pose.overlay);
             this.lighting += pose.lighting;
+
+            if (pose.gradient > 0F)
+            {
+                this.color2.copy(pose.color2);
+                this.gradient = pose.gradient;
+                this.gradientAxis = pose.gradientAxis;
+                this.gradientLength = pose.gradientLength;
+            }
         }
     }
 
@@ -216,6 +274,14 @@ public class PoseTransform extends Transform
         data.putInt("color", this.color.getARGBColor());
         data.putInt("overlay", this.overlay.getARGBColor());
         data.putFloat("lighting", this.lighting);
+
+        if (this.gradient > 0F)
+        {
+            data.putInt("color2", this.color2.getARGBColor());
+            data.putFloat("gradient", this.gradient);
+            data.putInt("gradient_axis", this.gradientAxis);
+            data.putFloat("gradient_length", this.gradientLength);
+        }
     }
 
     @Override
@@ -229,6 +295,10 @@ public class PoseTransform extends Transform
         this.color.set(data.getInt("color", Colors.WHITE));
         this.overlay.set(data.getInt("overlay", 0x00ffffff));
         this.lighting = data.getFloat("lighting");
+        this.color2.set(data.getInt("color2", Colors.WHITE));
+        this.gradient = data.getFloat("gradient");
+        this.gradientAxis = data.getInt("gradient_axis", 1);
+        this.gradientLength = data.has("gradient_length") ? data.getFloat("gradient_length") : 16F;
     }
 
     @Override

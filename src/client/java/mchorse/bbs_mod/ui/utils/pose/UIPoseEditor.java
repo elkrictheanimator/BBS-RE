@@ -5,6 +5,8 @@ import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.Keys;
 import mchorse.bbs_mod.ui.UIKeys;
+import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
+import mchorse.bbs_mod.ui.framework.elements.buttons.UICirculate;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
@@ -55,6 +57,11 @@ public class UIPoseEditor extends UIElement
     public UIToggle detach;
     public UIColor color;
     public UIColor overlay;
+    /* Colour gradient along the bone (see PoseTransform): the far colour, how much of it, the axis and the length. */
+    public UIColor gradientColor;
+    public UISliderTrackpad gradientStrength;
+    public UICirculate gradientAxis;
+    public UITrackpad gradientLength;
     public UISliderTrackpad lighting;
     public UIPropTransform transform;
     public UISection material;
@@ -159,6 +166,19 @@ public class UIPoseEditor extends UIElement
                 this.applyChildren((p) -> this.setLighting(p, (float) this.lighting.getValue()));
             });
         });
+        this.gradientColor = new UIColor((c) -> this.editSelectedGradient((pt) -> pt.color2.set(c)));
+        this.gradientColor.tooltip(IKey.raw("The colour the bone fades into"));
+        this.gradientStrength = new UISliderTrackpad((v) -> this.editSelectedGradient((pt) -> pt.gradient = v.floatValue()));
+        this.gradientStrength.limit(0D, 1D);
+        this.gradientStrength.tooltip(IKey.raw("0 = no gradient, 1 = fades fully into the second colour"));
+        this.gradientAxis = new UICirculate((b) -> this.editSelectedGradient((pt) -> pt.gradientAxis = b.getValue()));
+        this.gradientAxis.addLabel(IKey.raw("X"));
+        this.gradientAxis.addLabel(IKey.raw("Y"));
+        this.gradientAxis.addLabel(IKey.raw("Z"));
+        this.gradientAxis.setValue(1);
+        this.gradientLength = new UITrackpad((v) -> this.editSelectedGradient((pt) -> pt.gradientLength = v.floatValue()));
+        this.gradientLength.limit(-512D, 512D);
+        this.gradientLength.tooltip(IKey.raw("Distance from the bone's pivot to the second colour, in model units. Negative flips the direction"));
         this.transform = this.createTransformEditor();
         this.transform.setModel();
 
@@ -206,6 +226,12 @@ public class UIPoseEditor extends UIElement
         this.removeAll();
 
         this.material = materialSection(this.color, this.overlay, this.lighting);
+        this.material.fields.add(
+            UI.labelRow(IKey.raw("Gradient"), this.gradientStrength),
+            UI.labelRow(IKey.raw("Color 2"), this.gradientColor),
+            UI.labelRow(IKey.raw("Axis"), this.gradientAxis),
+            UI.labelRow(IKey.raw("Length"), this.gradientLength)
+        );
         this.material.setVisible(this.hasBones);
         this.categorySection.setVisible(this.hasBones);
 
@@ -638,6 +664,10 @@ public class UIPoseEditor extends UIElement
             this.color.setColor(Colors.WHITE);
             this.overlay.setColor(0x00ffffff);
             this.lighting.setValue(0F);
+            this.gradientStrength.setValue(0D);
+            this.gradientColor.setColor(Colors.WHITE);
+            this.gradientAxis.setValue(1);
+            this.gradientLength.setValue(16D);
             this.transform.setTransform(null);
 
             return;
@@ -655,6 +685,10 @@ public class UIPoseEditor extends UIElement
         this.color.setColor(poseTransform.color.getARGBColor());
         this.overlay.setColor(poseTransform.overlay.getARGBColor());
         this.lighting.setValue(poseTransform.lighting);
+        this.gradientStrength.setValue(poseTransform.gradient);
+        this.gradientColor.setColor(poseTransform.color2.getARGBColor());
+        this.gradientAxis.setValue(poseTransform.gradientAxis);
+        this.gradientLength.setValue(poseTransform.gradientLength);
         this.transform.setTransform(poseTransform);
     }
 
@@ -871,5 +905,16 @@ public class UIPoseEditor extends UIElement
     protected void setLighting(PoseTransform poseTransform, float value)
     {
         poseTransform.lighting = value;
+    }
+
+    /** Edit the gradient of one bone. Hosts override this to route the change through their own undo/keyframe. */
+    protected void editGradient(PoseTransform transform, Consumer<PoseTransform> edit)
+    {
+        edit.accept(transform);
+    }
+
+    private void editSelectedGradient(Consumer<PoseTransform> edit)
+    {
+        this.forEachSelectedPose((pt) -> this.editGradient(pt, edit));
     }
 }

@@ -90,4 +90,12 @@ public class UIModelPoseEditor extends UIPoseEditor
         super.setOverlay(transform, value);
         this.valuePose.postNotify();
     }
+
+    @Override
+    protected void editGradient(PoseTransform transform, java.util.function.Consumer<PoseTransform> edit)
+    {
+        this.valuePose.preNotify();
+        super.editGradient(transform, edit);
+        this.valuePose.postNotify();
+    }
 }

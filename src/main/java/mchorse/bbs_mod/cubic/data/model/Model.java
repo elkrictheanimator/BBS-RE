@@ -291,6 +291,15 @@ public class Model implements IMapSerializable, IModel
             group.lighting = transform.lighting;
             group.poseVisible &= transform.visible;
             group.poseDetach |= transform.detach;
+
+            if (transform.gradient > 0F)
+            {
+                group.gradient = transform.gradient;
+                group.gradientColor.copy(transform.color2);
+                group.gradientAxis = transform.gradientAxis;
+                group.gradientLength = transform.gradientLength;
+            }
+
             group.color.copy(transform.color);
             group.overlay.copy(transform.overlay);
             group.current.translate.add(transform.translate);

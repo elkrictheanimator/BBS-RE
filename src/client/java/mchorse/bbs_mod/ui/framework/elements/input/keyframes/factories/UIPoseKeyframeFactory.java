@@ -254,6 +254,12 @@ public class UIPoseKeyframeFactory extends UIKeyframeFactory<Pose>
         {
             apply(this.editor, this.keyframe, this.getGroup(poseTransform), (poseT) -> poseT.overlay.set(value));
         }
+
+        @Override
+        protected void editGradient(PoseTransform poseTransform, java.util.function.Consumer<PoseTransform> edit)
+        {
+            apply(this.editor, this.keyframe, this.getGroup(poseTransform), edit);
+        }
     }
 
     public static class UIPoseTransforms extends UIKeyframePropTransform
