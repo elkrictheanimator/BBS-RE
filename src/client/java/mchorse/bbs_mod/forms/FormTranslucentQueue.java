@@ -408,7 +408,7 @@ public class FormTranslucentQueue
         private final float r, g, b, a;
         private final int light;
         private final int overlay;
-        private final float[] gradient = ModelGradient.current();
+        private final ModelGradient.Params gradient = ModelGradient.current();
 
         /** The two-pass translucent replay (BBS model shader). */
         public ModelVAOCommand(IModelVAO vao, Texture texture, Matrix4f modelView, Matrix3f normalMat, float r, float g, float b, float a, int light, int overlay, boolean cull)
@@ -446,7 +446,7 @@ public class FormTranslucentQueue
 
             int previousOverlay = this.bindOverlay();
 
-            float[] previousGradient = ModelGradient.current();
+            ModelGradient.Params previousGradient = ModelGradient.current();
 
             ModelGradient.set(this.gradient);
             setPassMode(shader, this.passMode);

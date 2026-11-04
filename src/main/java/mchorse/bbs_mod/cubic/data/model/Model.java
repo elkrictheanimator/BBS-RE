@@ -292,15 +292,9 @@ public class Model implements IMapSerializable, IModel
             group.poseVisible &= transform.visible;
             group.poseDetach |= transform.detach;
 
-            if (transform.gradient > 0F)
+            if (transform.fx.strength > 0F)
             {
-                group.gradient = transform.gradient;
-                group.gradientColor.copy(transform.color2);
-                group.gradientAxis = transform.gradientAxis;
-                group.gradientLength = transform.gradientLength;
-                group.gradientMode = transform.gradientMode;
-                group.gradientSpace = transform.gradientSpace;
-                group.gradientOffset = transform.gradientOffset;
+                group.fx.copy(transform.fx);
             }
 
             group.color.copy(transform.color);

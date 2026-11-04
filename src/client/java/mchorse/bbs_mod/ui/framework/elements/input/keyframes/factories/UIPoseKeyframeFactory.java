@@ -256,9 +256,9 @@ public class UIPoseKeyframeFactory extends UIKeyframeFactory<Pose>
         }
 
         @Override
-        protected void editGradient(PoseTransform poseTransform, java.util.function.Consumer<PoseTransform> edit)
+        protected void editColorFx(PoseTransform poseTransform, java.util.function.Consumer<mchorse.bbs_mod.utils.pose.ColorFx> edit)
         {
-            apply(this.editor, this.keyframe, this.getGroup(poseTransform), edit);
+            apply(this.editor, this.keyframe, this.getGroup(poseTransform), (poseT) -> edit.accept(poseT.fx));
         }
     }
 

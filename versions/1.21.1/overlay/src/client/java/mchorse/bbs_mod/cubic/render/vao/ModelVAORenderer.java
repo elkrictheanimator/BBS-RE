@@ -55,6 +55,8 @@ public class ModelVAORenderer
 
     public static void setupUniforms(ShaderProgram shader, Matrix4f modelView, Matrix3f normalMat)
     {
+        ModelGradient.bindImage();
+
         for (int i = 0; i < SAMPLERS.length; i++)
         {
             shader.addSampler(SAMPLERS[i], RenderSystem.getShaderTexture(i));

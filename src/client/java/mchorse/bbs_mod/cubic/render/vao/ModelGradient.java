@@ -1,49 +1,65 @@
 package mchorse.bbs_mod.cubic.render.vao;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import mchorse.bbs_mod.BBSModClient;
 import mchorse.bbs_mod.cubic.data.model.ModelGroup;
+import mchorse.bbs_mod.graphics.texture.Texture;
+import mchorse.bbs_mod.resources.Link;
+import mchorse.bbs_mod.utils.pose.ColorFx;
 import net.minecraft.client.gl.GlUniform;
 import net.minecraft.client.gl.ShaderProgram;
 import org.joml.Vector3f;
 
 /**
- * The colour gradient of the bone being drawn, handed to the model shader as uniforms. A bone sets it
+ * The colour effect of the bone being drawn, handed to the model shader as uniforms. A bone sets it
  * around its draw ({@link #set}), deferred translucent commands capture whatever is current when they
  * are queued and put it back for their replay, and {@link ModelVAORenderer#setupUniforms} uploads it.
  *
- * <p>Layout of the array: r, g, b of the far colour (already multiplied by the form colour), strength,
- * axis x/y/z, range start and 1 / range length — both along the axis, in the vertex space of the VAO
- * (blocks, model rest pose) — and the mode (0 = tint like Color, 1 = wash like Color overlay). Only shaders that declare {@code GradColor} (our model_dissolve) react;
- * under a shader pack the draw is plain, like any other mod-added uniform.</p>
+ * <p>Only shaders that declare {@code GradColor} (our model_dissolve) react; under a shader pack the
+ * draw is plain, like any other mod-added uniform.</p>
  */
 public final class ModelGradient
 {
-    private static float[] current;
+    /** Everything the shader needs for one draw. Axis/start/invLength are in the VAO's vertex space (blocks). */
+    public static final class Params
+    {
+        public float r, g, b, strength;
+        public float ax, ay, az;
+        public float start, invLength;
+        public float mode, style;
+        public float speed, cycles, tiling, fps, frames;
+        public int texture;
+    }
+
+    private static Params current;
 
     private ModelGradient()
     {}
 
-    public static float[] current()
+    public static Params current()
     {
         return current;
     }
 
-    public static void set(float[] gradient)
+    public static void set(Params params)
     {
-        current = gradient;
+        current = params;
     }
 
-    /** The gradient of a bone for a draw, or null when it has none. formR/G/B = the form-level colour. */
-    public static float[] of(ModelGroup group, float formR, float formG, float formB)
+    /** The effect of a bone for a draw, or null when it has none. formR/G/B = the form-level colour. */
+    public static Params of(ModelGroup group, float formR, float formG, float formB)
     {
-        if (group.gradient <= 0F)
+        ColorFx fx = group.fx;
+
+        if (fx.strength <= 0F)
         {
             return null;
         }
 
-        int axis = Math.max(0, Math.min(2, group.gradientAxis));
+        int axis = Math.max(0, Math.min(2, fx.axis));
         Vector3f pivot = group.initial.translate;
-        float origin = group.gradientSpace == 1 ? 0F : (axis == 0 ? pivot.x : (axis == 1 ? pivot.y : pivot.z)) / 16F;
-        float length = group.gradientLength;
+        float origin = fx.space == 1 ? 0F : (axis == 0 ? pivot.x : (axis == 1 ? pivot.y : pivot.z)) / 16F;
+        float length = fx.length;
 
         /* A zero length is a hard edge: keep it a hair wide so the shader never divides by zero. */
         if (Math.abs(length) < 0.05F)
@@ -51,18 +67,55 @@ public final class ModelGradient
             length = length < 0F ? -0.05F : 0.05F;
         }
 
-        length /= 16F;
+        Params p = new Params();
 
-        return new float[]
+        p.r = formR * fx.color2.r;
+        p.g = formG * fx.color2.g;
+        p.b = formB * fx.color2.b;
+        p.strength = Math.min(1F, fx.strength);
+        p.ax = axis == 0 ? 1F : 0F;
+        p.ay = axis == 1 ? 1F : 0F;
+        p.az = axis == 2 ? 1F : 0F;
+        p.start = origin + fx.offset / 16F;
+        p.invLength = 16F / length;
+        p.mode = fx.mode == 1 ? 1F : 0F;
+        p.style = fx.style;
+        p.speed = fx.speed;
+        p.cycles = fx.cycles;
+        p.tiling = fx.tiling == 0F ? 1F : fx.tiling;
+        p.fps = fx.fps;
+        p.frames = Math.max(1, fx.frames);
+
+        if (fx.style == ColorFx.STYLE_IMAGE)
         {
-            formR * group.gradientColor.r, formG * group.gradientColor.g, formB * group.gradientColor.b, Math.min(1F, group.gradient),
-            axis == 0 ? 1F : 0F, axis == 1 ? 1F : 0F, axis == 2 ? 1F : 0F,
-            origin + group.gradientOffset / 16F, 1F / length,
-            group.gradientMode == 1 ? 1F : 0F
-        };
+            Texture texture = fx.image.isEmpty() ? null : BBSModClient.getTextures().getTexture(Link.create(fx.image));
+
+            if (texture == null)
+            {
+                /* No picture picked yet: fall back to the plain colour instead of sampling nothing. */
+                p.style = ColorFx.STYLE_SOLID;
+            }
+            else
+            {
+                p.texture = texture.id;
+            }
+        }
+
+        return p;
     }
 
-    /** Upload the current gradient, or switch it off — uniforms persist in the program between draws. */
+    /** Put the effect's picture on unit 3 — before the samplers of the draw are read. */
+    public static void bindImage()
+    {
+        Params p = current;
+
+        if (p != null && p.style == ColorFx.STYLE_IMAGE)
+        {
+            RenderSystem.setShaderTexture(3, p.texture);
+        }
+    }
+
+    /** Upload the current effect, or switch it off — uniforms persist in the program between draws. */
     public static void upload(ShaderProgram shader)
     {
         GlUniform color = shader.getUniform("GradColor");
@@ -72,35 +125,41 @@ public final class ModelGradient
             return;
         }
 
-        float[] g = current;
+        Params p = current;
 
-        if (g == null)
+        if (p == null)
         {
             color.set(0F, 0F, 0F, 0F);
 
             return;
         }
 
-        color.set(g[0], g[1], g[2], g[3]);
+        color.set(p.r, p.g, p.b, p.strength);
 
-        GlUniform axis = shader.getUniform("GradAxis");
-        GlUniform range = shader.getUniform("GradRange");
+        set(shader, "GradAxis", p.ax, p.ay, p.az);
+        set(shader, "GradRange", p.start, p.invLength);
+        set(shader, "GradMode", p.mode);
+        set(shader, "GradStyle", p.style);
+        set(shader, "GradTime", (System.currentTimeMillis() % 3_600_000L) / 1000F);
+        set(shader, "GradAnim", p.speed, p.cycles, p.tiling, p.fps);
+        set(shader, "GradFrames", p.frames);
+    }
 
-        if (axis != null)
+    private static void set(ShaderProgram shader, String name, float... values)
+    {
+        GlUniform uniform = shader.getUniform(name);
+
+        if (uniform == null)
         {
-            axis.set(g[4], g[5], g[6]);
+            return;
         }
 
-        if (range != null)
+        switch (values.length)
         {
-            range.set(g[7], g[8]);
-        }
-
-        GlUniform mode = shader.getUniform("GradMode");
-
-        if (mode != null)
-        {
-            mode.set(g[9]);
+            case 1 -> uniform.set(values[0]);
+            case 2 -> uniform.set(values[0], values[1]);
+            case 3 -> uniform.set(values[0], values[1], values[2]);
+            default -> uniform.set(values[0], values[1], values[2], values[3]);
         }
     }
 }
