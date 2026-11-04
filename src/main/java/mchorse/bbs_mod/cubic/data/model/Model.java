@@ -298,6 +298,9 @@ public class Model implements IMapSerializable, IModel
                 group.gradientColor.copy(transform.color2);
                 group.gradientAxis = transform.gradientAxis;
                 group.gradientLength = transform.gradientLength;
+                group.gradientMode = transform.gradientMode;
+                group.gradientSpace = transform.gradientSpace;
+                group.gradientOffset = transform.gradientOffset;
             }
 
             group.color.copy(transform.color);

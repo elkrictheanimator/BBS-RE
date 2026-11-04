@@ -12,7 +12,7 @@ import org.joml.Vector3f;
  *
  * <p>Layout of the array: r, g, b of the far colour (already multiplied by the form colour), strength,
  * axis x/y/z, range start and 1 / range length — both along the axis, in the vertex space of the VAO
- * (blocks, model rest pose). Only shaders that declare {@code GradColor} (our model_dissolve) react;
+ * (blocks, model rest pose) — and the mode (0 = tint like Color, 1 = wash like Color overlay). Only shaders that declare {@code GradColor} (our model_dissolve) react;
  * under a shader pack the draw is plain, like any other mod-added uniform.</p>
  */
 public final class ModelGradient
@@ -35,21 +35,30 @@ public final class ModelGradient
     /** The gradient of a bone for a draw, or null when it has none. formR/G/B = the form-level colour. */
     public static float[] of(ModelGroup group, float formR, float formG, float formB)
     {
-        if (group.gradient <= 0F || Math.abs(group.gradientLength) < 0.001F)
+        if (group.gradient <= 0F)
         {
             return null;
         }
 
         int axis = Math.max(0, Math.min(2, group.gradientAxis));
         Vector3f pivot = group.initial.translate;
-        float origin = (axis == 0 ? pivot.x : (axis == 1 ? pivot.y : pivot.z)) / 16F;
-        float length = group.gradientLength / 16F;
+        float origin = group.gradientSpace == 1 ? 0F : (axis == 0 ? pivot.x : (axis == 1 ? pivot.y : pivot.z)) / 16F;
+        float length = group.gradientLength;
+
+        /* A zero length is a hard edge: keep it a hair wide so the shader never divides by zero. */
+        if (Math.abs(length) < 0.05F)
+        {
+            length = length < 0F ? -0.05F : 0.05F;
+        }
+
+        length /= 16F;
 
         return new float[]
         {
             formR * group.gradientColor.r, formG * group.gradientColor.g, formB * group.gradientColor.b, Math.min(1F, group.gradient),
             axis == 0 ? 1F : 0F, axis == 1 ? 1F : 0F, axis == 2 ? 1F : 0F,
-            origin, 1F / length
+            origin + group.gradientOffset / 16F, 1F / length,
+            group.gradientMode == 1 ? 1F : 0F
         };
     }
 
@@ -85,6 +94,13 @@ public final class ModelGradient
         if (range != null)
         {
             range.set(g[7], g[8]);
+        }
+
+        GlUniform mode = shader.getUniform("GradMode");
+
+        if (mode != null)
+        {
+            mode.set(g[9]);
         }
     }
 }

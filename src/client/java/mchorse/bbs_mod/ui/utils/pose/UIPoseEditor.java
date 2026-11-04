@@ -62,6 +62,9 @@ public class UIPoseEditor extends UIElement
     public UISliderTrackpad gradientStrength;
     public UICirculate gradientAxis;
     public UITrackpad gradientLength;
+    public UICirculate gradientMode;
+    public UICirculate gradientSpace;
+    public UITrackpad gradientOffset;
     public UISliderTrackpad lighting;
     public UIPropTransform transform;
     public UISection material;
@@ -178,7 +181,17 @@ public class UIPoseEditor extends UIElement
         this.gradientAxis.setValue(1);
         this.gradientLength = new UITrackpad((v) -> this.editSelectedGradient((pt) -> pt.gradientLength = v.floatValue()));
         this.gradientLength.limit(-512D, 512D);
-        this.gradientLength.tooltip(IKey.raw("Distance from the bone's pivot to the second colour, in model units. Negative flips the direction"));
+        this.gradientLength.tooltip(IKey.raw("How far the colour takes to fade in, in model units. Small = hard edge. Negative flips the direction"));
+        this.gradientMode = new UICirculate((b) -> this.editSelectedGradient((pt) -> pt.gradientMode = b.getValue()));
+        this.gradientMode.addLabel(IKey.raw("Color"));
+        this.gradientMode.addLabel(IKey.raw("Overlay"));
+        this.gradientMode.tooltip(IKey.raw("Color: tints the texture like the Color field. Overlay: washes it toward Color 2 like the Overlay field"));
+        this.gradientSpace = new UICirculate((b) -> this.editSelectedGradient((pt) -> pt.gradientSpace = b.getValue()));
+        this.gradientSpace.addLabel(IKey.raw("Bone"));
+        this.gradientSpace.addLabel(IKey.raw("Model"));
+        this.gradientSpace.tooltip(IKey.raw("Bone: measured from this bone's pivot. Model: from the model's origin, so bones sharing the setting form one continuous gradient"));
+        this.gradientOffset = new UITrackpad((v) -> this.editSelectedGradient((pt) -> pt.gradientOffset = v.floatValue()));
+        this.gradientOffset.tooltip(IKey.raw("Slides the start of the gradient along the axis, in model units. Keyframe it to sweep the colour in from the bottom or top"));
         this.transform = this.createTransformEditor();
         this.transform.setModel();
 
@@ -229,7 +242,10 @@ public class UIPoseEditor extends UIElement
         this.material.fields.add(
             UI.labelRow(IKey.raw("Gradient"), this.gradientStrength),
             UI.labelRow(IKey.raw("Color 2"), this.gradientColor),
+            UI.labelRow(IKey.raw("Mode"), this.gradientMode),
             UI.labelRow(IKey.raw("Axis"), this.gradientAxis),
+            UI.labelRow(IKey.raw("Space"), this.gradientSpace),
+            UI.labelRow(IKey.raw("Offset"), this.gradientOffset),
             UI.labelRow(IKey.raw("Length"), this.gradientLength)
         );
         this.material.setVisible(this.hasBones);
@@ -668,6 +684,9 @@ public class UIPoseEditor extends UIElement
             this.gradientColor.setColor(Colors.WHITE);
             this.gradientAxis.setValue(1);
             this.gradientLength.setValue(16D);
+            this.gradientMode.setValue(0);
+            this.gradientSpace.setValue(0);
+            this.gradientOffset.setValue(0D);
             this.transform.setTransform(null);
 
             return;
@@ -689,6 +708,9 @@ public class UIPoseEditor extends UIElement
         this.gradientColor.setColor(poseTransform.color2.getARGBColor());
         this.gradientAxis.setValue(poseTransform.gradientAxis);
         this.gradientLength.setValue(poseTransform.gradientLength);
+        this.gradientMode.setValue(poseTransform.gradientMode);
+        this.gradientSpace.setValue(poseTransform.gradientSpace);
+        this.gradientOffset.setValue(poseTransform.gradientOffset);
         this.transform.setTransform(poseTransform);
     }
 

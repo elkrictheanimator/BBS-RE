@@ -28,6 +28,12 @@ public class PoseTransform extends Transform
     public float gradient;
     public int gradientAxis = 1;
     public float gradientLength = 16F;
+    /* 0 = tints like Color (multiplies the texture), 1 = washes like Color overlay (mixes toward color2). */
+    public int gradientMode;
+    /* 0 = measured from the bone's pivot, 1 = from the model's origin (one continuous gradient across bones). */
+    public int gradientSpace;
+    /* Slides where the gradient starts along the axis, in model units: keyframe it to sweep the colour in. */
+    public float gradientOffset;
 
     @Override
     public void identity()
@@ -44,6 +50,9 @@ public class PoseTransform extends Transform
         this.gradient = 0F;
         this.gradientAxis = 1;
         this.gradientLength = 16F;
+        this.gradientMode = 0;
+        this.gradientSpace = 0;
+        this.gradientOffset = 0F;
     }
 
     @Override
@@ -56,6 +65,8 @@ public class PoseTransform extends Transform
                 this.visible = pose.visible;
                 this.detach = pose.detach;
                 this.gradientAxis = pose.gradientAxis;
+                this.gradientMode = pose.gradientMode;
+                this.gradientSpace = pose.gradientSpace;
             }
 
             this.fix = Lerps.lerp(this.fix, pose.fix, a);
@@ -77,6 +88,7 @@ public class PoseTransform extends Transform
             this.color2.b = Lerps.lerp(this.color2.b, pose.color2.b, a);
             this.gradient = Lerps.lerp(this.gradient, pose.gradient, a);
             this.gradientLength = Lerps.lerp(this.gradientLength, pose.gradientLength, a);
+            this.gradientOffset = Lerps.lerp(this.gradientOffset, pose.gradientOffset, a);
         }
 
         super.lerp(transform, a);
@@ -122,6 +134,9 @@ public class PoseTransform extends Transform
             );
             this.gradient = (float) MathUtils.clamp(interp.interpolate(IInterp.context.set(preA1.gradient, a1.gradient, b1.gradient, postB1.gradient, x)), 0F, 1F);
             this.gradientLength = (float) interp.interpolate(IInterp.context.set(preA1.gradientLength, a1.gradientLength, b1.gradientLength, postB1.gradientLength, x));
+            this.gradientOffset = (float) interp.interpolate(IInterp.context.set(preA1.gradientOffset, a1.gradientOffset, b1.gradientOffset, postB1.gradientOffset, x));
+            this.gradientMode = x < 1F ? a1.gradientMode : b1.gradientMode;
+            this.gradientSpace = x < 1F ? a1.gradientSpace : b1.gradientSpace;
         }
     }
 
@@ -165,6 +180,9 @@ public class PoseTransform extends Transform
             );
             this.gradient = (float) MathUtils.clamp(AutoBezier.get(preA1.gradient, a1.gradient, b1.gradient, postB1.gradient, pt, at, bt, qt, clamped, x), 0F, 1F);
             this.gradientLength = (float) AutoBezier.get(preA1.gradientLength, a1.gradientLength, b1.gradientLength, postB1.gradientLength, pt, at, bt, qt, clamped, x);
+            this.gradientOffset = (float) AutoBezier.get(preA1.gradientOffset, a1.gradientOffset, b1.gradientOffset, postB1.gradientOffset, pt, at, bt, qt, clamped, x);
+            this.gradientMode = x < 1F ? a1.gradientMode : b1.gradientMode;
+            this.gradientSpace = x < 1F ? a1.gradientSpace : b1.gradientSpace;
         }
     }
 
@@ -185,6 +203,9 @@ public class PoseTransform extends Transform
             result = result && this.gradient == poseTransform.gradient;
             result = result && this.gradientAxis == poseTransform.gradientAxis;
             result = result && this.gradientLength == poseTransform.gradientLength;
+            result = result && this.gradientMode == poseTransform.gradientMode;
+            result = result && this.gradientSpace == poseTransform.gradientSpace;
+            result = result && this.gradientOffset == poseTransform.gradientOffset;
         }
 
         return result;
@@ -205,6 +226,9 @@ public class PoseTransform extends Transform
         hash = 31 * hash + Float.floatToIntBits(this.gradient);
         hash = 31 * hash + this.gradientAxis;
         hash = 31 * hash + Float.floatToIntBits(this.gradientLength);
+        hash = 31 * hash + this.gradientMode;
+        hash = 31 * hash + this.gradientSpace;
+        hash = 31 * hash + Float.floatToIntBits(this.gradientOffset);
 
         return hash;
     }
@@ -234,6 +258,9 @@ public class PoseTransform extends Transform
             this.gradient = poseTransform.gradient;
             this.gradientAxis = poseTransform.gradientAxis;
             this.gradientLength = poseTransform.gradientLength;
+            this.gradientMode = poseTransform.gradientMode;
+            this.gradientSpace = poseTransform.gradientSpace;
+            this.gradientOffset = poseTransform.gradientOffset;
         }
 
         super.copy(transform);
@@ -259,6 +286,9 @@ public class PoseTransform extends Transform
                 this.gradient = pose.gradient;
                 this.gradientAxis = pose.gradientAxis;
                 this.gradientLength = pose.gradientLength;
+                this.gradientMode = pose.gradientMode;
+                this.gradientSpace = pose.gradientSpace;
+                this.gradientOffset = pose.gradientOffset;
             }
         }
     }
@@ -281,6 +311,9 @@ public class PoseTransform extends Transform
             data.putFloat("gradient", this.gradient);
             data.putInt("gradient_axis", this.gradientAxis);
             data.putFloat("gradient_length", this.gradientLength);
+            data.putInt("gradient_mode", this.gradientMode);
+            data.putInt("gradient_space", this.gradientSpace);
+            data.putFloat("gradient_offset", this.gradientOffset);
         }
     }
 
@@ -299,6 +332,9 @@ public class PoseTransform extends Transform
         this.gradient = data.getFloat("gradient");
         this.gradientAxis = data.getInt("gradient_axis", 1);
         this.gradientLength = data.has("gradient_length") ? data.getFloat("gradient_length") : 16F;
+        this.gradientMode = data.getInt("gradient_mode", 0);
+        this.gradientSpace = data.getInt("gradient_space", 0);
+        this.gradientOffset = data.getFloat("gradient_offset");
     }
 
     @Override

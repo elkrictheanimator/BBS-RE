@@ -35,6 +35,9 @@ public class ModelGroup implements IMapSerializable, RigBone
     public float gradient;
     public int gradientAxis = 1;
     public float gradientLength = 16F;
+    public int gradientMode;
+    public int gradientSpace;
+    public float gradientOffset;
     public int index = -1;
 
     public float lighting = 0F;
