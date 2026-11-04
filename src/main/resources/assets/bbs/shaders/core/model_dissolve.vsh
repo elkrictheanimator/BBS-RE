@@ -29,7 +29,7 @@ uniform vec2 GradRange;
 
 out float vertexDistance;
 out vec4 vertexColor;
-out vec4 vertexColorB;
+out vec4 vertexLight;
 out float gradT;
 out vec4 lightMapColor;
 out vec4 overlayColor;
@@ -44,7 +44,7 @@ void main()
     vertexDistance = (FogShape == 0) ? length(fogPos) : max(length(fogPos.xz), abs(fogPos.y));
     vec3 fixNormal = normalize(NormalMat * Normal);
     vertexColor = minecraft_mix_light(Light0_Direction, Light1_Direction, fixNormal, Color);
-    vertexColorB = minecraft_mix_light(Light0_Direction, Light1_Direction, fixNormal, vec4(GradColor.rgb, Color.a));
+    vertexLight = minecraft_mix_light(Light0_Direction, Light1_Direction, fixNormal, vec4(1.0));
     // Unclamped on purpose: it is linear, so it interpolates exactly across a face; the fragment shader clamps.
     gradT = (dot(Position, GradAxis) - GradRange.x) * GradRange.y;
     lightMapColor = texelFetch(Sampler2, UV2 / 16, 0);

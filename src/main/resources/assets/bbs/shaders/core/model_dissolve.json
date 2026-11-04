@@ -10,7 +10,8 @@
 	"samplers": [
 		{ "name": "Sampler0" },
 		{ "name": "Sampler1" },
-		{ "name": "Sampler2" }
+		{ "name": "Sampler2" },
+		{ "name": "Sampler3" }
 	],
 	"uniforms": [
 		{
@@ -74,6 +75,11 @@
 		{ "name": "GradColor", "type": "float", "count": 4, "values": [0.0, 0.0, 0.0, 0.0] },
 		{ "name": "GradAxis", "type": "float", "count": 3, "values": [0.0, 1.0, 0.0] },
 		{ "name": "GradRange", "type": "float", "count": 2, "values": [0.0, 1.0] },
-		{ "name": "GradMode", "type": "float", "count": 1, "values": [0.0] }
+		{ "name": "GradMode", "type": "float", "count": 1, "values": [0.0] },
+		{ "name": "GradStyle", "type": "float", "count": 1, "values": [0.0] },
+		{ "name": "GradTime", "type": "float", "count": 1, "values": [0.0] },
+		{ "name": "GradFrames", "type": "float", "count": 1, "values": [1.0] },
+		{ "name": "GradGlow", "type": "float", "count": 1, "values": [0.0] },
+		{ "name": "GradAnim", "type": "float", "count": 4, "values": [0.0, 1.0, 1.0, 12.0] }
 	]
 }

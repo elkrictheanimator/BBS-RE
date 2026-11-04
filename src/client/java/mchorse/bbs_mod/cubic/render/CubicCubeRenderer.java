@@ -212,6 +212,11 @@ public class CubicCubeRenderer implements ICubicRenderer
     @Override
     public boolean renderGroup(BufferBuilder builder, MatrixStack stack, ModelGroup group, Model model)
     {
+        if (!group.fx.isOff())
+        {
+            mchorse.bbs_mod.cubic.render.vao.ModelGradient.warnOnce("cpu", "a bone has a colour effect but this model is drawn on the CPU path (model config 'on CPU', picking or a shape-keyed group); the effect only works on the GPU path");
+        }
+
         for (ModelCube cube : group.cubes)
         {
             this.renderCube(builder, stack, group, cube);

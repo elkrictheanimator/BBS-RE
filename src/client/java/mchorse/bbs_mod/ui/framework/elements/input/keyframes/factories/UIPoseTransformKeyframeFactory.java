@@ -1,5 +1,6 @@
 package mchorse.bbs_mod.ui.framework.elements.input.keyframes.factories;
 
+import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.film.replays.UIReplaysEditorUtils;
 import mchorse.bbs_mod.ui.Keys;
 import mchorse.bbs_mod.ui.UIKeys;
@@ -10,6 +11,7 @@ import mchorse.bbs_mod.ui.framework.elements.input.UISliderTrackpad;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeSheet;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframes;
 import mchorse.bbs_mod.ui.utils.UI;
+import mchorse.bbs_mod.ui.utils.pose.UIColorFxSection;
 import mchorse.bbs_mod.ui.utils.pose.UIPoseEditor;
 import mchorse.bbs_mod.utils.keyframes.Keyframe;
 import mchorse.bbs_mod.utils.pose.PoseTransform;
@@ -26,6 +28,7 @@ public class UIPoseTransformKeyframeFactory extends UIKeyframeFactory<PoseTransf
     public UIColor overlay;
     public UISliderTrackpad lighting;
     public UIPropTransform transform;
+    public UIColorFxSection colorFx;
 
     public UIPoseTransformKeyframeFactory(Keyframe<PoseTransform> keyframe, UIKeyframes editor)
     {
@@ -96,6 +99,15 @@ public class UIPoseTransformKeyframeFactory extends UIKeyframeFactory<PoseTransf
         this.lighting.tooltip(UIKeys.FORMS_EDITORS_MATERIAL_GLOW_TOOLTIP);
         this.lighting.setValue(keyframe.getValue().lighting);
 
+        this.colorFx = new UIColorFxSection(IKey.raw("Color effect"), "color_fx", (edit) ->
+        {
+            if (this.transform.getTransform() instanceof PoseTransform)
+            {
+                UIPoseTransforms.apply(editor, keyframe, (poseT) -> edit.accept(poseT.fx));
+            }
+        });
+        this.colorFx.setFx(keyframe.getValue().fx);
+
         /* Same rows in the same order, and the material section built by UIPoseEditor itself —
          * this panel is that one without the bone list, so it has to read as the same panel. */
         this.scroll.add(
@@ -103,7 +115,8 @@ public class UIPoseTransformKeyframeFactory extends UIKeyframeFactory<PoseTransf
             this.detach,
             UI.labelRow(UIKeys.POSE_CONTEXT_FIX, this.fix),
             this.transform,
-            UIPoseEditor.materialSection(this.color, this.overlay, this.lighting)
+            UIPoseEditor.materialSection(this.color, this.overlay, this.lighting),
+            this.colorFx
         );
     }
 

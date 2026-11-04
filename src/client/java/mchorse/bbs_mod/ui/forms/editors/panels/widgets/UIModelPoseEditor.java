@@ -92,10 +92,10 @@ public class UIModelPoseEditor extends UIPoseEditor
     }
 
     @Override
-    protected void editGradient(PoseTransform transform, java.util.function.Consumer<PoseTransform> edit)
+    protected void editColorFx(PoseTransform transform, java.util.function.Consumer<mchorse.bbs_mod.utils.pose.ColorFx> edit)
     {
         this.valuePose.preNotify();
-        super.editGradient(transform, edit);
+        super.editColorFx(transform, edit);
         this.valuePose.postNotify();
     }
 }

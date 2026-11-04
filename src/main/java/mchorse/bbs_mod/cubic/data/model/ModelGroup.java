@@ -30,14 +30,8 @@ public class ModelGroup implements IMapSerializable, RigBone
     /** Set by a pose: this bone rides its ancestors' rest pose, not their animation. */
     public boolean poseDetach;
 
-    /* Pose colour gradient (see PoseTransform): strength 0 = off. */
-    public final Color gradientColor = new Color(1F, 1F, 1F, 1F);
-    public float gradient;
-    public int gradientAxis = 1;
-    public float gradientLength = 16F;
-    public int gradientMode;
-    public int gradientSpace;
-    public float gradientOffset;
+    /* Pose colour effect (gradient / rainbow / neon / image); strength 0 = off. */
+    public final mchorse.bbs_mod.utils.pose.ColorFx fx = new mchorse.bbs_mod.utils.pose.ColorFx();
     public int index = -1;
 
     public float lighting = 0F;
@@ -127,7 +121,7 @@ public class ModelGroup implements IMapSerializable, RigBone
     {
         this.poseVisible = true;
         this.poseDetach = false;
-        this.gradient = 0F;
+        this.fx.reset();
         this.lighting = 0F;
         this.color.set(1F, 1F, 1F);
         this.overlay.set(1F, 1F, 1F, 0F);
