@@ -43,9 +43,10 @@ public final class SmearDissolveShader
         {
             program = new ShaderProgram(bbsvfx$factory(), "model_dissolve", VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         }
-        catch (IOException e)
+        catch (IOException | RuntimeException e)
         {
-            e.printStackTrace();
+            program = null;
+            org.slf4j.LoggerFactory.getLogger("bbs-colorfx").error("[colorfx] model_dissolve failed to build — colour effects and smear dissolve are off", e);
         }
     }
 

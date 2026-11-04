@@ -31,10 +31,22 @@ public final class ModelGradient
         public int texture;
     }
 
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger("bbs-colorfx");
+    private static final java.util.Set<String> WARNED = new java.util.HashSet<>();
+
     private static Params current;
 
     private ModelGradient()
     {}
+
+    /** Log a line once per session: enough to see, in latest.log, how far a colour effect got. */
+    public static void warnOnce(String key, String message)
+    {
+        if (WARNED.add(key))
+        {
+            LOG.warn("[colorfx] {}", message);
+        }
+    }
 
     public static Params current()
     {
@@ -66,6 +78,8 @@ public final class ModelGradient
         {
             length = length < 0F ? -0.05F : 0.05F;
         }
+
+        warnOnce("reached", "a bone with a colour effect reached the GPU draw (style " + fx.style + ", strength " + fx.strength + ", glow " + fx.glow + ")");
 
         Params p = new Params();
 
@@ -123,6 +137,11 @@ public final class ModelGradient
 
         if (color == null)
         {
+            if (current != null)
+            {
+                warnOnce("nouniform", "the model shader has no GradColor uniform, so the effect is skipped (a shader pack is active, or model_dissolve failed to build)");
+            }
+
             return;
         }
 
@@ -136,6 +155,7 @@ public final class ModelGradient
             return;
         }
 
+        warnOnce("uploaded", "colour effect uploaded to the model shader");
         color.set(p.r, p.g, p.b, p.strength);
 
         set(shader, "GradAxis", p.ax, p.ay, p.az);
