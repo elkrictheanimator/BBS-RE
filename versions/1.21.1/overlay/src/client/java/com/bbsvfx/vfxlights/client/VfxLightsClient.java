@@ -296,6 +296,13 @@ public class VfxLightsClient implements ClientModInitializer
 
         CoreShaderRegistrationCallback.EVENT.register((context) ->
         {
+            /* Once per shader load: the callback has been seen firing dozens of times in one reload,
+             * and each firing compiles all six programs again (see ShaderRegistrationGuard). */
+            if (!com.bbsvfx.bbsvfx.client.ShaderRegistrationGuard.first("vfxlights"))
+            {
+                return;
+            }
+
             try
             {
                 context.register(Identifier.of("vfxlights", "light_composite"), VertexFormats.POSITION,
