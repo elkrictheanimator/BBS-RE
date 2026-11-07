@@ -10,6 +10,7 @@ import mchorse.bbs_mod.ui.forms.editors.UIFormEditor;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.factories.UIKeyframeFactory;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -80,72 +81,86 @@ public class BbsVfxClient implements ClientModInitializer
         FormUtilsClient.register(com.bbsvfx.bbsvfx.forms.WindForm.class, WindFormRenderer::new);
         UIFormEditor.register(com.bbsvfx.bbsvfx.forms.WindForm.class, UIWindForm::new);
 
-        /* Custom core shader for the Destruction Box GPU path (shatter displacement in the vertex shader).
-         * Loaded from assets/bbsvfx/shaders/core/destruction_box.{json,vsh,fsh}. */
+        /* One reload = one client tick: start every tick with a clean slate so the repeats inside a reload
+         * are skipped (see ShaderRegistrationGuard) while the next reload still registers everything. */
+        ClientTickEvents.START_CLIENT_TICK.register(client -> ShaderRegistrationGuard.newLoad());
+
         CoreShaderRegistrationCallback.EVENT.register(context ->
             diagShaderRegistration());
 
+        /* Custom core shader for the Destruction Box GPU path (shatter displacement in the vertex shader).
+         * Loaded from assets/bbsvfx/shaders/core/destruction_box.{json,vsh,fsh}. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
-            context.register(net.minecraft.util.Identifier.of(MOD_ID, "destruction_box"),
+            ShaderRegistrationGuard.once("bbsvfx:destruction_box", () ->
+                context.register(net.minecraft.util.Identifier.of(MOD_ID, "destruction_box"),
                 net.minecraft.client.render.VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
-                program -> DestructionShader.PROGRAM = program));
+                program -> DestructionShader.PROGRAM = program)));
 
         /* Tier-C ballistic debris shader (instanced cubes, closed-form flight in the VSH) — the LOD
          * path that lets 50-100k-block explosions render with zero per-frame CPU geometry work. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
-            context.register(net.minecraft.util.Identifier.of(MOD_ID, "destruction_ballistic"),
+            ShaderRegistrationGuard.once("bbsvfx:destruction_ballistic", () ->
+                context.register(net.minecraft.util.Identifier.of(MOD_ID, "destruction_ballistic"),
                 net.minecraft.client.render.VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
-                program -> DestructionShader.BALLISTIC = program));
+                program -> DestructionShader.BALLISTIC = program)));
 
         /* Beam heat-haze (mirage) shader: re-samples the rendered scene with noise-displaced UVs. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
-            context.register(net.minecraft.util.Identifier.of(MOD_ID, "beam_heat"),
+            ShaderRegistrationGuard.once("bbsvfx:beam_heat", () ->
+                context.register(net.minecraft.util.Identifier.of(MOD_ID, "beam_heat"),
                 BbsVfxRenderCompat.positionColorTexture(),
-                program -> BeamHeat.PROGRAM = program));
+                program -> BeamHeat.PROGRAM = program)));
 
         /* Dome shell: screen-space raymarched hemisphere volume (reads scene depth, tints the world behind
          * it, glowing rim) — depth-correct compositing with no sorting/OIT. Fullscreen POSITION_TEXTURE. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
-            context.register(net.minecraft.util.Identifier.of(MOD_ID, "dome_volume"),
+            ShaderRegistrationGuard.once("bbsvfx:dome_volume", () ->
+                context.register(net.minecraft.util.Identifier.of(MOD_ID, "dome_volume"),
                 net.minecraft.client.render.VertexFormats.POSITION_TEXTURE,
-                program -> DomeVolume.PROGRAM = program));
+                program -> DomeVolume.PROGRAM = program)));
 
         /* Ground cracks: screen-space magma fissures spreading over the ground from an epicentre. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
-            context.register(net.minecraft.util.Identifier.of(MOD_ID, "cracks_volume"),
+            ShaderRegistrationGuard.once("bbsvfx:cracks_volume", () ->
+                context.register(net.minecraft.util.Identifier.of(MOD_ID, "cracks_volume"),
                 net.minecraft.client.render.VertexFormats.POSITION_TEXTURE,
-                program -> CracksVolume.PROGRAM = program));
+                program -> CracksVolume.PROGRAM = program)));
 
         /* Rising smoke: screen-space volumetric fractal haze over the crater. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
-            context.register(net.minecraft.util.Identifier.of(MOD_ID, "smoke_volume"),
+            ShaderRegistrationGuard.once("bbsvfx:smoke_volume", () ->
+                context.register(net.minecraft.util.Identifier.of(MOD_ID, "smoke_volume"),
                 net.minecraft.client.render.VertexFormats.POSITION_TEXTURE,
-                program -> SmokeVolume.PROGRAM = program));
+                program -> SmokeVolume.PROGRAM = program)));
 
         /* Beam column: screen-space raymarched emissive energy column (core + helix), depth-correct. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
-            context.register(net.minecraft.util.Identifier.of(MOD_ID, "beam_volume"),
+            ShaderRegistrationGuard.once("bbsvfx:beam_volume", () ->
+                context.register(net.minecraft.util.Identifier.of(MOD_ID, "beam_volume"),
                 net.minecraft.client.render.VertexFormats.POSITION_TEXTURE,
-                program -> BeamVolume.PROGRAM = program));
+                program -> BeamVolume.PROGRAM = program)));
 
         /* Ambient wind: screen-space volumetric noise streaks flowing through the WindForm zone. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
-            context.register(net.minecraft.util.Identifier.of(MOD_ID, "wind_volume"),
+            ShaderRegistrationGuard.once("bbsvfx:wind_volume", () ->
+                context.register(net.minecraft.util.Identifier.of(MOD_ID, "wind_volume"),
                 net.minecraft.client.render.VertexFormats.POSITION_TEXTURE,
-                program -> WindVolume.PROGRAM = program));
+                program -> WindVolume.PROGRAM = program)));
 
         /* Explosion mushroom: a volumetric fractal-noise cloud with the fire as an emissive term inside it. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
-            context.register(net.minecraft.util.Identifier.of(MOD_ID, "explosion_smoke"),
+            ShaderRegistrationGuard.once("bbsvfx:explosion_smoke", () ->
+                context.register(net.minecraft.util.Identifier.of(MOD_ID, "explosion_smoke"),
                 net.minecraft.client.render.VertexFormats.POSITION_TEXTURE,
-                program -> ExplosionSmokeVolume.PROGRAM = program));
+                program -> ExplosionSmokeVolume.PROGRAM = program)));
 
         /* Dome world-levelling shader: INSTANCED unit cubes (one draw, ~44 B/block), radial-front
          * settle+dissolve in the VSH — scales to a 100k+-block level with zero per-frame CPU geometry. */
         CoreShaderRegistrationCallback.EVENT.register(context ->
-            context.register(net.minecraft.util.Identifier.of(MOD_ID, "dome_level_inst"),
+            ShaderRegistrationGuard.once("bbsvfx:dome_level_inst", () ->
+                context.register(net.minecraft.util.Identifier.of(MOD_ID, "dome_level_inst"),
                 net.minecraft.client.render.VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
-                program -> DestructionShader.DOME = program));
+                program -> DestructionShader.DOME = program)));
 
         /* Follow-curve camera modifier: override the clip with its client logic (same factory, unique
          * link) and register its editor panel. The common clip type is registered by BBSModFormsMixin. */
