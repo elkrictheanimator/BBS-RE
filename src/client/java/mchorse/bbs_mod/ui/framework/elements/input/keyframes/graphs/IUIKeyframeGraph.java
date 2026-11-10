@@ -91,6 +91,16 @@ public interface IUIKeyframeGraph
         this.pickSelected();
     }
 
+    public default void invertSelection()
+    {
+        for (UIKeyframeSheet sheet : this.getSheets())
+        {
+            sheet.selection.invert();
+        }
+
+        this.pickSelected();
+    }
+
     public default void selectAfter(float tick, int direction)
     {
         for (UIKeyframeSheet sheet : this.getSheets())

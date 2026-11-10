@@ -50,6 +50,22 @@ public class KeyframeSelection
         }
     }
 
+    /** Select what is not selected and deselect what is: the Blender "Invert" of a selection. */
+    public void invert()
+    {
+        Set<Integer> inverted = new LinkedHashSet<>();
+
+        for (int i = 0, c = this.channel.getKeyframes().size(); i < c; i++)
+        {
+            if (!this.selected.contains(i))
+            {
+                inverted.add(i);
+            }
+        }
+
+        this.selected = inverted;
+    }
+
     public void after(float tick, int direction)
     {
         this.selected.clear();

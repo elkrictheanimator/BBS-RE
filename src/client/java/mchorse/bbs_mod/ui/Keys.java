@@ -116,6 +116,15 @@ public class Keys
     /* Keyframes */
     public static final KeyCombo KEYFRAMES_MAXIMIZE = new KeyCombo("maximize", UIKeys.KEYFRAMES_CONTEXT_MAXIMIZE, GLFW.GLFW_KEY_HOME).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_SELECT_ALL = new KeyCombo("select_all", UIKeys.KEYFRAMES_CONTEXT_SELECT_ALL, GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("keyframes");
+    /* Blender-style alternatives, see BBSSettings#keyframeBlenderControls. They sit next to the classic combos
+     * instead of replacing them, so the same action answers to both until the user rebinds either. */
+    public static final KeyCombo KEYFRAMES_BLENDER_SELECT_ALL = new KeyCombo("blender_select_all", UIKeys.KEYFRAMES_CONTEXT_SELECT_ALL, GLFW.GLFW_KEY_A).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_DESELECT_ALL = new KeyCombo("blender_deselect_all", UIKeys.KEYFRAMES_KEYS_DESELECT_ALL, GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT_ALT).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_INVERT = new KeyCombo("blender_invert", UIKeys.KEYFRAMES_KEYS_INVERT_SELECTION, GLFW.GLFW_KEY_I, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_GRAB = new KeyCombo("blender_grab", UIKeys.KEYFRAMES_KEYS_GRAB, GLFW.GLFW_KEY_G).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_SCALE = new KeyCombo("blender_scale", UIKeys.KEYFRAMES_KEYS_SCALE_TIME, GLFW.GLFW_KEY_S).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_DELETE = new KeyCombo("blender_delete", UIKeys.KEYFRAMES_CONTEXT_REMOVE, GLFW.GLFW_KEY_X).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_DUPLICATE = new KeyCombo("blender_duplicate", UIKeys.KEYFRAMES_KEYS_DUPLICATE_GRAB, GLFW.GLFW_KEY_D, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_SELECT_TRACK = new KeyCombo("select_track", UIKeys.KEYFRAMES_KEYS_SELECT_TRACK, GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_SELECT_TRACK_LEFT = new KeyCombo("select_track_left", UIKeys.KEYFRAMES_KEYS_SELECT_TRACK_LEFT, GLFW.GLFW_KEY_COMMA, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_SELECT_TRACK_RIGHT = new KeyCombo("select_track_right", UIKeys.KEYFRAMES_KEYS_SELECT_TRACK_RIGHT, GLFW.GLFW_KEY_PERIOD, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");

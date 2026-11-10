@@ -23,6 +23,7 @@ import mchorse.bbs_mod.ui.Keys;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
+import mchorse.bbs_mod.ui.framework.elements.utils.FontRenderer;
 import mchorse.bbs_mod.ui.framework.elements.utils.UITimelineCanvas;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.graphs.IUIKeyframeGraph;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.graphs.KeyframeType;
@@ -42,6 +43,7 @@ import mchorse.bbs_mod.ui.utils.renderers.TimelineRulerRenderer;
 import mchorse.bbs_mod.utils.CollectionUtils;
 import mchorse.bbs_mod.utils.MathUtils;
 import mchorse.bbs_mod.utils.Pair;
+import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.utils.profiler.BBSProfiler;
 import mchorse.bbs_mod.utils.keyframes.Keyframe;
 import mchorse.bbs_mod.utils.keyframes.KeyframeChannel;
@@ -65,6 +67,9 @@ public class UIKeyframes extends UITimelineCanvas
 
     private boolean stacking;
     private float stackOffset;
+
+    /** Blender's G: the selection follows the mouse until a click or Enter confirms, Esc or right click cancels. */
+    private boolean grabbing;
 
     private float originalT;
     private Object originalV;
@@ -207,7 +212,8 @@ public class UIKeyframes extends UITimelineCanvas
 
         /* Keys */
         IKey category = UIKeys.KEYFRAMES_KEYS_CATEGORY;
-        Supplier<Boolean> canModify = () -> !this.scaling;
+        Supplier<Boolean> canModify = () -> !this.scaling && !this.grabbing;
+        Supplier<Boolean> blenderKeys = () -> BBSSettings.keyframeBlenderControls.get() && !this.scaling && !this.grabbing && !this.stacking;
 
         this.keys().register(Keys.KEYFRAMES_MAXIMIZE, this::resetView).inside().category(category);
         this.keys().register(Keys.KEYFRAMES_SELECT_ALL, () -> this.currentGraph.selectAll()).inside().category(category).active(canModify);
@@ -259,6 +265,17 @@ public class UIKeyframes extends UITimelineCanvas
         this.keys().register(Keys.KEYFRAMES_SPREAD, this::spreadKeyframes).category(category);
         this.keys().register(Keys.KEYFRAMES_FLIP, this::flipKeyframes).category(category).active(canModify);
         this.keys().register(Keys.KEYFRAMES_ADJUST_VALUES, this::adjustValues).category(category);
+
+        /* Blender's own keys. strict(): a plain letter must not also answer to Ctrl+<letter>, which is
+         * save, paste and friends elsewhere. */
+        this.keys().register(Keys.KEYFRAMES_BLENDER_SELECT_ALL, () -> this.currentGraph.selectAll()).inside().strict().category(category).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_DESELECT_ALL, () -> this.currentGraph.clearSelection()).inside().strict().category(category).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_INVERT, () -> this.currentGraph.invertSelection()).inside().strict().category(category).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_GRAB, this::startGrab).inside().strict().category(category).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_SCALE, this::scaleTime).inside().strict().category(category)
+            .active(() -> BBSSettings.keyframeBlenderControls.get() && !this.grabbing && !this.stacking);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_DELETE, () -> this.currentGraph.removeSelected()).inside().strict().category(category).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_DUPLICATE, this::duplicateAndGrab).inside().strict().category(category).active(blenderKeys);
     }
 
     public int getLabelWidth()
@@ -488,6 +505,92 @@ public class UIKeyframes extends UITimelineCanvas
 
             this.currentGraph.pickSelected();
         }
+    }
+
+    /**
+     * Blender's G. It is the click-and-drag on the first selected keyframe, started from the keyboard:
+     * the same drag code runs, so the dope sheet moves in time, the curve editor in time and value, and
+     * snapping behaves the way it does for a mouse drag.
+     */
+    private void startGrab()
+    {
+        Keyframe first = this.currentGraph.getSelected();
+
+        if (first == null || this.grabbing || this.scaling || this.stacking || this.dragging >= 0 || this.marquee.isPressed())
+        {
+            return;
+        }
+
+        UIContext context = this.getContext();
+
+        this.grabbing = true;
+        this.lastX = this.initialX = context.mouseX;
+        this.lastY = this.initialY = context.mouseY;
+        this.draggingData = new Pair<>(first, KeyframeType.REGULAR);
+        this.originalT = first.getTick();
+        this.originalV = first.getFactory().copy(first.getValue());
+
+        this.cacheKeyframes();
+
+        this.dragging = 1;
+    }
+
+    /** Confirm (sort and record the edit) or cancel (put everything back) a grab. */
+    private void finishGrab(boolean confirm)
+    {
+        if (!this.grabbing)
+        {
+            return;
+        }
+
+        this.grabbing = false;
+        this.dragging = -1;
+
+        if (this.cache == null)
+        {
+            return;
+        }
+
+        if (confirm)
+        {
+            this.submitKeyframes();
+        }
+        else
+        {
+            for (Pair<BaseType, UIKeyframeSheet> pair : this.cache.data)
+            {
+                pair.b.channel.fromData(pair.a);
+            }
+
+            this.cache = null;
+            this.triggerChange();
+        }
+
+        this.currentGraph.pickSelected();
+    }
+
+    /** Blender's Shift+D: copy the selection where it is and carry the copy off with the mouse. */
+    private void duplicateAndGrab()
+    {
+        if (this.currentGraph.getSelected() == null)
+        {
+            return;
+        }
+
+        float min = Float.MAX_VALUE;
+
+        for (UIKeyframeSheet sheet : this.currentGraph.getSheets())
+        {
+            for (Keyframe keyframe : sheet.selection.getSelected())
+            {
+                min = Math.min(min, keyframe.getTick());
+            }
+        }
+
+        /* Anchored on the selection's own first tick and kept on its own tracks, so the copy lands exactly
+         * on top of the original, like Blender's, rather than under the mouse. */
+        this.pasteKeyframes(parseKeyframes(this.serializeKeyframes()), min, this.getContext().mouseY, true);
+        this.startGrab();
     }
 
     private void scaleTime()
@@ -984,7 +1087,7 @@ public class UIKeyframes extends UITimelineCanvas
     /** Whether the user is in the middle of any mouse interaction (dragging, selecting, navigating, scaling or stacking). */
     public boolean isInteracting()
     {
-        return this.scrubbing || this.loops.isDragging() || this.motionShift.isDragging() || this.dragging >= 0 || this.marquee.isPressed() || this.navigating || this.scaling || this.stacking;
+        return this.scrubbing || this.loops.isDragging() || this.motionShift.isDragging() || this.dragging >= 0 || this.marquee.isPressed() || this.navigating || this.scaling || this.stacking || this.grabbing;
     }
 
     /* Sheet management */
@@ -1128,6 +1231,16 @@ public class UIKeyframes extends UITimelineCanvas
     protected boolean subMouseClicked(UIContext context)
     {
         this.updateModifierOrder();
+
+        if (this.grabbing)
+        {
+            if (context.mouseButton == 0 || context.mouseButton == 1)
+            {
+                this.finishGrab(context.mouseButton == 0);
+            }
+
+            return true;
+        }
 
         if (this.area.isInside(context))
         {
@@ -1286,15 +1399,32 @@ public class UIKeyframes extends UITimelineCanvas
         Pair<Keyframe, KeyframeType> pair = this.currentGraph.findKeyframe(context.mouseX, context.mouseY);
         Keyframe found = pair == null ? null : pair.a;
         boolean shift = Window.isShiftPressed();
+        boolean blender = BBSSettings.keyframeBlenderControls.get();
 
-        if (shift && found == null)
+        if (found == null && (shift || blender))
         {
+            /* Blender: dragging on empty space draws the box and replaces the selection, Shift adds to it */
+            if (!shift)
+            {
+                this.currentGraph.clearSelection();
+                this.pickKeyframe(null);
+            }
+
             this.marquee.press(context.mouseX, context.mouseY);
         }
 
         if (found != null)
         {
             UIKeyframeSheet sheet = this.currentGraph.getSheet(found);
+
+            /* Blender: Shift+click on a selected keyframe takes it out of the selection */
+            if (blender && shift && pair.b == KeyframeType.REGULAR && sheet.selection.has(found))
+            {
+                sheet.selection.remove(sheet.channel.getKeyframes().indexOf(found));
+                this.pickKeyframe(this.currentGraph.getSelected());
+
+                return;
+            }
 
             if (!shift && !sheet.selection.has(found))
             {
@@ -1407,6 +1537,22 @@ public class UIKeyframes extends UITimelineCanvas
             this.controlFirst = false;
         }
 
+        if (this.grabbing)
+        {
+            if (context.isPressed(GLFW.GLFW_KEY_ESCAPE))
+            {
+                this.finishGrab(false);
+
+                return true;
+            }
+            else if (context.isPressed(GLFW.GLFW_KEY_ENTER) || context.isPressed(GLFW.GLFW_KEY_KP_ENTER))
+            {
+                this.finishGrab(true);
+
+                return true;
+            }
+        }
+
         this.xAxis.stopZoom();
         this.currentGraph.stopZoom();
         if (this.loops.keyPressed(context)) return true;
@@ -1490,6 +1636,14 @@ public class UIKeyframes extends UITimelineCanvas
         this.motionShift.render(context);
         this.currentGraph.renderTopmostKeyframes(context);
         this.loops.renderStatus(context);
+
+        if (this.grabbing)
+        {
+            FontRenderer font = context.batcher.getFont();
+            String hint = UIKeys.KEYFRAMES_GRAB_HINT.get();
+
+            context.batcher.textShadow(hint, this.graphArea.mx() - font.getWidth(hint) / 2, this.graphArea.ey() - font.getHeight() - 4, Colors.WHITE);
+        }
     }
 
     public void renderRuler(UIContext context)

@@ -404,6 +404,18 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     }
 
     @Override
+    public void invertSelection()
+    {
+        /* Only the rows in view: a row folded out of sight must not suddenly hold a selection. */
+        for (UIKeyframeSheet sheet : this.getInteractiveSheets())
+        {
+            sheet.selection.invert();
+        }
+
+        this.pickSelected();
+    }
+
+    @Override
     public void selectAfter(float tick, int direction)
     {
         for (UIKeyframeSheet sheet : this.getInteractiveSheets())
