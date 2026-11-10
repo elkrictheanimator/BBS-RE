@@ -404,6 +404,28 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     }
 
     @Override
+    public void selectMore()
+    {
+        for (UIKeyframeSheet sheet : this.getInteractiveSheets())
+        {
+            sheet.selection.grow();
+        }
+
+        this.pickSelected();
+    }
+
+    @Override
+    public void selectLess()
+    {
+        for (UIKeyframeSheet sheet : this.getInteractiveSheets())
+        {
+            sheet.selection.shrink();
+        }
+
+        this.pickSelected();
+    }
+
+    @Override
     public void invertSelection()
     {
         /* Only the rows in view: a row folded out of sight must not suddenly hold a selection. */

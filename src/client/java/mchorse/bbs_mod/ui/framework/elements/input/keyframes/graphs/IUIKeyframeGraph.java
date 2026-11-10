@@ -91,6 +91,30 @@ public interface IUIKeyframeGraph
         this.pickSelected();
     }
 
+    public default void selectMore()
+    {
+        for (UIKeyframeSheet sheet : this.getSheets())
+        {
+            sheet.selection.grow();
+        }
+
+        this.pickSelected();
+    }
+
+    public default void selectLess()
+    {
+        for (UIKeyframeSheet sheet : this.getSheets())
+        {
+            sheet.selection.shrink();
+        }
+
+        this.pickSelected();
+    }
+
+    /** Fit the vertical range to the selected keyframes; only a graph with a value axis has one. */
+    public default void viewSelectedY()
+    {}
+
     public default void invertSelection()
     {
         for (UIKeyframeSheet sheet : this.getSheets())

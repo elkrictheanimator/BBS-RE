@@ -125,6 +125,10 @@ public class Keys
     public static final KeyCombo KEYFRAMES_BLENDER_SCALE = new KeyCombo("blender_scale", UIKeys.KEYFRAMES_KEYS_SCALE_TIME, GLFW.GLFW_KEY_S).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_BLENDER_DELETE = new KeyCombo("blender_delete", UIKeys.KEYFRAMES_CONTEXT_REMOVE, GLFW.GLFW_KEY_X).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_BLENDER_DUPLICATE = new KeyCombo("blender_duplicate", UIKeys.KEYFRAMES_KEYS_DUPLICATE_GRAB, GLFW.GLFW_KEY_D, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_SELECT_MORE = new KeyCombo("blender_select_more", UIKeys.KEYFRAMES_KEYS_SELECT_MORE, GLFW.GLFW_KEY_KP_ADD, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_SELECT_LESS = new KeyCombo("blender_select_less", UIKeys.KEYFRAMES_KEYS_SELECT_LESS, GLFW.GLFW_KEY_KP_SUBTRACT, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_VIEW_SELECTED = new KeyCombo("blender_view_selected", UIKeys.KEYFRAMES_KEYS_VIEW_SELECTED, GLFW.GLFW_KEY_KP_DECIMAL).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_INTERP = new KeyCombo("blender_interp", UIKeys.KEYFRAMES_KEYS_INTERP_MENU, GLFW.GLFW_KEY_T).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_SELECT_TRACK = new KeyCombo("select_track", UIKeys.KEYFRAMES_KEYS_SELECT_TRACK, GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_SELECT_TRACK_LEFT = new KeyCombo("select_track_left", UIKeys.KEYFRAMES_KEYS_SELECT_TRACK_LEFT, GLFW.GLFW_KEY_COMMA, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_SELECT_TRACK_RIGHT = new KeyCombo("select_track_right", UIKeys.KEYFRAMES_KEYS_SELECT_TRACK_RIGHT, GLFW.GLFW_KEY_PERIOD, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");

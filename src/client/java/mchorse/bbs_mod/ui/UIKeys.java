@@ -997,6 +997,10 @@ public class UIKeys
     public static final IKey KEYFRAMES_KEYS_GRAB = L10n.lang("bbs.ui.keyframes.keys.grab");
     public static final IKey KEYFRAMES_KEYS_DUPLICATE_GRAB = L10n.lang("bbs.ui.keyframes.keys.duplicate_grab");
     public static final IKey KEYFRAMES_GRAB_HINT = L10n.lang("bbs.ui.keyframes.grab_hint");
+    public static final IKey KEYFRAMES_KEYS_SELECT_MORE = L10n.lang("bbs.ui.keyframes.keys.select_more");
+    public static final IKey KEYFRAMES_KEYS_SELECT_LESS = L10n.lang("bbs.ui.keyframes.keys.select_less");
+    public static final IKey KEYFRAMES_KEYS_VIEW_SELECTED = L10n.lang("bbs.ui.keyframes.keys.view_selected");
+    public static final IKey KEYFRAMES_KEYS_INTERP_MENU = L10n.lang("bbs.ui.keyframes.keys.interp_menu");
     public static final IKey KEYFRAMES_KEYS_SELECT_LEFT = L10n.lang("bbs.ui.keyframes.keys.select_left");
     public static final IKey KEYFRAMES_KEYS_SELECT_NEXT = L10n.lang("bbs.ui.keyframes.keys.select_next");
     public static final IKey KEYFRAMES_KEYS_SELECT_PREV = L10n.lang("bbs.ui.keyframes.keys.select_prev");
