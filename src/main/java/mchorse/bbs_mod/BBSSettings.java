@@ -226,6 +226,9 @@ public class BBSSettings {
 	public static ValueFloat recordingCountdown;
 	public static ValueBoolean recordingSwipeDamage;
 	public static ValueBoolean recordingOverlays;
+	/** Extra pose tracks every posed form always has, on top of its base pose_overlay: three overlays in all. */
+	public static final int MIN_POSE_OVERLAYS = 2;
+
 	public static ValueInt recordingPoseOverlays;
 	public static ValueInt recordingTransformOverlays;
 	public static ValueBoolean recordingCameraPreview;
@@ -611,6 +614,17 @@ public class BBSSettings {
 		migrated |= migrateLegacyValue(root, "recording", "pose_transform_overlays", "recording", "pose_overlays");
 		migrated |= migrateLegacyValue(root, "recording", "pose_transform_overlays", "recording", "transform_overlays");
 
+		/* Every posed form keeps its base pose_overlay track plus at least two more. A config saved
+		 * before that stored 0 (or 1) and loading it skips the setting's own lower bound. */
+		MapType recording = root.getMap("recording");
+
+		if (recording.has("pose_overlays") && recording.getInt("pose_overlays") < MIN_POSE_OVERLAYS)
+		{
+			recording.putInt("pose_overlays", MIN_POSE_OVERLAYS);
+			root.put("recording", recording);
+			migrated = true;
+		}
+
 		/* Sections now keep the replay list compact. Reveal their channels once;
 		 * later manual filtering must survive reloads. */
 		MapType appearance = root.getMap("appearance");
@@ -926,7 +940,7 @@ public class BBSSettings {
 		recordingCountdown = builder.getFloat("countdown", 1.5F, 0F, 30F);
 		recordingSwipeDamage = builder.getBoolean("swipe_damage", false);
 		recordingOverlays = builder.getBoolean("overlays", true);
-		recordingPoseOverlays = builder.getInt("pose_overlays", 0, 0, 42);
+		recordingPoseOverlays = builder.getInt("pose_overlays", MIN_POSE_OVERLAYS, MIN_POSE_OVERLAYS, 42);
 		recordingTransformOverlays = builder.getInt("transform_overlays", 0, 0, 42);
 		recordingCameraPreview = builder.getBoolean("camera_preview", true);
 		recordingTeleport = builder.getBoolean("teleport", true);
