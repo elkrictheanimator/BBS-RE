@@ -91,6 +91,55 @@ public interface IUIKeyframeGraph
         this.pickSelected();
     }
 
+    /** Blender's K: select every keyframe that sits at the time of a selected one. */
+    public default void selectColumn()
+    {
+        this.selectColumn(this.getSheets());
+    }
+
+    public default void selectColumn(List<UIKeyframeSheet> sheets)
+    {
+        List<Float> ticks = new java.util.ArrayList<>();
+
+        for (UIKeyframeSheet sheet : this.getSheets())
+        {
+            for (Keyframe keyframe : sheet.selection.getSelected())
+            {
+                ticks.add(keyframe.getTick());
+            }
+        }
+
+        if (ticks.isEmpty())
+        {
+            return;
+        }
+
+        for (UIKeyframeSheet sheet : sheets)
+        {
+            List<Keyframe> keyframes = sheet.channel.getKeyframes();
+
+            for (int i = 0; i < keyframes.size(); i++)
+            {
+                float tick = keyframes.get(i).getTick();
+
+                for (float selected : ticks)
+                {
+                    if (Math.abs(selected - tick) < 0.001F)
+                    {
+                        if (!sheet.selection.has(i))
+                        {
+                            sheet.selection.add(i);
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        this.pickSelected();
+    }
+
     public default void selectMore()
     {
         for (UIKeyframeSheet sheet : this.getSheets())

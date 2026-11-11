@@ -45,7 +45,9 @@ import mchorse.bbs_mod.utils.CollectionUtils;
 import mchorse.bbs_mod.utils.MathUtils;
 import mchorse.bbs_mod.utils.Pair;
 import mchorse.bbs_mod.utils.colors.Colors;
+import mchorse.bbs_mod.utils.interps.IInterp;
 import mchorse.bbs_mod.utils.interps.Interpolation;
+import mchorse.bbs_mod.utils.interps.Interpolations;
 import mchorse.bbs_mod.utils.profiler.BBSProfiler;
 import mchorse.bbs_mod.utils.keyframes.Keyframe;
 import mchorse.bbs_mod.utils.keyframes.KeyframeChannel;
@@ -72,6 +74,8 @@ public class UIKeyframes extends UITimelineCanvas
 
     /** Blender's G: the selection follows the mouse until a click or Enter confirms, Esc or right click cancels. */
     private boolean grabbing;
+    private float grabDX;
+    private float grabDY;
     /** 0 free, 1 locked to time (X), 2 locked to value (Y) */
     private int grabAxis;
     /** What was typed during a grab: Blender's numeric input, in ticks */
@@ -286,6 +290,9 @@ public class UIKeyframes extends UITimelineCanvas
         this.keys().register(Keys.KEYFRAMES_BLENDER_SELECT_LESS, () -> this.currentGraph.selectLess()).inside().strict().category(category).active(blenderKeys);
         this.keys().register(Keys.KEYFRAMES_BLENDER_VIEW_SELECTED, this::viewSelected).inside().strict().category(category).active(blenderKeys);
         this.keys().register(Keys.KEYFRAMES_BLENDER_INTERP, this::openInterpolationMenu).inside().strict().category(category).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_SNAP, this::openSnapMenu).inside().strict().category(category).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_SELECT_COLUMN, () -> this.currentGraph.selectColumn()).inside().strict().category(category).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_EASE, this::openEaseMenu).inside().strict().category(category).active(blenderKeys);
     }
 
     public int getLabelWidth()
@@ -572,6 +579,167 @@ public class UIKeyframes extends UITimelineCanvas
         this.getContext().replaceContextMenu(menu.callback(() -> this.currentGraph.setInterpolation(interp)));
     }
 
+    /** Move the playhead of the timeline this editor belongs to; an editor without one has nothing to move. */
+    protected void setPlayheadTick(float tick)
+    {}
+
+    /** Blender's Shift+S: line the selection up with the playhead or the frame grid, or the playhead with the selection. */
+    private void openSnapMenu()
+    {
+        if (this.currentGraph.getSelected() == null)
+        {
+            return;
+        }
+
+        this.getContext().replaceContextMenu((menu) ->
+        {
+            if (this.hasCursor())
+            {
+                menu.action(Icons.TIME, UIKeys.KEYFRAMES_SNAP_TO_PLAYHEAD, this::snapSelectionToPlayhead);
+            }
+
+            menu.action(Icons.MAXIMIZE, UIKeys.KEYFRAMES_SNAP_TO_FRAME, this::snapSelectionToFrames);
+
+            if (this.hasCursor())
+            {
+                menu.action(Icons.CURSOR, UIKeys.KEYFRAMES_SNAP_CURSOR_TO_SELECTED, this::playheadToSelected);
+            }
+        });
+    }
+
+    /**
+     * Each track's selection moves as one block until its first selected keyframe is on the playhead,
+     * so several keys picked on one track keep their spacing instead of piling onto the same tick.
+     */
+    private void snapSelectionToPlayhead()
+    {
+        float playhead = this.getPlayheadTick(this.getContext());
+
+        for (UIKeyframeSheet sheet : this.getGraph().getSheets())
+        {
+            if (!sheet.selection.hasAny())
+            {
+                continue;
+            }
+
+            float first = Float.MAX_VALUE;
+
+            for (Keyframe keyframe : sheet.selection.getSelected())
+            {
+                first = Math.min(first, keyframe.getTick());
+            }
+
+            float shift = playhead - first;
+
+            sheet.channel.preNotify();
+
+            for (Keyframe keyframe : sheet.selection.getSelected())
+            {
+                keyframe.setTick(sheet.channel.constrainKeyframeTick(keyframe, keyframe.getTick() + shift), false);
+            }
+
+            sheet.channel.postNotify();
+            sheet.sort();
+        }
+
+        this.getGraph().pickSelected();
+    }
+
+    private void snapSelectionToFrames()
+    {
+        for (UIKeyframeSheet sheet : this.getGraph().getSheets())
+        {
+            if (!sheet.selection.hasAny())
+            {
+                continue;
+            }
+
+            sheet.channel.preNotify();
+
+            for (Keyframe keyframe : sheet.selection.getSelected())
+            {
+                keyframe.setTick(sheet.channel.constrainKeyframeTick(keyframe, Math.round(keyframe.getTick())), false);
+            }
+
+            sheet.channel.postNotify();
+            sheet.sort();
+        }
+
+        this.getGraph().pickSelected();
+    }
+
+    private void playheadToSelected()
+    {
+        float sum = 0F;
+        int count = 0;
+
+        for (UIKeyframeSheet sheet : this.getGraph().getSheets())
+        {
+            for (Keyframe keyframe : sheet.selection.getSelected())
+            {
+                sum += keyframe.getTick();
+                count += 1;
+            }
+        }
+
+        if (count > 0)
+        {
+            this.setPlayheadTick(Math.round(sum / count));
+        }
+    }
+
+    /**
+     * Blender's Ctrl+E: ease in, out or both, keeping the curve family of the interpolation the first
+     * selected keyframe already has (quad, cubic, ...). A keyframe that is linear, constant or of a
+     * kind without in/out forms starts from the quadratic family.
+     */
+    private void openEaseMenu()
+    {
+        Keyframe first = this.currentGraph.getSelected();
+
+        if (first == null)
+        {
+            return;
+        }
+
+        String key = first.getInterpolation().getKey();
+        String family = "quad";
+
+        for (String suffix : new String[] {"_inout", "_in", "_out"})
+        {
+            if (key.endsWith(suffix))
+            {
+                family = key.substring(0, key.length() - suffix.length());
+
+                break;
+            }
+        }
+
+        String base = family;
+
+        this.getContext().replaceContextMenu((menu) ->
+        {
+            menu.action(Icons.ARROW_RIGHT, UIKeys.KEYFRAMES_EASE_IN, () -> this.ease(first, base + "_in"));
+            menu.action(Icons.ARROW_LEFT, UIKeys.KEYFRAMES_EASE_OUT, () -> this.ease(first, base + "_out"));
+            menu.action(Icons.REFRESH, UIKeys.KEYFRAMES_EASE_INOUT, () -> this.ease(first, base + "_inout"));
+        });
+    }
+
+    private void ease(Keyframe first, String key)
+    {
+        IInterp interp = Interpolations.MAP.get(key);
+
+        if (interp == null)
+        {
+            return;
+        }
+
+        /* The same path as the interpolation menu: the first keyframe's interpolation is the template, and
+         * setInterpolation copies it to the whole selection as one undo step. */
+        first.getInterpolation().setInterp(interp);
+        this.currentGraph.setInterpolation(first.getInterpolation());
+    }
+
     /**
      * Blender's G. It is the click-and-drag on the first selected keyframe, started from the keyboard:
      * the same drag code runs, so the dope sheet moves in time, the curve editor in time and value, and
@@ -590,6 +758,8 @@ public class UIKeyframes extends UITimelineCanvas
 
         this.grabbing = true;
         this.grabAxis = 0;
+        this.grabDX = 0F;
+        this.grabDY = 0F;
         this.grabNumber.setLength(0);
         this.lastX = this.initialX = context.mouseX;
         this.lastY = this.initialY = context.mouseY;
@@ -1875,9 +2045,25 @@ public class UIKeyframes extends UITimelineCanvas
                      * axis sees no movement at all */
                     boolean freezeTime = this.grabbing && this.grabAxis == 2;
                     boolean freezeValue = this.grabbing && this.grabAxis == 1;
+                    int startX = this.initialX;
+                    int startY = this.initialY;
+
+                    if (this.grabbing)
+                    {
+                        /* Holding Shift slows the grab to a tenth of the mouse movement, like Blender's precision
+                         * mode: what the mouse moved so far is kept as it is, so the keys never jump when Shift
+                         * goes down or up. The drag code measures from where the mouse was when it started, so
+                         * that start is moved to leave exactly the slowed distance behind. */
+                        float slow = Window.isShiftPressed() ? 0.1F : 1F;
+
+                        this.grabDX += (mouseX - this.lastX) * slow;
+                        this.grabDY += (mouseY - this.lastY) * slow;
+                        startX = mouseX - Math.round(this.grabDX);
+                        startY = mouseY - Math.round(this.grabDY);
+                    }
 
                     this.currentGraph.dragKeyframes(context, this.draggingData,
-                        freezeTime ? context.mouseX : this.initialX, freezeValue ? context.mouseY : this.initialY,
+                        freezeTime ? context.mouseX : startX, freezeValue ? context.mouseY : startY,
                         this.originalT, this.originalV);
                 }
             }

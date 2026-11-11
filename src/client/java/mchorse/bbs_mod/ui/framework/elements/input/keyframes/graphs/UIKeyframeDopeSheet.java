@@ -404,6 +404,13 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     }
 
     @Override
+    public void selectColumn()
+    {
+        /* Only the rows in view, like the rest of the selection commands */
+        this.selectColumn(this.getInteractiveSheets());
+    }
+
+    @Override
     public void selectMore()
     {
         for (UIKeyframeSheet sheet : this.getInteractiveSheets())

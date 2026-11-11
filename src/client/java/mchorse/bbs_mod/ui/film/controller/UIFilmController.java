@@ -162,6 +162,36 @@ public class UIFilmController extends UIElement implements GizmoViewport
             UIUtils.playClick();
         }).strict().active(() -> this.getPovMode() == CAMERA_MODE_ORBIT).category(category);
         this.keys().register(Keys.FILM_CONTROLLER_TOGGLE_REPLAY_MENU, this::toggleReplayMenu).category(category);
+
+        /* Blender's numpad: axis views, turning in steps, zoom, and the way back to the camera. A view key
+         * from any other camera mode switches to the orbit first, the way Blender leaves camera view. */
+        Supplier<Boolean> canView = () -> this.controlled == null;
+        float step = MathUtils.PI / 12F;
+
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_FRONT, () -> this.snapView(0, 0, 1)).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_BACK, () -> this.snapView(0, 0, -1)).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_RIGHT, () -> this.snapView(1, 0, 0)).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_LEFT, () -> this.snapView(-1, 0, 0)).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_TOP, () -> this.snapView(0, 1, 0)).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_BOTTOM, () -> this.snapView(0, -1, 0)).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_CAMERA, () ->
+        {
+            this.setPov(CAMERA_MODE_CAMERA);
+            UIUtils.playClick();
+        }).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_OPPOSITE, () ->
+        {
+            this.enterOrbit();
+            this.orbit.flipView();
+            UIUtils.playClick();
+        }).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_ORBIT_LEFT, () -> this.turnView(0F, -step)).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_ORBIT_RIGHT, () -> this.turnView(0F, step)).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_ORBIT_UP, () -> this.turnView(-step, 0F)).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_ORBIT_DOWN, () -> this.turnView(step, 0F)).strict().active(canView).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_ZOOM_IN, () -> this.orbit.zoom(1D)).strict().active(() -> this.getPovMode() == CAMERA_MODE_ORBIT).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_ZOOM_OUT, () -> this.orbit.zoom(-1D)).strict().active(() -> this.getPovMode() == CAMERA_MODE_ORBIT).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_VIEW_SELECTED, this::teleportOrbitPivotToReplay).strict().active(() -> this.getPovMode() == CAMERA_MODE_ORBIT).category(category);
         this.keys().register(Keys.FILM_CONTROLLER_MOVE_REPLAY_TO_CURSOR, () ->
         {
             Area area = this.panel.preview.getViewport();
@@ -772,6 +802,28 @@ public class UIFilmController extends UIElement implements GizmoViewport
     public void teleportOrbitPivotToReplay()
     {
         this.orbit.teleportPivotToReplay();
+    }
+
+    /** The orbit is what a numpad view is for: leave the other camera modes for it. */
+    private void enterOrbit()
+    {
+        if (this.getPovMode() != CAMERA_MODE_ORBIT)
+        {
+            this.setPov(CAMERA_MODE_ORBIT);
+        }
+    }
+
+    private void snapView(int x, int y, int z)
+    {
+        this.enterOrbit();
+        this.orbit.snapToAxis(x, y, z);
+        UIUtils.playClick();
+    }
+
+    private void turnView(float pitch, float yaw)
+    {
+        this.enterOrbit();
+        this.orbit.turn(pitch, yaw);
     }
 
     public void toggleOrbitAttachment()
