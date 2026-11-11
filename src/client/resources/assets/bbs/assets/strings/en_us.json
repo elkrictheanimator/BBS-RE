@@ -370,7 +370,7 @@
 	"bbs.config.recording.overlays": "Overlays",
 	"bbs.config.recording.overlays-comment": "Whether recording overlays will be displayed (counter, current tick and camera preview will be displayed)",
 	"bbs.config.recording.pose_overlays": "Additional pose tracks",
-	"bbs.config.recording.pose_overlays-comment": "Number of additional pose overlays for all posed forms. Right-click a pose track or its overlay in the timeline to add another.",
+	"bbs.config.recording.pose_overlays-comment": "Number of additional pose overlays for all posed forms and their body parts (at least 2, so there are always three pose_overlay tracks). Right-click a pose track or its overlay in the timeline to add another.",
 	"bbs.config.recording.transform_overlays": "Additional transform tracks",
 	"bbs.config.recording.transform_overlays-comment": "Number of additional transform overlays for all forms. Right-click a transform track or its overlay in the timeline to add another.",
 	"bbs.ui.keyframes.context.add_pose_track": "Create additional pose track",
