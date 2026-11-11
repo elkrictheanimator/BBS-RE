@@ -43,6 +43,16 @@ public class ValueEditorLayout extends BaseValue
     private float stateEditorSizeH = 0.7F;
     private float stateEditorSizeV = 0.25F;
     private int keyframeLabelWidth = 120;
+    /** Set once the saved column width has been checked for the "names went missing" case, see {@link #fixHiddenNames}. */
+    private boolean labelNamesChecked;
+
+    /** The names column shows its titles from this width on; below it only the icons are drawn. */
+    public static final int LABEL_ICONS_ONLY_MAX = 60;
+    /** The width the column collapses to when it is dragged down to its icons. */
+    public static final int LABEL_ICONS_ONLY = 40;
+    /** The narrowest column that still has room for the names. */
+    public static final int LABEL_WITH_NAMES_MIN = 90;
+    public static final int LABEL_DEFAULT = 120;
 
     /**
      * Sidebar splitter positions keyed by splitter id (see {@code UISplitter}). The unit is the
@@ -180,9 +190,33 @@ public class ValueEditorLayout extends BaseValue
         return MathUtils.clamp(this.keyframeLabelWidth, 40, 400);
     }
 
+    /**
+     * A dragged width lands either on the icons-only column or on one wide enough for the names; the
+     * in-between widths used to hide every name while still looking like a normal, slightly narrow
+     * column, which reads as the names having been deleted.
+     */
     public void setKeyframeLabelWidth(int keyframeLabelWidth)
     {
-        BaseValue.edit(this, (v) -> this.keyframeLabelWidth = MathUtils.clamp(keyframeLabelWidth, 40, 400));
+        int width = keyframeLabelWidth <= LABEL_ICONS_ONLY_MAX
+            ? LABEL_ICONS_ONLY
+            : MathUtils.clamp(keyframeLabelWidth, LABEL_WITH_NAMES_MIN, 400);
+
+        BaseValue.edit(this, (v) -> this.keyframeLabelWidth = width);
+    }
+
+    /**
+     * A column saved before that may sit at a width that hides the names without having been meant as
+     * icons-only. Looked at once per layout file: if it is that narrow, it goes back to the default
+     * width. Narrowing it again afterwards sticks.
+     */
+    private void fixHiddenNames()
+    {
+        if (!this.labelNamesChecked && this.keyframeLabelWidth <= LABEL_ICONS_ONLY_MAX)
+        {
+            this.keyframeLabelWidth = LABEL_DEFAULT;
+        }
+
+        this.labelNamesChecked = true;
     }
 
     /* Splitter sizes */
@@ -260,6 +294,7 @@ public class ValueEditorLayout extends BaseValue
         data.putFloat("state_editor_size_h", this.stateEditorSizeH);
         data.putFloat("state_editor_size_v", this.stateEditorSizeV);
         data.putInt("keyframe_label_width", this.keyframeLabelWidth);
+        data.putBool("keyframe_label_names_checked", this.labelNamesChecked);
 
         MapType splits = new MapType();
 
@@ -350,6 +385,9 @@ public class ValueEditorLayout extends BaseValue
         this.stateEditorSizeH = map.getFloat("state_editor_size_h", 0.7F);
         this.stateEditorSizeV = map.getFloat("state_editor_size_v", 0.25F);
         this.keyframeLabelWidth = map.getInt("keyframe_label_width", 120);
+        this.labelNamesChecked = map.getBool("keyframe_label_names_checked");
+
+        this.fixHiddenNames();
 
         MapType splits = map.getMap("splits");
 
