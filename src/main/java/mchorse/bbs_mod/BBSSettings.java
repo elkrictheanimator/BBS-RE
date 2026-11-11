@@ -221,6 +221,7 @@ public class BBSSettings {
 	public static ValueBoolean editorPreviewSelectionHud;
 	public static ValueBoolean editorKeepFrameOnExit;
 	public static ValueBoolean classicTrackOrder;
+	public static ValueBoolean keyframeBlenderControls;
 	public static ValueFloat armSwing;
 
 	public static ValueFloat recordingCountdown;
@@ -933,6 +934,7 @@ public class BBSSettings {
 		/* The features that are this build's own, in one place */
 		builder.category("re", Icons.FAVORITE);
 		classicTrackOrder = builder.getBoolean("classic_track_order", true);
+		keyframeBlenderControls = builder.getBoolean("keyframe_blender_controls", true);
 		armSwing = builder.getFloat("arm_swing", 1F, 0F, 1F).slider();
 		videoEverywhere = builder.getBoolean("video_everywhere", false);
 

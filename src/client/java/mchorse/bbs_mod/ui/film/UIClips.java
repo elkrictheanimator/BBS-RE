@@ -218,6 +218,16 @@ public class UIClips extends UITimelineCanvas
         this.keys().register(Keys.CLIP_SELECT_BEFORE, this::selectBefore).category(KEYS_CATEGORY).active(canUseKeybinds);
         this.keys().register(Keys.CLIP_LAYER_UP, () -> this.moveSelectedBy(0, 1)).category(KEYS_CATEGORY).active(canUseKeybindsSelected);
         this.keys().register(Keys.CLIP_LAYER_DOWN, () -> this.moveSelectedBy(0, -1)).category(KEYS_CATEGORY).active(canUseKeybindsSelected);
+
+        /* Blender's selection and edit keys, the same ones the keyframe editor has. Plain letters,
+         * so they only act while the mouse is over the timeline, and only for the exact key. */
+        Supplier<Boolean> blenderKeys = () -> BBSSettings.keyframeBlenderControls.get() && canUseKeybinds.get();
+
+        this.keys().register(Keys.KEYFRAMES_BLENDER_SELECT_ALL, this::selectAll).inside().strict().category(KEYS_CATEGORY).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_DESELECT_ALL, () -> this.pickClip(null)).inside().strict().category(KEYS_CATEGORY).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_INVERT, this::invertSelection).inside().strict().category(KEYS_CATEGORY).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_DELETE, this::removeSelected).label(UIKeys.CAMERA_TIMELINE_CONTEXT_REMOVE_CLIPS).inside().strict().category(KEYS_CATEGORY).active(blenderKeys);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_DUPLICATE, this::duplicateSelected).label(UIKeys.CAMERA_TIMELINE_CONTEXT_DUPLICATE).inside().strict().category(KEYS_CATEGORY).active(blenderKeys);
         this.keys().register(Keys.FADE_IN, () ->
         {
             Clip clip = this.delegate.getClip();
@@ -845,6 +855,47 @@ public class UIClips extends UITimelineCanvas
         }
 
         this.pickLastSelectedClip();
+    }
+
+    /** Blender's Ctrl+I: what was selected is not, and the other way round. */
+    private void invertSelection()
+    {
+        List<Clip> selected = new ArrayList<>(this.getClipsFromSelection());
+
+        this.clearSelection();
+
+        for (Clip clip : this.clips.get())
+        {
+            if (!selected.contains(clip))
+            {
+                this.addSelected(clip);
+            }
+        }
+
+        this.pickLastSelectedClip();
+    }
+
+    /**
+     * Blender's Shift+D: a copy of the selection, laid right after it and selected. The copies go
+     * on a free layer when that spot is taken, and the move from there is the usual drag.
+     */
+    private void duplicateSelected()
+    {
+        List<Clip> selected = this.getClipsFromSelection();
+
+        if (selected.isEmpty())
+        {
+            return;
+        }
+
+        int end = Integer.MIN_VALUE;
+
+        for (Clip clip : selected)
+        {
+            end = Math.max(end, clip.tick.get() + clip.duration.get());
+        }
+
+        this.pasteClips(this.copyClips(), end);
     }
 
     private void selectTrack()

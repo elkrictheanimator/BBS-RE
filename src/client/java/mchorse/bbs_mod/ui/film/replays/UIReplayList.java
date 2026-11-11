@@ -239,6 +239,28 @@ public class UIReplayList extends UIList<ReplayListEntry>
         this.keys().register(Keys.REPLAYS_SELECT_ALL, this::selectAllReplays)
             .inside()
             .category(UIKeys.FILM_REPLAY_TITLE);
+
+        /* Blender's A / X / Shift+D: the same commands under the keys it uses. Plain letters, so
+         * only for the exact key and only while the mouse is over the list. */
+        java.util.function.Supplier<Boolean> blender = () -> BBSSettings.keyframeBlenderControls.get();
+
+        this.keys().register(Keys.KEYFRAMES_BLENDER_SELECT_ALL, this::selectAllReplays)
+            .inside()
+            .strict()
+            .active(blender)
+            .category(UIKeys.FILM_REPLAY_TITLE);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_DELETE, this::removeReplay)
+            .inside()
+            .strict()
+            .label(UIKeys.SCENE_REPLAYS_CONTEXT_REMOVE)
+            .active(() -> blender.get() && this.hasReplaySelection())
+            .category(UIKeys.FILM_REPLAY_TITLE);
+        this.keys().register(Keys.KEYFRAMES_BLENDER_DUPLICATE, this::dupeReplay)
+            .inside()
+            .strict()
+            .label(UIKeys.SCENE_REPLAYS_CONTEXT_DUPE)
+            .active(() -> blender.get() && this.hasReplaySelection())
+            .category(UIKeys.FILM_REPLAY_TITLE);
         this.keys().register(Keys.FORMS_EDIT, () ->
         {
             Replay r = this.getSelectedReplayFirst();

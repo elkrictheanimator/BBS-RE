@@ -564,6 +564,31 @@ public class UIElement implements IUIElement, IUndoElement
 
     /* Keybind manager */
 
+    /**
+     * Every shortcut of this element and of the visible, enabled elements under it - what the
+     * command search lists. A hidden or disabled element takes its whole subtree with it.
+     */
+    public void collectKeybinds(List<mchorse.bbs_mod.ui.utils.keys.Keybind> out)
+    {
+        if (!this.isVisible() || !this.isEnabled())
+        {
+            return;
+        }
+
+        if (this.keybinds != null)
+        {
+            this.keybinds.collect(out);
+        }
+
+        for (IUIElement child : this.getChildren())
+        {
+            if (child instanceof UIElement)
+            {
+                ((UIElement) child).collectKeybinds(out);
+            }
+        }
+    }
+
     public KeybindManager keys()
     {
         if (this.keybinds == null)

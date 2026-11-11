@@ -50,6 +50,60 @@ public class KeyframeSelection
         }
     }
 
+    /** Blender's Select More: every selected keyframe also takes in its neighbours on both sides. */
+    public void grow()
+    {
+        Set<Integer> grown = new LinkedHashSet<>(this.selected);
+        int size = this.channel.getKeyframes().size();
+
+        for (int i : this.selected)
+        {
+            if (i > 0)
+            {
+                grown.add(i - 1);
+            }
+
+            if (i < size - 1)
+            {
+                grown.add(i + 1);
+            }
+        }
+
+        this.selected = grown;
+    }
+
+    /** Blender's Select Less: peel off the keyframes at the edge of every run of selected ones. */
+    public void shrink()
+    {
+        Set<Integer> shrunk = new LinkedHashSet<>();
+
+        for (int i : this.selected)
+        {
+            if (this.selected.contains(i - 1) && this.selected.contains(i + 1))
+            {
+                shrunk.add(i);
+            }
+        }
+
+        this.selected = shrunk;
+    }
+
+    /** Select what is not selected and deselect what is: the Blender "Invert" of a selection. */
+    public void invert()
+    {
+        Set<Integer> inverted = new LinkedHashSet<>();
+
+        for (int i = 0, c = this.channel.getKeyframes().size(); i < c; i++)
+        {
+            if (!this.selected.contains(i))
+            {
+                inverted.add(i);
+            }
+        }
+
+        this.selected = inverted;
+    }
+
     public void after(float tick, int direction)
     {
         this.selected.clear();
