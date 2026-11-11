@@ -28,6 +28,7 @@ import mchorse.bbs_mod.ui.film.markers.UIMarkersController;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
+import mchorse.bbs_mod.ui.framework.elements.events.UIRemovedEvent;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.ui.framework.elements.utils.Batcher2D;
 import mchorse.bbs_mod.ui.framework.elements.utils.UITimelineCanvas;
@@ -351,145 +352,105 @@ public class UIClips extends UITimelineCanvas
             return;
         }
 
-        context.replaceContextMenu((add) -> this.buildAddMenu(add, preview, null));
+        List<Link> keys = new ArrayList<>(this.factory.getKeys());
+        List<UIClipPickerMenu.Page> pages = this.buildClipPages(keys);
+
+        if (pages == null)
+        {
+            /* Nothing recognised (an action timeline): the plain flat list. */
+            context.replaceContextMenu((add) ->
+            {
+                add.onClose((m) -> this.addPreview = null);
+
+                UIChoiceMenu.of(keys)
+                    .icon((type) -> this.factory.getData(type).icon)
+                    .label((type) -> UIKeys.C_CLIP.get(type))
+                    .color((type) -> this.factory.getData(type).color)
+                    .build(add, UIKeys.CAMERA_TIMELINE_KEYS_CLIPS, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
+            });
+        }
+        else
+        {
+            UIClipPickerMenu menu = new UIClipPickerMenu(pages, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
+
+            menu.getEvents().register(UIRemovedEvent.class, (e) -> this.addPreview = null);
+            context.replaceContextMenu(menu);
+        }
 
         this.addPreview = preview;
     }
 
-    /* The "add clip" menu: the everyday camera clips are listed right away; the rest sit behind tab
-     * rows at the top (Media, Impact, and "Other" for anything an addon adds). An action-clip timeline
-     * has none of these names, so it keeps the plain flat list. Each tab is (title, clip names). */
-    private static final String[] CLIP_DIRECT = {"idle", "dolly", "path", "keyframe", "translate", "angle", "drag", "shake", "math", "look", "orbit", "orbit_path", "remapper", "tracker", "dolly_zoom", "curve", "follow_curve"};
-
-    private static final String[][] CLIP_TABS = {
-        {"Media", "audio", "subtitle", "image", "photo", "video"},
-        {"Impact", "impact"}
+    /* The "add clip" popup: the camera clips by what they are for (basic ones, ones that follow a
+     * target, procedural ones), then Media and Impact tabs, and an "Other" tab for anything an addon
+     * adds. Clips are matched by name, the order here is the order on screen. An action-clip timeline
+     * has none of these names, so it keeps the plain flat list (no pages: null). */
+    private static final String[][] CLIP_GROUPS = {
+        {"basic", "idle", "keyframe", "path", "dolly", "translate", "angle"},
+        {"target", "look", "orbit", "orbit_path", "tracker", "dolly_zoom"},
+        {"procedural", "math", "curve", "follow_curve", "drag", "shake", "remapper"}
     };
 
-    private static final Icon[] CLIP_TAB_ICONS = {Icons.PICTURE, Icons.LIGHT};
+    private static final IKey[] CLIP_GROUP_TITLES = {UIKeys.CAMERA_PICKER_GROUP_BASIC, UIKeys.CAMERA_PICKER_GROUP_TARGET, UIKeys.CAMERA_PICKER_GROUP_PROCEDURAL};
+    private static final String[] CLIP_MEDIA = {"audio", "subtitle", "image", "photo", "video"};
+    private static final String[] CLIP_IMPACT = {"impact"};
 
-    private static boolean clipIn(String[] names, int from, Link key)
+    private UIClipPickerMenu.Entry pickerEntry(Link key)
+    {
+        ClipFactoryData data = this.factory.getData(key);
+
+        return new UIClipPickerMenu.Entry(key, data.icon, data.color, UIKeys.C_CLIP.get(key).get());
+    }
+
+    private void fillPickerGroup(UIClipPickerMenu.Group group, List<Link> keys, List<Link> left, String[] names, int from)
     {
         for (int i = from; i < names.length; i++)
         {
-            if (names[i].equals(key.path))
+            for (Link key : keys)
             {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void buildAddMenu(ContextMenuManager add, Vector3i preview, Integer tab)
-    {
-        List<Link> keys = new ArrayList<>(this.factory.getKeys());
-        List<Link> direct = new ArrayList<>();
-        List<List<Link>> tabs = new ArrayList<>();
-        List<Link> other = new ArrayList<>();
-
-        for (int i = 0; i < CLIP_TABS.length; i++)
-        {
-            tabs.add(new ArrayList<>());
-        }
-
-        for (Link key : keys)
-        {
-            int target = -2;
-
-            if (clipIn(CLIP_DIRECT, 0, key))
-            {
-                target = -2;
-            }
-            else
-            {
-                target = -1;
-
-                for (int i = 0; i < CLIP_TABS.length; i++)
+                if (key.path.equals(names[i]) && left.remove(key))
                 {
-                    if (clipIn(CLIP_TABS[i], 1, key))
-                    {
-                        target = i;
-                    }
+                    group.add(this.pickerEntry(key));
                 }
             }
-
-            if (target == -2)
-            {
-                direct.add(key);
-            }
-            else if (target == -1)
-            {
-                other.add(key);
-            }
-            else
-            {
-                tabs.get(target).add(key);
-            }
         }
+    }
 
-        add.onClose((m) -> this.addPreview = null);
+    private List<UIClipPickerMenu.Page> buildClipPages(List<Link> keys)
+    {
+        List<Link> left = new ArrayList<>(keys);
+        UIClipPickerMenu.Page camera = new UIClipPickerMenu.Page(Icons.CAMERA, UIKeys.CAMERA_PICKER_TAB_CAMERA);
+        UIClipPickerMenu.Page media = new UIClipPickerMenu.Page(Icons.PICTURE, UIKeys.CAMERA_PICKER_TAB_MEDIA);
+        UIClipPickerMenu.Page impact = new UIClipPickerMenu.Page(Icons.LIGHT, UIKeys.CAMERA_PICKER_TAB_IMPACT);
+        UIClipPickerMenu.Page other = new UIClipPickerMenu.Page(Icons.PROPERTIES, UIKeys.CAMERA_PICKER_TAB_OTHER);
 
-        /* Nothing recognised (an action timeline): the plain flat list. */
-        if (direct.isEmpty() && tabs.stream().allMatch(List::isEmpty))
+        for (int i = 0; i < CLIP_GROUPS.length; i++)
         {
-            UIChoiceMenu.of(keys)
-                .icon((type) -> this.factory.getData(type).icon)
-                .label((type) -> UIKeys.C_CLIP.get(type))
-                .color((type) -> this.factory.getData(type).color)
-                .build(add, UIKeys.CAMERA_TIMELINE_KEYS_CLIPS, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
-
-            return;
+            this.fillPickerGroup(camera.group(CLIP_GROUP_TITLES[i]), keys, left, CLIP_GROUPS[i], 1);
         }
 
-        if (tab != null)
+        this.fillPickerGroup(media.group(null), keys, left, CLIP_MEDIA, 0);
+        this.fillPickerGroup(impact.group(null), keys, left, CLIP_IMPACT, 0);
+
+        if (camera.isEmpty() && media.isEmpty() && impact.isEmpty())
         {
-            List<Link> list = tab >= 0 ? tabs.get(tab) : other;
-
-            add.action(Icons.ARROW_LEFT, IKey.constant("Back"), () ->
-            {
-                this.getContext().replaceContextMenu((m) -> this.buildAddMenu(m, preview, null));
-                this.addPreview = preview;
-            });
-
-            UIChoiceMenu.of(list)
-                .icon((type) -> this.factory.getData(type).icon)
-                .label((type) -> UIKeys.C_CLIP.get(type))
-                .color((type) -> this.factory.getData(type).color)
-                .build(add, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
-
-            return;
+            return null;
         }
 
-        /* Top level: tab rows first, then the everyday clips. */
-        for (int i = 0; i < tabs.size(); i++)
+        UIClipPickerMenu.Group rest = other.group(null);
+
+        for (Link key : left)
         {
-            final int index = i;
-
-            if (!tabs.get(i).isEmpty())
-            {
-                add.action(CLIP_TAB_ICONS[i], IKey.constant(CLIP_TABS[i][0] + "  >"), () ->
-                {
-                    this.getContext().replaceContextMenu((m) -> this.buildAddMenu(m, preview, index));
-                    this.addPreview = preview;
-                });
-            }
+            rest.add(this.pickerEntry(key));
         }
 
-        if (!other.isEmpty())
-        {
-            add.action(Icons.PROPERTIES, IKey.constant("Other  >"), () ->
-            {
-                this.getContext().replaceContextMenu((m) -> this.buildAddMenu(m, preview, -1));
-                this.addPreview = preview;
-            });
-        }
+        List<UIClipPickerMenu.Page> pages = new ArrayList<>();
 
-        UIChoiceMenu.of(direct)
-            .icon((type) -> this.factory.getData(type).icon)
-            .label((type) -> UIKeys.C_CLIP.get(type))
-            .color((type) -> this.factory.getData(type).color)
-            .build(add, UIKeys.CAMERA_TIMELINE_KEYS_CLIPS, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
+        pages.add(camera);
+        pages.add(media);
+        pages.add(impact);
+        pages.add(other);
+
+        return pages;
     }
 
     private void addClip(Link type, int tick, int layer, int duration)

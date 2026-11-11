@@ -223,6 +223,14 @@ public class UIKeys
     public static final IKey CAMERA_TIMELINE_INCOMPATIBLE_PASTE = L10n.lang("bbs.ui.camera.timeline.incompatible_paste");
     public static final IKey CAMERA_TIMELINE_KEYS_CLIPS = L10n.lang("bbs.ui.camera.timeline.keys.clips");
     public static final IKey CAMERA_TIMELINE_KEYS_ENABLED = L10n.lang("bbs.ui.camera.timeline.keys.enabled");
+    public static final IKey CAMERA_PICKER_TAB_CAMERA = L10n.lang("bbs.ui.camera.picker.tab.camera");
+    public static final IKey CAMERA_PICKER_TAB_MEDIA = L10n.lang("bbs.ui.camera.picker.tab.media");
+    public static final IKey CAMERA_PICKER_TAB_IMPACT = L10n.lang("bbs.ui.camera.picker.tab.impact");
+    public static final IKey CAMERA_PICKER_TAB_OTHER = L10n.lang("bbs.ui.camera.picker.tab.other");
+    public static final IKey CAMERA_PICKER_GROUP_BASIC = L10n.lang("bbs.ui.camera.picker.group.basic");
+    public static final IKey CAMERA_PICKER_GROUP_TARGET = L10n.lang("bbs.ui.camera.picker.group.target");
+    public static final IKey CAMERA_PICKER_GROUP_PROCEDURAL = L10n.lang("bbs.ui.camera.picker.group.procedural");
+    public static final IKey CAMERA_PICKER_HINT = L10n.lang("bbs.ui.camera.picker.hint");
     public static final IKey CAMERA_TOOLTIPS_OPEN_VIDEOS = L10n.lang("bbs.ui.camera.tooltips.open_videos");
     public static final IKey CAMERA_TOOLTIPS_OPEN_VIDEO_SETTINGS = L10n.lang("bbs.ui.camera.tooltips.open_video_settings");
     public static final IKey CAMERA_TOOLTIPS_PICK_EXPORT_FOLDER = L10n.lang("bbs.ui.camera.tooltips.pick_export_folder");
