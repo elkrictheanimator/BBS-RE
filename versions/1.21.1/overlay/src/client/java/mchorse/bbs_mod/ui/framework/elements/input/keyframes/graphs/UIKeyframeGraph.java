@@ -288,6 +288,36 @@ public class UIKeyframeGraph implements IUIKeyframeGraph
     {}
 
     @Override
+    public void viewSelectedY()
+    {
+        double minY = Double.POSITIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+
+        for (Keyframe frame : this.sheet.selection.getSelected())
+        {
+            minY = Math.min(minY, frame.getY());
+            maxY = Math.max(maxY, frame.getY());
+        }
+
+        if (minY > maxY)
+        {
+            return;
+        }
+
+        if (Math.abs(maxY - minY) < 0.01F)
+        {
+            /* One value (or several equal ones): centre on it and keep the zoom */
+            this.yAxis.setShift(minY);
+            this.yAxis.anchor(0.5F);
+        }
+        else
+        {
+            this.yAxis.viewOffset(minY, maxY, this.keyframes.area.h, 30);
+        }
+    }
+
+
+    @Override
     public void mouseScrolled(UIContext context)
     {
         if (context.mouseWheelHorizontal != 0)
