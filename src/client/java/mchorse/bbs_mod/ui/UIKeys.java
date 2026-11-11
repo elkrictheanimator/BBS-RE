@@ -217,6 +217,7 @@ public class UIKeys
     public static final IKey CAMERA_TIMELINE_CONTEXT_RECORD_MICROPHONE_COUNTDOWN = L10n.lang("bbs.ui.camera.timeline.context.record_microphone-countdown");
     public static final IKey CAMERA_TIMELINE_CONTEXT_RECORD_MICROPHONE_TITLE = L10n.lang("bbs.ui.camera.timeline.context.record_microphone-title");
     public static final IKey CAMERA_TIMELINE_CONTEXT_REMOVE_CLIPS = L10n.lang("bbs.ui.camera.timeline.context.remove_clips");
+    public static final IKey CAMERA_TIMELINE_CONTEXT_DUPLICATE = L10n.lang("bbs.ui.camera.timeline.context.duplicate");
     public static final IKey CAMERA_TIMELINE_CONTEXT_REORGANIZE = L10n.lang("bbs.ui.camera.timeline.context.reorganize");
     public static final IKey CAMERA_TIMELINE_CONTEXT_SHIFT = L10n.lang("bbs.ui.camera.timeline.context.shift");
     public static final IKey CAMERA_TIMELINE_CONTEXT_SHIFT_DURATION = L10n.lang("bbs.ui.camera.timeline.context.shift_duration");
@@ -255,6 +256,8 @@ public class UIKeys
     public static final IKey DASHBOARD_CATEGORY = L10n.lang("bbs.ui.dashboard.category");
     public static final IKey DASHBOARD_CONTEXT_TOGGLE_VISIBILITY = L10n.lang("bbs.ui.dashboard.context.toggle_visibility");
     public static final IKey DASHBOARD_KEYS_TOGGLE_DEBUG = L10n.lang("bbs.ui.dashboard.keys.toggle_debug");
+    public static final IKey COMMAND_SEARCH = L10n.lang("bbs.ui.dashboard.keys.command_search");
+    public static final IKey COMMAND_SEARCH_FAILED = L10n.lang("bbs.ui.dashboard.command_search_failed");
     public static final IKey DASHBOARD_OPTIFINE_EW_DESCRIPTION = L10n.lang("bbs.ui.dashboard.optifine_ew-description");
     public static final IKey DASHBOARD_OPTIFINE_EW_TITLE = L10n.lang("bbs.ui.dashboard.optifine_ew-title");
     public static final IKey DASHBOARD_TASKBAR_SIDE_BOTTOM = L10n.lang("bbs.ui.dashboard.taskbar_side.bottom");

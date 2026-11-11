@@ -791,6 +791,11 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         {
             this.keyframes.panTime(context.mouseWheelHorizontal);
         }
+        else if (Window.isCtrlPressed() && !Window.isShiftPressed() && !Window.isAltPressed() && context.mouseWheel != 0D && BBSSettings.keyframeBlenderControls.get())
+        {
+            /* Blender: Ctrl + wheel pans the time axis, the plain wheel zooms it */
+            this.keyframes.panTime(context.mouseWheel);
+        }
         else if (Window.isShiftPressed() && !Window.isCtrlPressed())
         {
             this.dopeSheet.mouseScroll(context);
