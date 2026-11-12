@@ -192,7 +192,7 @@ public class UIKeybind extends UIElement
 
         if (this.reading)
         {
-            this.area.render(context.batcher, BBSSettings.inputSurface());
+            mchorse.bbs_mod.ui.utils.RoundedBoxes.fill(context.batcher, this.area, BBSSettings.inputSurface());
             this.area.render(context.batcher, BBSSettings.accentOverlay(Colors.A25));
 
             int x = this.area.mx(w);
@@ -204,7 +204,7 @@ public class UIKeybind extends UIElement
         }
         else
         {
-            this.area.render(context.batcher, BBSSettings.inputSurface());
+            mchorse.bbs_mod.ui.utils.RoundedBoxes.fill(context.batcher, this.area, BBSSettings.inputSurface());
         }
 
         context.batcher.textShadow(label, this.area.mx(w), this.area.my() - font.getHeight() / 2);

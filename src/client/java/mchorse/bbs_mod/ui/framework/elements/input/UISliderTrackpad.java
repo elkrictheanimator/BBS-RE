@@ -516,7 +516,7 @@ public class UISliderTrackpad extends UINumericInput<UISliderTrackpad>
             int fillX = MathUtils.clamp(this.getHandleCenter(), this.area.x, this.area.ex());
             int fillColor = Colors.setA(primary, this.dragging ? DRAG_VALUE_ALPHA : VALUE_ALPHA);
 
-            this.area.render(context.batcher, BBSSettings.inputSurface());
+            mchorse.bbs_mod.ui.utils.RoundedBoxes.fill(context.batcher, this.area, BBSSettings.inputSurface());
 
             if (this.hasSliderRange())
             {

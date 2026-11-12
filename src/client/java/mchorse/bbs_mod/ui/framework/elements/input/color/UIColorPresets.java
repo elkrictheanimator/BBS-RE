@@ -180,7 +180,7 @@ public class UIColorPresets extends UIElement
     {
         context.batcher.dropShadow(this.area.x, this.area.y, this.area.ex(), this.area.ey(), 10, BBSSettings.panelShadowOpaqueColor(), BBSSettings.panelShadowTransparentColor());
 
-        this.area.render(context.batcher, BBSSettings.raisedSurface());
+        mchorse.bbs_mod.ui.utils.RoundedBoxes.fill(context.batcher, this.area, BBSSettings.raisedSurface());
 
         this.renderDefault(context);
 
