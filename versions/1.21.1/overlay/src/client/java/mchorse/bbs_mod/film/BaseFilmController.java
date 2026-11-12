@@ -624,6 +624,11 @@ public abstract class BaseFilmController
 
     protected void renderEntity(WorldRenderContext context, Replay replay, IEntity entity)
     {
+        if (mchorse.bbs_mod.film.replays.ShotRemapper.isHidden(replay, this.getTick()))
+        {
+            return;
+        }
+
         FilmControllerContext filmContext = getFilmControllerContext(context, replay, entity);
 
         filmContext.transition = getTransition(entity, context.tickCounter().getTickDelta(false));

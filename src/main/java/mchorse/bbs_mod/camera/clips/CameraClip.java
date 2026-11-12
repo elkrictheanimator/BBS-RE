@@ -2,12 +2,26 @@ package mchorse.bbs_mod.camera.clips;
 
 import mchorse.bbs_mod.camera.Camera;
 import mchorse.bbs_mod.camera.data.Position;
+import mchorse.bbs_mod.settings.values.core.ValueString;
+import mchorse.bbs_mod.settings.values.numeric.ValueInt;
 import mchorse.bbs_mod.utils.clips.Clip;
 import mchorse.bbs_mod.utils.clips.ClipContext;
 import mchorse.bbs_mod.utils.interps.Lerps;
 
 public abstract class CameraClip extends Clip
 {
+    /** Bound shots: the ids of the replays that belong to this shot (comma separated) and the replay tick its start plays; -1 follows the clip. */
+    public final ValueString boundActors = new ValueString("bound_actors", "");
+    public final ValueInt boundSource = new ValueInt("bound_source", -1);
+
+    public CameraClip()
+    {
+        super();
+
+        this.add(this.boundActors);
+        this.add(this.boundSource);
+    }
+
     public void shutdown(ClipContext context)
     {}
 
