@@ -133,7 +133,14 @@ public class UICirculate extends UIClickable<UICirculate>
             color = Colors.mulRGB(color, 0.85F);
         }
 
-        context.batcher.surfaceBox(this.area.x, this.area.y, this.area.ex(), this.area.ey(), color, true, false);
+        if (mchorse.bbs_mod.ui.utils.RoundedBoxes.radius() > 0)
+        {
+            mchorse.bbs_mod.ui.utils.RoundedBoxes.fill(context.batcher, this.area, color);
+        }
+        else
+        {
+            context.batcher.surfaceBox(this.area.x, this.area.y, this.area.ex(), this.area.ey(), color, true, false);
+        }
 
         FontRenderer font = context.batcher.getFont();
         String label = font.limitToWidth(this.label.get(), this.area.w - 4);

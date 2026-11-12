@@ -168,7 +168,7 @@
 	"bbs.config.personalization.ui_corner_radius": "Rounded corners",
 	"bbs.config.personalization.ui_corner_radius-comment": "Corner radius of buttons in pixels; 0 keeps the square look",
 	"bbs.config.personalization.ui_hover_fade": "Smooth hover",
-	"bbs.config.personalization.ui_hover_fade-comment": "Buttons fade to their hover colour instead of jumping",
+	"bbs.config.personalization.ui_hover_fade-comment": "Buttons fade to their hover colour instead of jumping, and context menus glide into place",
 	"bbs.config.personalization.stencil_highlight_color": "Selection highlight color",
 	"bbs.config.personalization.stencil_highlight_color-comment": "Color used to highlight the bone or replay under the cursor in the viewport. Alpha controls the highlight intensity.",
 	"bbs.config.personalization.overlay_background_opacity": "Panel backdrop",

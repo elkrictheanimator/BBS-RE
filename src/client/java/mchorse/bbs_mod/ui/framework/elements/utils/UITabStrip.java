@@ -334,7 +334,7 @@ public class UITabStrip extends UIScrollView
             }
             else
             {
-                tab.area.render(context.batcher, this.activeColor.getAsInt());
+                mchorse.bbs_mod.ui.utils.RoundedBoxes.fill(context.batcher, tab.area, this.activeColor.getAsInt());
             }
         }
 

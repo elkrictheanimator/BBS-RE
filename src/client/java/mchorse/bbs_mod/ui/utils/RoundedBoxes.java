@@ -31,6 +31,12 @@ public class RoundedBoxes
         }
     }
 
+    /** Fill an area: rounded by the corner radius setting, a plain box when it is 0. */
+    public static void fill(Batcher2D batcher, mchorse.bbs_mod.ui.utils.Area area, int color)
+    {
+        render(batcher, area.x, area.y, area.ex(), area.ey(), radius(), color);
+    }
+
     public static int radius()
     {
         return BBSSettings.uiCornerRadius.get();

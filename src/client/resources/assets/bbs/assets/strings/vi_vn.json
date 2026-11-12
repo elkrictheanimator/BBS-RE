@@ -27,7 +27,7 @@
     "bbs.config.personalization.ui_corner_radius": "Bo góc giao diện",
     "bbs.config.personalization.ui_corner_radius-comment": "Bán kính bo góc của nút (px); 0 là giữ kiểu vuông",
     "bbs.config.personalization.ui_hover_fade": "Hover mượt",
-    "bbs.config.personalization.ui_hover_fade-comment": "Nút chuyển dần sang màu khi rê chuột thay vì đổi ngay",
+    "bbs.config.personalization.ui_hover_fade-comment": "Nút chuyển dần sang màu khi rê chuột thay vì đổi ngay, menu chuột phải trượt vào chỗ",
     "bbs.config.timeline.track_width": "Keyframe track thickness",
     "bbs.config.timeline.track_width-comment": "The thickness of the keyframe track strip in the dope sheet view",
     "bbs.config.timeline.keyframe_default_shape": "Default keyframe shape",

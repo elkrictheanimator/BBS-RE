@@ -390,7 +390,7 @@ public class UITrackpad extends UINumericInput<UITrackpad>
         }
         else
         {
-            this.area.render(context.batcher, BBSSettings.inputSurface());
+            mchorse.bbs_mod.ui.utils.RoundedBoxes.fill(context.batcher, this.area, BBSSettings.inputSurface());
 
             if (dragging)
             {
