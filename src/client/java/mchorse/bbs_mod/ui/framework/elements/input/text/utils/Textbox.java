@@ -706,7 +706,7 @@ public class Textbox
 
         if (this.background)
         {
-            this.area.render(context.batcher, BBSSettings.inputSurface());
+            mchorse.bbs_mod.ui.utils.RoundedBoxes.fill(context.batcher, this.area, BBSSettings.inputSurface());
 
             if (this.border && this.focused)
             {

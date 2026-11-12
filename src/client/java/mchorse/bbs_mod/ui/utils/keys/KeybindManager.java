@@ -23,6 +23,18 @@ public class KeybindManager
         return keybind;
     }
 
+    /** Add every shortcut that can run right now to the list, for the command search. */
+    public void collect(List<Keybind> out)
+    {
+        for (Keybind keybind : this.keybinds)
+        {
+            if (keybind.callback != null && keybind.isActive())
+            {
+                out.add(keybind);
+            }
+        }
+    }
+
     public KeybindManager ignoreFocus()
     {
         this.focus = false;

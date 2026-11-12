@@ -461,6 +461,30 @@ public abstract class OrbitViewportController implements ICameraController
         }
     }
 
+    /**
+     * Turn the view by exact angles (radians) around the pivot, like Blender's numpad 4/6/8/2.
+     * A positive yaw swings the camera from +Z towards +X; a negative pitch lifts it above the pivot.
+     * Like any orbit away from an axis view, it hands the perspective back after an axis snap.
+     */
+    public void turn(float pitch, float yaw)
+    {
+        this.targetRotation.x = MathUtils.clamp(this.targetRotation.x + pitch, -PITCH_LIMIT, PITCH_LIMIT);
+        this.targetRotation.y += yaw;
+
+        if (this.autoOrtho)
+        {
+            this.ortho = false;
+            this.autoOrtho = false;
+        }
+    }
+
+    /** Blender's numpad 9: the same view from the opposite side. */
+    public void flipView()
+    {
+        this.targetRotation.x = -this.targetRotation.x;
+        this.targetRotation.y += MathUtils.PI;
+    }
+
     public boolean isOrtho()
     {
         return this.ortho;

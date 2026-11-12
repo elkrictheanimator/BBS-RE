@@ -77,6 +77,8 @@ public class Keys
     public static final KeyCombo OPEN_DATA_MANAGER = new KeyCombo("data_manager", UIKeys.PANELS_KEYS_OPEN_DATA_MANAGER, GLFW.GLFW_KEY_N).categoryKey("dashboard");
     public static final KeyCombo OPEN_NEW_TAB = new KeyCombo("new_tab", UIKeys.PANELS_KEYS_OPEN_NEW_TAB, GLFW.GLFW_KEY_N, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("dashboard");
     public static final KeyCombo TOGGLE_VISIBILITY = new KeyCombo("toggle", UIKeys.DASHBOARD_CONTEXT_TOGGLE_VISIBILITY, GLFW.GLFW_KEY_F1).categoryKey("dashboard");
+    public static final KeyCombo COMMAND_SEARCH = new KeyCombo("command_search", UIKeys.COMMAND_SEARCH, GLFW.GLFW_KEY_F3).categoryKey("dashboard");
+    public static final KeyCombo COMMAND_SEARCH_ALT = new KeyCombo("command_search_alt", UIKeys.COMMAND_SEARCH, GLFW.GLFW_KEY_P, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("dashboard");
     public static final KeyCombo TOGGLE_DEBUG = new KeyCombo("toggle_debug", UIKeys.DASHBOARD_KEYS_TOGGLE_DEBUG, GLFW.GLFW_KEY_F5).categoryKey("dashboard");
 
     /* Forms */
@@ -116,6 +118,22 @@ public class Keys
     /* Keyframes */
     public static final KeyCombo KEYFRAMES_MAXIMIZE = new KeyCombo("maximize", UIKeys.KEYFRAMES_CONTEXT_MAXIMIZE, GLFW.GLFW_KEY_HOME).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_SELECT_ALL = new KeyCombo("select_all", UIKeys.KEYFRAMES_CONTEXT_SELECT_ALL, GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("keyframes");
+    /* Blender-style alternatives, see BBSSettings#keyframeBlenderControls. They sit next to the classic combos
+     * instead of replacing them, so the same action answers to both until the user rebinds either. */
+    public static final KeyCombo KEYFRAMES_BLENDER_SELECT_ALL = new KeyCombo("blender_select_all", UIKeys.KEYFRAMES_CONTEXT_SELECT_ALL, GLFW.GLFW_KEY_A).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_DESELECT_ALL = new KeyCombo("blender_deselect_all", UIKeys.KEYFRAMES_KEYS_DESELECT_ALL, GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT_ALT).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_INVERT = new KeyCombo("blender_invert", UIKeys.KEYFRAMES_KEYS_INVERT_SELECTION, GLFW.GLFW_KEY_I, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_GRAB = new KeyCombo("blender_grab", UIKeys.KEYFRAMES_KEYS_GRAB, GLFW.GLFW_KEY_G).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_SCALE = new KeyCombo("blender_scale", UIKeys.KEYFRAMES_KEYS_SCALE_TIME, GLFW.GLFW_KEY_S).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_DELETE = new KeyCombo("blender_delete", UIKeys.KEYFRAMES_CONTEXT_REMOVE, GLFW.GLFW_KEY_X).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_DUPLICATE = new KeyCombo("blender_duplicate", UIKeys.KEYFRAMES_KEYS_DUPLICATE_GRAB, GLFW.GLFW_KEY_D, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_SELECT_MORE = new KeyCombo("blender_select_more", UIKeys.KEYFRAMES_KEYS_SELECT_MORE, GLFW.GLFW_KEY_KP_ADD, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_SELECT_LESS = new KeyCombo("blender_select_less", UIKeys.KEYFRAMES_KEYS_SELECT_LESS, GLFW.GLFW_KEY_KP_SUBTRACT, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_VIEW_SELECTED = new KeyCombo("blender_view_selected", UIKeys.KEYFRAMES_KEYS_VIEW_SELECTED, GLFW.GLFW_KEY_KP_DECIMAL).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_INTERP = new KeyCombo("blender_interp", UIKeys.KEYFRAMES_KEYS_INTERP_MENU, GLFW.GLFW_KEY_T).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_SNAP = new KeyCombo("blender_snap", UIKeys.KEYFRAMES_KEYS_SNAP_MENU, GLFW.GLFW_KEY_S, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_SELECT_COLUMN = new KeyCombo("blender_select_column", UIKeys.KEYFRAMES_KEYS_SELECT_COLUMN, GLFW.GLFW_KEY_K).categoryKey("keyframes");
+    public static final KeyCombo KEYFRAMES_BLENDER_EASE = new KeyCombo("blender_ease", UIKeys.KEYFRAMES_KEYS_EASE_MENU, GLFW.GLFW_KEY_E, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_SELECT_TRACK = new KeyCombo("select_track", UIKeys.KEYFRAMES_KEYS_SELECT_TRACK, GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_SELECT_TRACK_LEFT = new KeyCombo("select_track_left", UIKeys.KEYFRAMES_KEYS_SELECT_TRACK_LEFT, GLFW.GLFW_KEY_COMMA, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");
     public static final KeyCombo KEYFRAMES_SELECT_TRACK_RIGHT = new KeyCombo("select_track_right", UIKeys.KEYFRAMES_KEYS_SELECT_TRACK_RIGHT, GLFW.GLFW_KEY_PERIOD, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("keyframes");
@@ -161,6 +179,21 @@ public class Keys
     public static final KeyCombo FILM_CONTROLLER_TOGGLE_CONTROL = new KeyCombo("toggle_control", UIKeys.FILM_CONTROLLER_KEYS_TOGGLE_CONTROL, GLFW.GLFW_KEY_H).categoryKey("film_controller");
     public static final KeyCombo FILM_CONTROLLER_TOGGLE_ORBIT_MODE = new KeyCombo("toggle_orbit_mode", UIKeys.FILM_CONTROLLER_KEYS_CHANGE_CAMERA_MODE, GLFW.GLFW_KEY_F3).categoryKey("film_controller");
     public static final KeyCombo FILM_CONTROLLER_TOGGLE_ORTHO = new KeyCombo("toggle_ortho", UIKeys.FILM_CONTROLLER_KEYS_TOGGLE_ORTHO, GLFW.GLFW_KEY_KP_5).categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_FRONT = new KeyCombo("view_front", UIKeys.FILM_CONTROLLER_KEYS_VIEW_FRONT, GLFW.GLFW_KEY_KP_1).categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_BACK = new KeyCombo("view_back", UIKeys.FILM_CONTROLLER_KEYS_VIEW_BACK, GLFW.GLFW_KEY_KP_1, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_RIGHT = new KeyCombo("view_right", UIKeys.FILM_CONTROLLER_KEYS_VIEW_RIGHT, GLFW.GLFW_KEY_KP_3).categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_LEFT = new KeyCombo("view_left", UIKeys.FILM_CONTROLLER_KEYS_VIEW_LEFT, GLFW.GLFW_KEY_KP_3, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_TOP = new KeyCombo("view_top", UIKeys.FILM_CONTROLLER_KEYS_VIEW_TOP, GLFW.GLFW_KEY_KP_7).categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_BOTTOM = new KeyCombo("view_bottom", UIKeys.FILM_CONTROLLER_KEYS_VIEW_BOTTOM, GLFW.GLFW_KEY_KP_7, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_CAMERA = new KeyCombo("view_camera", UIKeys.FILM_CONTROLLER_KEYS_VIEW_CAMERA, GLFW.GLFW_KEY_KP_0).categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_OPPOSITE = new KeyCombo("view_opposite", UIKeys.FILM_CONTROLLER_KEYS_VIEW_OPPOSITE, GLFW.GLFW_KEY_KP_9).categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_ORBIT_LEFT = new KeyCombo("view_orbit_left", UIKeys.FILM_CONTROLLER_KEYS_VIEW_ORBIT_LEFT, GLFW.GLFW_KEY_KP_4).repeatable().categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_ORBIT_RIGHT = new KeyCombo("view_orbit_right", UIKeys.FILM_CONTROLLER_KEYS_VIEW_ORBIT_RIGHT, GLFW.GLFW_KEY_KP_6).repeatable().categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_ORBIT_UP = new KeyCombo("view_orbit_up", UIKeys.FILM_CONTROLLER_KEYS_VIEW_ORBIT_UP, GLFW.GLFW_KEY_KP_8).repeatable().categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_ORBIT_DOWN = new KeyCombo("view_orbit_down", UIKeys.FILM_CONTROLLER_KEYS_VIEW_ORBIT_DOWN, GLFW.GLFW_KEY_KP_2).repeatable().categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_ZOOM_IN = new KeyCombo("view_zoom_in", UIKeys.FILM_CONTROLLER_KEYS_VIEW_ZOOM_IN, GLFW.GLFW_KEY_KP_ADD).repeatable().categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_ZOOM_OUT = new KeyCombo("view_zoom_out", UIKeys.FILM_CONTROLLER_KEYS_VIEW_ZOOM_OUT, GLFW.GLFW_KEY_KP_SUBTRACT).repeatable().categoryKey("film_controller");
+    public static final KeyCombo FILM_CONTROLLER_VIEW_SELECTED = new KeyCombo("view_selected", UIKeys.FILM_CONTROLLER_KEYS_VIEW_SELECTED, GLFW.GLFW_KEY_KP_DECIMAL).categoryKey("film_controller");
     public static final KeyCombo FILM_CONTROLLER_TELEPORT_ORBIT = new KeyCombo("teleport_orbit_record", UIKeys.FILM_CONTROLLER_KEYS_TELEPORT_ORBIT, GLFW.GLFW_KEY_C).categoryKey("film_controller");
     public static final KeyCombo FILM_CONTROLLER_ATTACH_ORBIT = new KeyCombo("attach_orbit_record", UIKeys.FILM_CONTROLLER_KEYS_ATTACH_ORBIT, GLFW.GLFW_KEY_Z, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("film_controller");
     public static final KeyCombo FILM_CONTROLLER_TOGGLE_REPLAY_MENU = new KeyCombo("toggle_replay_menu", UIKeys.FILM_CONTROLLER_KEYS_OPEN_REPLAYS, GLFW.GLFW_KEY_F4).categoryKey("film_controller");

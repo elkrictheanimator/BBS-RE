@@ -43,6 +43,8 @@ import mchorse.bbs_mod.camera.data.Position;
 import mchorse.bbs_mod.camera.utils.TimeUtils;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.l10n.keys.IKey;
+import mchorse.bbs_mod.ui.utils.icons.Icons;
+import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.settings.values.IValueNotifier;
 import mchorse.bbs_mod.settings.values.core.ValueGroup;
 import mchorse.bbs_mod.settings.values.mc.ValueItemStack;
@@ -136,6 +138,9 @@ public abstract class UIClip <T extends Clip> extends UIElement
         register(PhotoClip.class, UIPhotoClip::new);
         register(CurveClientClip.class, UICurveClip::new);
         register(DollyZoomClip.class, UIDollyZoomClip::new);
+        register(mchorse.bbs_mod.camera.clips.modifiers.ProceduralShakeClip.class, UIProceduralShakeClip::new);
+        register(mchorse.bbs_mod.camera.clips.misc.LetterboxClip.class, UILetterboxClip::new);
+        register(mchorse.bbs_mod.camera.clips.misc.TransitionClip.class, UITransitionClip::new);
 
         register(ChatActionClip.class, UIChatActionClip::new);
         register(CommandActionClip.class, UICommandActionClip::new);
@@ -213,8 +218,70 @@ public abstract class UIClip <T extends Clip> extends UIElement
 
         this.registerUI();
         this.registerPanels();
+        this.addBoundShots();
 
         this.add(this.panels);
+    }
+
+    /** Bound shots: pick the actors that belong to this camera shot, and the replay tick its start plays. */
+    private void addBoundShots()
+    {
+        if (!(this.clip instanceof mchorse.bbs_mod.camera.clips.CameraClip shot) || this.editor == null)
+        {
+            return;
+        }
+
+        UIButton actors = this.bind(new UIButton(IKey.EMPTY, (b) -> b.getContext().replaceContextMenu((menu) ->
+        {
+            mchorse.bbs_mod.film.Film film = this.editor.getFilm();
+
+            if (film == null)
+            {
+                return;
+            }
+
+            for (mchorse.bbs_mod.film.replays.Replay replay : film.replays.getList())
+            {
+                String id = replay.getId();
+                boolean bound = mchorse.bbs_mod.film.replays.ShotRemapper.isBound(shot, id);
+                String name = replay.label.get().isEmpty() ? id : replay.label.get();
+
+                menu.action(Icons.USER, IKey.constant((bound ? "[x] " : "[ ] ") + name), () -> this.toggleBound(shot, id, !bound));
+            }
+        })), () -> {});
+
+        actors.tooltip(IKey.constant("Actors that belong to this shot: they follow it when it moves, and are hidden outside it"));
+        this.bindLabel(actors, shot);
+
+        UITrackpad source = this.trackpad(shot.boundSource);
+
+        source.limit(-1).integer().tooltip(IKey.constant("Replay tick the shot's start plays (-1: same as the shot's start)"));
+        this.panels.add(this.section(IKey.constant("Bound actors"), actors, source));
+    }
+
+    private void bindLabel(UIButton button, mchorse.bbs_mod.camera.clips.CameraClip shot)
+    {
+        button.valueBinding(() -> button.label = IKey.constant("Actors: " + mchorse.bbs_mod.film.replays.ShotRemapper.actorIds(shot.boundActors.get()).size()));
+    }
+
+    private void toggleBound(mchorse.bbs_mod.camera.clips.CameraClip shot, String id, boolean bound)
+    {
+        java.util.List<String> ids = mchorse.bbs_mod.film.replays.ShotRemapper.actorIds(shot.boundActors.get());
+
+        ids.remove(id);
+
+        if (bound)
+        {
+            ids.add(id);
+
+            /* Freeze the actor to where the shot starts now, so that moving the shot leaves the performance behind */
+            if (shot.boundSource.get() < 0)
+            {
+                shot.boundSource.set(shot.tick.get());
+            }
+        }
+
+        shot.boundActors.set(String.join(",", ids));
     }
 
     protected void registerUI()

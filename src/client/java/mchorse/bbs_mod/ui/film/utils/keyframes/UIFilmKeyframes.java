@@ -115,6 +115,16 @@ public class UIFilmKeyframes extends UIKeyframes
     }
 
     @Override
+    protected void setPlayheadTick(float tick)
+    {
+        if (this.editor != null)
+        {
+            this.editor.stopPlaybackOnScrub();
+            this.editor.setCursor(Math.max(0F, tick + this.getClipOffset()));
+        }
+    }
+
+    @Override
     protected boolean hasCursor()
     {
         return this.editor != null;

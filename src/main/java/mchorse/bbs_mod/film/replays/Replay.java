@@ -206,6 +206,8 @@ public class Replay extends ValueGroup
 
     public int getTick(int tick)
     {
+        tick = ShotRemapper.remap(this, tick);
+
         return this.looping.get() > 0 ? tick % this.looping.get() : tick;
     }
 }

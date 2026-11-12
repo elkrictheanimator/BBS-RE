@@ -143,6 +143,8 @@ public class UIDashboard extends UIBaseMenu
                 }
             }
         }).category(category);
+        this.overlay.keys().register(Keys.COMMAND_SEARCH, this::openCommandSearch).category(category);
+        this.overlay.keys().register(Keys.COMMAND_SEARCH_ALT, this::openCommandSearch).category(category);
         this.overlay.keys().register(Keys.TOGGLE_DEBUG, () ->
         {
             boolean enabled = !(BBSSettings.ikDebug.enabled.get() || BBSSettings.physicsDebug.enabled.get());
@@ -208,6 +210,17 @@ public class UIDashboard extends UIBaseMenu
 
         this.orbit.setup(camera);
         this.camera.setup(BBSModClient.getCameraController().camera, 0F);
+    }
+
+    /** Blender's F3: a searchable list of every shortcut that can run right now. */
+    private void openCommandSearch()
+    {
+        if (UIOverlay.has(this.context))
+        {
+            return;
+        }
+
+        mchorse.bbs_mod.ui.utils.context.CommandSearch.open(this.context);
     }
 
     private void cyclePanels()

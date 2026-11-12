@@ -404,6 +404,47 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     }
 
     @Override
+    public void selectColumn()
+    {
+        /* Only the rows in view, like the rest of the selection commands */
+        this.selectColumn(this.getInteractiveSheets());
+    }
+
+    @Override
+    public void selectMore()
+    {
+        for (UIKeyframeSheet sheet : this.getInteractiveSheets())
+        {
+            sheet.selection.grow();
+        }
+
+        this.pickSelected();
+    }
+
+    @Override
+    public void selectLess()
+    {
+        for (UIKeyframeSheet sheet : this.getInteractiveSheets())
+        {
+            sheet.selection.shrink();
+        }
+
+        this.pickSelected();
+    }
+
+    @Override
+    public void invertSelection()
+    {
+        /* Only the rows in view: a row folded out of sight must not suddenly hold a selection. */
+        for (UIKeyframeSheet sheet : this.getInteractiveSheets())
+        {
+            sheet.selection.invert();
+        }
+
+        this.pickSelected();
+    }
+
+    @Override
     public void selectAfter(float tick, int direction)
     {
         for (UIKeyframeSheet sheet : this.getInteractiveSheets())
@@ -749,6 +790,11 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         if (context.mouseWheelHorizontal != 0)
         {
             this.keyframes.panTime(context.mouseWheelHorizontal);
+        }
+        else if (Window.isCtrlPressed() && !Window.isShiftPressed() && !Window.isAltPressed() && context.mouseWheel != 0D && BBSSettings.keyframeBlenderControls.get())
+        {
+            /* Blender: Ctrl + wheel pans the time axis, the plain wheel zooms it */
+            this.keyframes.panTime(context.mouseWheel);
         }
         else if (Window.isShiftPressed() && !Window.isCtrlPressed())
         {

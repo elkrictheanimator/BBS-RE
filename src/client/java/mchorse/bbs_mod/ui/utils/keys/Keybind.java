@@ -88,6 +88,11 @@ public class Keybind
         return this.combo.getKeyCombo();
     }
 
+    public KeyCombo getCombo()
+    {
+        return this.combo;
+    }
+
     public boolean check(int keyCode, KeyAction keyAction, boolean inside)
     {
         if (keyAction == KeyAction.REPEAT && !this.combo.repeatable)

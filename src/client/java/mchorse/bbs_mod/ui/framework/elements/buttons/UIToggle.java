@@ -114,11 +114,18 @@ public class UIToggle extends UIClickable<UIToggle> implements ITextColoring
          * around. */
         int trackFill = this.value ? Colors.A100 | BBSSettings.primaryColor.get() : BBSSettings.deepSurface();
 
-        context.batcher.box(trackLeft, trackTop, trackRight, trackBottom, trackFill);
+        mchorse.bbs_mod.ui.utils.RoundedBoxes.render(context.batcher, trackLeft, trackTop, trackRight, trackBottom, Math.min(mchorse.bbs_mod.ui.utils.RoundedBoxes.radius(), TRACK_H / 2), trackFill);
 
         int knobColor = this.hover ? Colors.lerp(KNOB_COLOR, Colors.WHITE, 0.2F) : KNOB_COLOR;
 
-        context.batcher.surfaceBox(knobLeft, knobTop, knobLeft + KNOB, knobTop + KNOB, knobColor, true, false);
+        if (mchorse.bbs_mod.ui.utils.RoundedBoxes.radius() > 0)
+        {
+            mchorse.bbs_mod.ui.utils.RoundedBoxes.render(context.batcher, knobLeft, knobTop, knobLeft + KNOB, knobTop + KNOB, Math.min(mchorse.bbs_mod.ui.utils.RoundedBoxes.radius(), KNOB / 2), knobColor);
+        }
+        else
+        {
+            context.batcher.surfaceBox(knobLeft, knobTop, knobLeft + KNOB, knobTop + KNOB, knobColor, true, false);
+        }
 
         if (!this.isEnabled())
         {

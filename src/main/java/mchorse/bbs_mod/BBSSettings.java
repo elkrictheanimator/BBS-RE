@@ -46,6 +46,9 @@ public class BBSSettings {
 	public static ValueStringKeys disabledMorphFormCategories;
 	public static ValueLanguage language;
 	public static ValueInt primaryColor;
+	public static ValueBoolean blenderButtons;
+	public static ValueInt uiCornerRadius;
+	public static ValueBoolean uiHoverFade;
 	public static ValueInt bannerStyle;
 	public static ValueInt bannerColorStart;
 	public static ValueInt bannerColorEnd;
@@ -221,11 +224,15 @@ public class BBSSettings {
 	public static ValueBoolean editorPreviewSelectionHud;
 	public static ValueBoolean editorKeepFrameOnExit;
 	public static ValueBoolean classicTrackOrder;
+	public static ValueBoolean keyframeBlenderControls;
 	public static ValueFloat armSwing;
 
 	public static ValueFloat recordingCountdown;
 	public static ValueBoolean recordingSwipeDamage;
 	public static ValueBoolean recordingOverlays;
+	/** Extra pose tracks every posed form always has, on top of its base pose_overlay: three overlays in all. */
+	public static final int MIN_POSE_OVERLAYS = 2;
+
 	public static ValueInt recordingPoseOverlays;
 	public static ValueInt recordingTransformOverlays;
 	public static ValueBoolean recordingCameraPreview;
@@ -314,6 +321,24 @@ public class BBSSettings {
 	/** The colour {@link #SURFACES} was derived from; -1 is no colour, so the first read builds. */
 	private static int surfaceSource = -1;
 	private static boolean lightSurfaces;
+
+	/** Interface colour presets: {primary, secondary}; index 0 of the picker keeps whatever is set. */
+	public static final int[][] THEME_PRESETS = {
+		{DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR},
+		{0x4772b3, 0x303030},
+		{0x4772b3, 0xa0a0a0},
+		{0x3d8bff, 0x0f1626},
+		{0xe0a030, 0x221a14}
+	};
+
+	public static void applyThemePreset(int index)
+	{
+		if (index >= 0 && index < THEME_PRESETS.length)
+		{
+			primaryColor.set(THEME_PRESETS[index][0]);
+			secondaryColor.set(THEME_PRESETS[index][1]);
+		}
+	}
 
 	public static int primaryColor()
 	{
@@ -611,6 +636,17 @@ public class BBSSettings {
 		migrated |= migrateLegacyValue(root, "recording", "pose_transform_overlays", "recording", "pose_overlays");
 		migrated |= migrateLegacyValue(root, "recording", "pose_transform_overlays", "recording", "transform_overlays");
 
+		/* Every posed form keeps its base pose_overlay track plus at least two more. A config saved
+		 * before that stored 0 (or 1) and loading it skips the setting's own lower bound. */
+		MapType recording = root.getMap("recording");
+
+		if (recording.has("pose_overlays") && recording.getInt("pose_overlays") < MIN_POSE_OVERLAYS)
+		{
+			recording.putInt("pose_overlays", MIN_POSE_OVERLAYS);
+			root.put("recording", recording);
+			migrated = true;
+		}
+
 		/* Sections now keep the replay list compact. Reveal their channels once;
 		 * later manual filtering must survive reloads. */
 		MapType appearance = root.getMap("appearance");
@@ -728,6 +764,9 @@ public class BBSSettings {
 		builder.category("personalization", Icons.COLOR);
 		primaryColor = builder.getInt("primary_color", DEFAULT_PRIMARY_COLOR).color();
 		secondaryColor = builder.getInt("secondary_color", DEFAULT_SECONDARY_COLOR).color();
+		blenderButtons = builder.getBoolean("blender_buttons", false);
+		uiCornerRadius = builder.getInt("ui_corner_radius", 0, 0, 8);
+		uiHoverFade = builder.getBoolean("ui_hover_fade", false);
 		/* Edited from the pencil on the landing screen banner, not from the settings list */
 		bannerStyle = builder.getInt("banner_style", 0, 0, 4);
 		bannerColorStart = builder.getInt("banner_color_start", 0x1b2a4e);
@@ -919,6 +958,7 @@ public class BBSSettings {
 		/* The features that are this build's own, in one place */
 		builder.category("re", Icons.FAVORITE);
 		classicTrackOrder = builder.getBoolean("classic_track_order", true);
+		keyframeBlenderControls = builder.getBoolean("keyframe_blender_controls", true);
 		armSwing = builder.getFloat("arm_swing", 1F, 0F, 1F).slider();
 		videoEverywhere = builder.getBoolean("video_everywhere", false);
 
@@ -926,7 +966,7 @@ public class BBSSettings {
 		recordingCountdown = builder.getFloat("countdown", 1.5F, 0F, 30F);
 		recordingSwipeDamage = builder.getBoolean("swipe_damage", false);
 		recordingOverlays = builder.getBoolean("overlays", true);
-		recordingPoseOverlays = builder.getInt("pose_overlays", 0, 0, 42);
+		recordingPoseOverlays = builder.getInt("pose_overlays", MIN_POSE_OVERLAYS, MIN_POSE_OVERLAYS, 42);
 		recordingTransformOverlays = builder.getInt("transform_overlays", 0, 0, 42);
 		recordingCameraPreview = builder.getBoolean("camera_preview", true);
 		recordingTeleport = builder.getBoolean("teleport", true);

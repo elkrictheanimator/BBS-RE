@@ -87,15 +87,45 @@ public abstract class UIContextMenu extends UIElement
     @Override
     public void render(UIContext context)
     {
+        net.minecraft.client.util.math.MatrixStack stack = context.batcher.getContext().getMatrices();
+        boolean slide = false;
+
+        if (BBSSettings.uiHoverFade.get())
+        {
+            /* Smooth motion: the menu glides down into place as it opens */
+            if (this.openedAt < 0)
+            {
+                this.openedAt = System.currentTimeMillis();
+            }
+
+            float t = Math.min(1F, (System.currentTimeMillis() - this.openedAt) / 140F);
+
+            t = 1F - (1F - t) * (1F - t) * (1F - t);
+
+            if (t < 1F)
+            {
+                slide = true;
+                stack.push();
+                stack.translate(0, (1F - t) * -8F, 0);
+            }
+        }
+
         this.renderBackground(context);
 
         super.render(context);
+
+        if (slide)
+        {
+            stack.pop();
+        }
     }
+
+    private long openedAt = -1;
 
     protected void renderBackground(UIContext context)
     {
         context.batcher.dropShadow(this.area.x, this.area.y, this.area.ex(), this.area.ey(), 10, BBSSettings.panelShadowOpaqueColor(), BBSSettings.panelShadowTransparentColor());
 
-        this.area.render(context.batcher, BBSSettings.raisedSurface());
+        mchorse.bbs_mod.ui.utils.RoundedBoxes.fill(context.batcher, this.area, BBSSettings.raisedSurface());
     }
 }

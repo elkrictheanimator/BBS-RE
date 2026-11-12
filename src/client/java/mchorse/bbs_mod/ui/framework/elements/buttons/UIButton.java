@@ -22,6 +22,9 @@ public class UIButton extends UIClickable<UIButton> implements ITextColoring
     public int customHighlightColor;
     public boolean background = true;
 
+    /** 0..1: how far the hover colour has faded in, for the hover fade setting */
+    private float hoverFade;
+
     public UIButton(IKey label, Consumer<UIButton> callback)
     {
         super(callback);
@@ -80,15 +83,45 @@ public class UIButton extends UIClickable<UIButton> implements ITextColoring
     protected void renderSkin(UIContext context)
     {
         int color = (this.custom ? this.customColor : BBSSettings.primaryColor.get() | Colors.A100);
+        boolean blender = !this.custom && BBSSettings.blenderButtons.get();
 
-        if (this.hover)
+        if (blender)
         {
-            color = this.custom ? this.customHighlightColor : Colors.mulRGB(color, 0.85F);
+            /* Blender style: neutral raised surface, brighter on hover, accent only while pressed */
+            color = this.hover && this.pressed ? color : BBSSettings.raisedSurface();
+        }
+
+        int radius = mchorse.bbs_mod.ui.utils.RoundedBoxes.radius();
+        boolean fade = BBSSettings.uiHoverFade.get();
+        int hovered = this.custom ? this.customHighlightColor : Colors.mulRGB(color, blender ? 1.25F : 0.85F);
+
+        if (fade)
+        {
+            /* Glide to the hover colour and back instead of jumping */
+            this.hoverFade += ((this.hover ? 1F : 0F) - this.hoverFade) * 0.3F;
+
+            if (Math.abs((this.hover ? 1F : 0F) - this.hoverFade) < 0.01F)
+            {
+                this.hoverFade = this.hover ? 1F : 0F;
+            }
+
+            color = Colors.lerp(color, hovered, this.hoverFade);
+        }
+        else if (this.hover)
+        {
+            color = hovered;
         }
 
         if (this.background)
         {
-            context.batcher.surfaceBox(this.area.x, this.area.y, this.area.ex(), this.area.ey(), color | Colors.A100, true, false);
+            if (radius > 0)
+            {
+                mchorse.bbs_mod.ui.utils.RoundedBoxes.render(context.batcher, this.area.x, this.area.y, this.area.ex(), this.area.ey(), radius, color | Colors.A100);
+            }
+            else
+            {
+                context.batcher.surfaceBox(this.area.x, this.area.y, this.area.ex(), this.area.ey(), color | Colors.A100, true, false);
+            }
         }
 
         FontRenderer font = context.batcher.getFont();

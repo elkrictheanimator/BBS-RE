@@ -21,6 +21,9 @@ import mchorse.bbs_mod.ui.framework.elements.buttons.UIClickable;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.input.text.UITextbox;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIPromptOverlayPanel;
+import mchorse.bbs_mod.utils.presets.PresetManager;
+import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.utils.FontRenderer;
 import mchorse.bbs_mod.ui.framework.elements.utils.RowStyle;
@@ -232,6 +235,47 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
         this.refresh();
     }
 
+    private void saveVideoPreset(String name)
+    {
+        if (name == null || name.trim().isEmpty())
+        {
+            return;
+        }
+
+        MapType data = new MapType();
+
+        data.putInt("width", BBSSettings.videoWidth.get());
+        data.putInt("height", BBSSettings.videoHeight.get());
+        data.putInt("frame_rate", BBSSettings.videoFrameRate.get());
+        data.putBool("limit_frame_rate", BBSSettings.videoLimitFrameRate.get());
+        data.putInt("motion_blur", BBSSettings.videoMotionBlur.get());
+        data.putInt("held_frames", BBSSettings.videoHeldFrames.get());
+        data.putBool("audio", BBSSettings.videoExportAudio.get());
+        data.putBool("minecraft_sounds", BBSSettings.videoExportMinecraftSounds.get());
+        PresetManager.VIDEO.save(name.trim(), data);
+    }
+
+    private void loadVideoPreset(String id)
+    {
+        MapType data = PresetManager.VIDEO.load(id);
+
+        if (data == null)
+        {
+            return;
+        }
+
+        if (data.has("width")) BBSSettings.videoWidth.set(data.getInt("width"));
+        if (data.has("height")) BBSSettings.videoHeight.set(data.getInt("height"));
+        if (data.has("frame_rate")) BBSSettings.videoFrameRate.set(data.getInt("frame_rate"));
+        if (data.has("limit_frame_rate")) BBSSettings.videoLimitFrameRate.set(data.getBool("limit_frame_rate"));
+        if (data.has("motion_blur")) BBSSettings.videoMotionBlur.set(data.getInt("motion_blur"));
+        if (data.has("held_frames")) BBSSettings.videoHeldFrames.set(data.getInt("held_frames"));
+        if (data.has("audio")) BBSSettings.videoExportAudio.set(data.getBool("audio"));
+        if (data.has("minecraft_sounds")) BBSSettings.videoExportMinecraftSounds.set(data.getBool("minecraft_sounds"));
+
+        this.refresh();
+    }
+
     public void addVideoPresets(ContextMenuManager menu)
     {
         menu.action(Icons.FILM, UIKeys.VIDEO_SETTINGS_PRESETS_720p, () -> this.applyVideoPreset(1280, 720));
@@ -239,6 +283,20 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
         menu.action(Icons.FILM, UIKeys.VIDEO_SETTINGS_PRESETS_SHORTS_1080P, () -> this.applyVideoPreset(1080, 1920));
         menu.action(Icons.FILM, UIKeys.VIDEO_SETTINGS_PRESETS_1440P, () -> this.applyVideoPreset(2560, 1440));
         menu.action(Icons.FILM, UIKeys.VIDEO_SETTINGS_PRESETS_4K, () -> this.applyVideoPreset(3840, 2160));
+
+        /* Your own presets: everything that decides the output, saved under a name of your choice */
+        menu.action(Icons.SAVED, IKey.constant("Lưu cấu hình video hiện tại..."), () ->
+        {
+            UIPromptOverlayPanel prompt = new UIPromptOverlayPanel(IKey.constant("Lưu preset video"), IKey.constant("Tên preset"), this::saveVideoPreset);
+
+            prompt.text.filename();
+            UIOverlay.addOverlay(this.getContext(), prompt);
+        });
+
+        for (String id : PresetManager.VIDEO.getKeys())
+        {
+            menu.action(Icons.FILM, IKey.constant("Preset: " + id), () -> this.loadVideoPreset(id));
+        }
     }
 
     /**
@@ -247,6 +305,22 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
      */
     private void appendREControls()
     {
+        UICirculate theme = new UICirculate((b) ->
+        {
+            if (b.getValue() > 0)
+            {
+                BBSSettings.applyThemePreset(b.getValue() - 1);
+            }
+        });
+
+        theme.addLabel(IKey.constant("Bộ màu giao diện: giữ màu hiện tại"));
+        theme.addLabel(IKey.constant("Bộ màu: Mặc định RE"));
+        theme.addLabel(IKey.constant("Bộ màu: Blender tối"));
+        theme.addLabel(IKey.constant("Bộ màu: Blender sáng"));
+        theme.addLabel(IKey.constant("Bộ màu: Xanh đêm"));
+        theme.addLabel(IKey.constant("Bộ màu: Nâu ấm"));
+        theme.setValue(0);
+
         UICirculate backdrop = new UICirculate((b) -> BBSSettings.backdropStyle.set(b.getValue()));
 
         backdrop.addLabel(IKey.constant("Nền: Ánh sáng chuyển động"));
@@ -269,7 +343,7 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
         UIButton banner = new UIButton(IKey.constant("Chỉnh banner (ảnh, video, vị trí, màu)..."), (b) ->
             UIOverlay.addOverlay(b.getContext(), new UIBannerEditorPanel(UILandingScreen.defaultBannerAspect()), 280, 400));
 
-        this.options.add(backdrop, video, link, image, folder, banner);
+        this.options.add(theme, backdrop, video, link, image, folder, banner);
     }
 
     private void appendValues(ValueGroup category, boolean filtered)
