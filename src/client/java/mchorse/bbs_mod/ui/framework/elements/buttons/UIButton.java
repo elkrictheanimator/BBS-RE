@@ -80,10 +80,17 @@ public class UIButton extends UIClickable<UIButton> implements ITextColoring
     protected void renderSkin(UIContext context)
     {
         int color = (this.custom ? this.customColor : BBSSettings.primaryColor.get() | Colors.A100);
+        boolean blender = !this.custom && BBSSettings.blenderButtons.get();
+
+        if (blender)
+        {
+            /* Blender style: neutral raised surface, brighter on hover, accent only while pressed */
+            color = this.hover && this.pressed ? color : BBSSettings.raisedSurface();
+        }
 
         if (this.hover)
         {
-            color = this.custom ? this.customHighlightColor : Colors.mulRGB(color, 0.85F);
+            color = this.custom ? this.customHighlightColor : Colors.mulRGB(color, blender ? 1.25F : 0.85F);
         }
 
         if (this.background)

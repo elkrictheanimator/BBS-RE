@@ -46,6 +46,7 @@ public class BBSSettings {
 	public static ValueStringKeys disabledMorphFormCategories;
 	public static ValueLanguage language;
 	public static ValueInt primaryColor;
+	public static ValueBoolean blenderButtons;
 	public static ValueInt bannerStyle;
 	public static ValueInt bannerColorStart;
 	public static ValueInt bannerColorEnd;
@@ -761,6 +762,7 @@ public class BBSSettings {
 		builder.category("personalization", Icons.COLOR);
 		primaryColor = builder.getInt("primary_color", DEFAULT_PRIMARY_COLOR).color();
 		secondaryColor = builder.getInt("secondary_color", DEFAULT_SECONDARY_COLOR).color();
+		blenderButtons = builder.getBoolean("blender_buttons", false);
 		/* Edited from the pencil on the landing screen banner, not from the settings list */
 		bannerStyle = builder.getInt("banner_style", 0, 0, 4);
 		bannerColorStart = builder.getInt("banner_color_start", 0x1b2a4e);

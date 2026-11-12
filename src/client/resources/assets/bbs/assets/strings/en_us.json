@@ -163,6 +163,8 @@
 	"bbs.config.personalization.primary_color-comment": "The color which is used everywhere in the GUI system",
 	"bbs.config.personalization.secondary_color": "Secondary color",
 	"bbs.config.personalization.secondary_color-comment": "The color of the interface's background surfaces — panels, editors and everything behind them. Every shade of the interface is derived from it.",
+	"bbs.config.personalization.blender_buttons": "Blender-style buttons",
+	"bbs.config.personalization.blender_buttons-comment": "Buttons use a neutral surface like Blender and only show the accent colour while pressed",
 	"bbs.config.personalization.stencil_highlight_color": "Selection highlight color",
 	"bbs.config.personalization.stencil_highlight_color-comment": "Color used to highlight the bone or replay under the cursor in the viewport. Alpha controls the highlight intensity.",
 	"bbs.config.personalization.overlay_background_opacity": "Panel backdrop",
