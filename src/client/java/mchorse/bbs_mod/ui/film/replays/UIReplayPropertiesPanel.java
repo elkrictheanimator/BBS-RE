@@ -57,6 +57,9 @@ public class UIReplayPropertiesPanel extends UIElement
     public UIToggle axesPreview;
     public UIButton pickAxesPreviewBone;
 
+    private UIToggle rigHandles;
+    private UIButton rigClear;
+
     private UIReplayList list;
 
     /** The replay whose values the fields show; writes still go to the whole selection. */
@@ -165,6 +168,14 @@ public class UIReplayPropertiesPanel extends UIElement
             }
         });
 
+        this.rigHandles = this.bound(new UIToggle(UIKeys.FILM_REPLAY_RIG_HANDLES, (b) -> this.edit((replay) -> replay.axesPreview.set(b.getValue()))), (r) -> this.rigHandles.setValue(r.axesPreview.get()));
+        this.rigClear = new UIButton(UIKeys.FILM_REPLAY_RIG_CLEAR, (b) -> this.edit((replay) ->
+        {
+            replay.actor.set(false);
+            replay.actorPickup.set(false);
+        }));
+        this.rigClear.tooltip(UIKeys.FILM_REPLAY_RIG_CLEAR_TOOLTIP);
+
         UISection shadowSection = new UISection(UIKeys.FILM_REPLAY_SHADOW);
 
         shadowSection.fields.add(
@@ -184,7 +195,7 @@ public class UIReplayPropertiesPanel extends UIElement
         other.setExpanded(false);
 
         this.properties = UI.scrollView(UIConstants.MARGIN, UIConstants.SCROLL_PADDING,
-            this.pickEdit, this.enabled, this.label, this.nameTag,
+            this.pickEdit, this.rigHandles, this.rigClear, this.enabled, this.label, this.nameTag,
             shadowSection,
             other
         );

@@ -425,6 +425,9 @@ public class UIKeys
     public static final IKey FILM_REPLAY_ANIMATION_TO_POSE_STEP = L10n.lang("bbs.ui.film.replay.animation_to_pose.step");
     public static final IKey FILM_REPLAY_ANIMATION_TO_POSE_TITLE = L10n.lang("bbs.ui.film.replay.animation_to_pose.title");
     public static final IKey FILM_REPLAY_AXES_PREVIEW = L10n.lang("bbs.ui.film.replay.axes_preview");
+    public static final IKey FILM_REPLAY_RIG_HANDLES = L10n.lang("bbs.ui.film.replay.rig_handles");
+    public static final IKey FILM_REPLAY_RIG_CLEAR = L10n.lang("bbs.ui.film.replay.rig_clear");
+    public static final IKey FILM_REPLAY_RIG_CLEAR_TOOLTIP = L10n.lang("bbs.ui.film.replay.rig_clear_tooltip");
     public static final IKey FILM_REPLAY_BAKE_IK_BAKE = L10n.lang("bbs.ui.film.replay.bake_ik.bake");
     public static final IKey FILM_REPLAY_BAKE_IK_CHAINS = L10n.lang("bbs.ui.film.replay.bake_ik.chains");
     public static final IKey FILM_REPLAY_BAKE_IK_DISABLE = L10n.lang("bbs.ui.film.replay.bake_ik.disable");
