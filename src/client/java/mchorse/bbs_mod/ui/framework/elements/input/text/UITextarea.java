@@ -1452,7 +1452,7 @@ public class UITextarea <T extends TextLine> extends UIElement implements IFocus
 
     protected void renderBackground(UIContext context)
     {
-        this.area.render(context.batcher, BBSSettings.inputSurface());
+        mchorse.bbs_mod.ui.utils.RoundedBoxes.fill(context.batcher, this.area, BBSSettings.inputSurface());
 
         if (this.focused)
         {
