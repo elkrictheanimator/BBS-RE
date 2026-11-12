@@ -247,6 +247,22 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
      */
     private void appendREControls()
     {
+        UICirculate theme = new UICirculate((b) ->
+        {
+            if (b.getValue() > 0)
+            {
+                BBSSettings.applyThemePreset(b.getValue() - 1);
+            }
+        });
+
+        theme.addLabel(IKey.constant("Bộ màu giao diện: giữ màu hiện tại"));
+        theme.addLabel(IKey.constant("Bộ màu: Mặc định RE"));
+        theme.addLabel(IKey.constant("Bộ màu: Blender tối"));
+        theme.addLabel(IKey.constant("Bộ màu: Blender sáng"));
+        theme.addLabel(IKey.constant("Bộ màu: Xanh đêm"));
+        theme.addLabel(IKey.constant("Bộ màu: Nâu ấm"));
+        theme.setValue(0);
+
         UICirculate backdrop = new UICirculate((b) -> BBSSettings.backdropStyle.set(b.getValue()));
 
         backdrop.addLabel(IKey.constant("Nền: Ánh sáng chuyển động"));
@@ -269,7 +285,7 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
         UIButton banner = new UIButton(IKey.constant("Chỉnh banner (ảnh, video, vị trí, màu)..."), (b) ->
             UIOverlay.addOverlay(b.getContext(), new UIBannerEditorPanel(UILandingScreen.defaultBannerAspect()), 280, 400));
 
-        this.options.add(backdrop, video, link, image, folder, banner);
+        this.options.add(theme, backdrop, video, link, image, folder, banner);
     }
 
     private void appendValues(ValueGroup category, boolean filtered)

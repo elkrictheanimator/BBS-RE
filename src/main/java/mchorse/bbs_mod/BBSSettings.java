@@ -319,6 +319,24 @@ public class BBSSettings {
 	private static int surfaceSource = -1;
 	private static boolean lightSurfaces;
 
+	/** Interface colour presets: {primary, secondary}; index 0 of the picker keeps whatever is set. */
+	public static final int[][] THEME_PRESETS = {
+		{DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR},
+		{0x4772b3, 0x303030},
+		{0x4772b3, 0xa0a0a0},
+		{0x3d8bff, 0x0f1626},
+		{0xe0a030, 0x221a14}
+	};
+
+	public static void applyThemePreset(int index)
+	{
+		if (index >= 0 && index < THEME_PRESETS.length)
+		{
+			primaryColor.set(THEME_PRESETS[index][0]);
+			secondaryColor.set(THEME_PRESETS[index][1]);
+		}
+	}
+
 	public static int primaryColor()
 	{
 		return primaryColor(Colors.A50);
