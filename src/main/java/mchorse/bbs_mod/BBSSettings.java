@@ -47,6 +47,8 @@ public class BBSSettings {
 	public static ValueLanguage language;
 	public static ValueInt primaryColor;
 	public static ValueBoolean blenderButtons;
+	public static ValueInt uiCornerRadius;
+	public static ValueBoolean uiHoverFade;
 	public static ValueInt bannerStyle;
 	public static ValueInt bannerColorStart;
 	public static ValueInt bannerColorEnd;
@@ -763,6 +765,8 @@ public class BBSSettings {
 		primaryColor = builder.getInt("primary_color", DEFAULT_PRIMARY_COLOR).color();
 		secondaryColor = builder.getInt("secondary_color", DEFAULT_SECONDARY_COLOR).color();
 		blenderButtons = builder.getBoolean("blender_buttons", false);
+		uiCornerRadius = builder.getInt("ui_corner_radius", 0, 0, 8);
+		uiHoverFade = builder.getBoolean("ui_hover_fade", false);
 		/* Edited from the pencil on the landing screen banner, not from the settings list */
 		bannerStyle = builder.getInt("banner_style", 0, 0, 4);
 		bannerColorStart = builder.getInt("banner_color_start", 0x1b2a4e);
