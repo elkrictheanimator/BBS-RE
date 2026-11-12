@@ -142,6 +142,10 @@ public class UIClipPickerMenu extends UIContextMenu
     private int height;
     private int columns;
     private int tileW;
+    private boolean dragging;
+    private int dragX;
+    private int dragY;
+
     private int[] tabX;
     private int[] tabW;
     private boolean hasBack;
@@ -444,6 +448,14 @@ public class UIClipPickerMenu extends UIContextMenu
 
         this.pressed = this.entryAt(context);
 
+        /* The empty part of the tab strip is a handle: drag it to move the popup out of the way */
+        if (this.pressed == null && tab < 0 && context.mouseY < this.area.y + TAB_H)
+        {
+            this.dragging = true;
+            this.dragX = context.mouseX - this.area.x;
+            this.dragY = context.mouseY - this.area.y;
+        }
+
         return true;
     }
 
@@ -452,6 +464,13 @@ public class UIClipPickerMenu extends UIContextMenu
     @Override
     public boolean subMouseReleased(UIContext context)
     {
+        if (this.dragging)
+        {
+            this.dragging = false;
+
+            return true;
+        }
+
         if (this.pressed != null)
         {
             Entry entry = this.pressed;
@@ -533,6 +552,12 @@ public class UIClipPickerMenu extends UIContextMenu
     @Override
     public void render(UIContext context)
     {
+        if (this.dragging)
+        {
+            this.xy(context.mouseX - this.dragX, context.mouseY - this.dragY).bounds(context.menu.overlay, 5);
+            this.resize();
+        }
+
         super.render(context);
 
         Batcher2D batcher = context.batcher;
