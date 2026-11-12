@@ -397,12 +397,12 @@ public class UIClips extends UITimelineCanvas
     private static final String[][] CLIP_GROUPS = {
         {"basic", "idle", "keyframe", "path", "dolly", "translate", "angle"},
         {"target", "look", "orbit", "orbit_path", "tracker", "dolly_zoom"},
-        {"procedural", "math", "curve", "follow_curve", "drag", "shake", "remapper"}
+        {"procedural", "math", "curve", "follow_curve", "drag", "shake", "procedural_shake", "remapper"}
     };
 
     private static final IKey[] CLIP_GROUP_TITLES = {UIKeys.CAMERA_PICKER_GROUP_BASIC, UIKeys.CAMERA_PICKER_GROUP_TARGET, UIKeys.CAMERA_PICKER_GROUP_PROCEDURAL};
     private static final String[] CLIP_MEDIA = {"audio", "subtitle", "image", "photo", "video"};
-    private static final String[] CLIP_IMPACT = {"impact"};
+    private static final String[] CLIP_IMPACT = {"impact", "letterbox", "transition"};
 
     private UIClipPickerMenu.Entry pickerEntry(Link key)
     {
