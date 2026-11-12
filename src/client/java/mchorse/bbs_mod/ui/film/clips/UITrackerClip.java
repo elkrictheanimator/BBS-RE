@@ -6,6 +6,7 @@ import mchorse.bbs_mod.camera.data.Angle;
 import mchorse.bbs_mod.camera.data.Point;
 import mchorse.bbs_mod.camera.data.Position;
 import mchorse.bbs_mod.forms.entities.IEntity;
+import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.film.IUIClipsDelegate;
 import mchorse.bbs_mod.ui.film.UIFilmPanel;
@@ -31,6 +32,8 @@ public class UITrackerClip extends UIClip<TrackerClientClip>
     public UIToggle lookAt;
     public UIToggle relative;
     public UIBitToggle active;
+    public UIToggle showHand;
+    public UIToggle showHud;
 
     public UITrackerClip(TrackerClientClip clip, IUIClipsDelegate editor)
     {
@@ -62,6 +65,8 @@ public class UITrackerClip extends UIClip<TrackerClientClip>
         this.fov.tooltip(UIKeys.CAMERA_PANELS_FOV);
         this.lookAt = this.toggle(UIKeys.CAMERA_PANELS_LOOK_AT, this.clip.lookAt);
         this.relative = this.toggle(UIKeys.CAMERA_PANELS_RELATIVE, this.clip.relative);
+        this.showHand = this.toggle(IKey.constant("Show first-person hand"), this.clip.showHand);
+        this.showHud = this.toggle(IKey.constant("Show HUD"), this.clip.showHud);
         this.active = this.bind(new UIBitToggle((value) -> this.clip.active.set(value)).all(), () -> this.active.setValue(this.clip.active.get()));
     }
 
@@ -77,6 +82,8 @@ public class UITrackerClip extends UIClip<TrackerClientClip>
         this.panels.add(this.fov);
         this.panels.add(this.lookAt);
         this.panels.add(this.relative);
+        this.panels.add(this.showHand);
+        this.panels.add(this.showHud);
         this.panels.add(this.active);
     }
 

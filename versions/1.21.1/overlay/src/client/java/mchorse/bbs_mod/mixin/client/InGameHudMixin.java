@@ -20,7 +20,7 @@ public class InGameHudMixin
     {
         ICameraController current = BBSModClient.getCameraController().getCurrent();
 
-        if (current instanceof PlayCameraController)
+        if (current instanceof PlayCameraController && !mchorse.bbs_mod.client.HandHudFlags.hud())
         {
             BBSRendering.onRenderBeforeScreen();
 

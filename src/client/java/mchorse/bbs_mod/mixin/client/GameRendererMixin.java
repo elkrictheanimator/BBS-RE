@@ -82,7 +82,7 @@ public class GameRendererMixin
     {
         ICameraController current = BBSModClient.getCameraController().getCurrent();
 
-        if (current instanceof PlayCameraController)
+        if (current instanceof PlayCameraController && !mchorse.bbs_mod.client.HandHudFlags.hand())
         {
             info.cancel();
         }

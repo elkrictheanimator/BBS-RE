@@ -17,6 +17,9 @@ public class TrackerClip extends EntityClip
     public final ValueString group = new ValueString("group", "");
     public final ValueBoolean lookAt = new ValueBoolean("look_at", false);
     public final ValueBoolean relative = new ValueBoolean("relative");
+    /** While this tracker is on, the first-person hand and the HUD are drawn instead of being hidden */
+    public final ValueBoolean showHand = new ValueBoolean("show_hand", false);
+    public final ValueBoolean showHud = new ValueBoolean("show_hud", false);
     public final ValueInt active = new ValueInt("active", 0b1111111, 0, 0b1111111);
 
     public TrackerClip()
@@ -29,6 +32,22 @@ public class TrackerClip extends EntityClip
         this.add(this.lookAt);
         this.add(this.relative);
         this.add(this.active);
+        this.add(this.showHand);
+        this.add(this.showHud);
+    }
+
+    @Override
+    public void apply(ClipContext context, Position position)
+    {
+        super.apply(context, position);
+
+        if (this.enabled.get() && (this.showHand.get() || this.showHud.get()))
+        {
+            boolean[] flags = context.clipData.get("handHud", () -> new boolean[2]);
+
+            flags[0] |= this.showHand.get();
+            flags[1] |= this.showHud.get();
+        }
     }
 
     @Override
