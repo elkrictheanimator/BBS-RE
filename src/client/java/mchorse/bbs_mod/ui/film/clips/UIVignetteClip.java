@@ -12,6 +12,7 @@ public class UIVignetteClip extends UIClip<VignetteClip>
     private UITrackpad strength;
     private UITrackpad size;
     private UIColor color;
+    private UITrackpad pulses;
 
     public UIVignetteClip(VignetteClip clip, IUIClipsDelegate editor)
     {
@@ -28,6 +29,8 @@ public class UIVignetteClip extends UIClip<VignetteClip>
         this.size = this.trackpad(this.clip.size);
         this.size.tooltip(IKey.constant("How far the vignette reaches into the frame"));
         this.color = this.color(this.clip.color);
+        this.pulses = this.trackpad(this.clip.pulses);
+        this.pulses.tooltip(IKey.constant("Heartbeat: pulses over the clip (0 = steady)"));
     }
 
     @Override
@@ -35,6 +38,6 @@ public class UIVignetteClip extends UIClip<VignetteClip>
     {
         super.registerPanels();
 
-        this.panels.add(this.section(UIKeys.C_CLIP.get("bbs:vignette"), this.strength, this.size, this.color));
+        this.panels.add(this.section(UIKeys.C_CLIP.get("bbs:vignette"), this.strength, this.size, this.color, this.pulses));
     }
 }

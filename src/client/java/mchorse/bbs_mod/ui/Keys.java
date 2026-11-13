@@ -32,6 +32,8 @@ public class Keys
     /* Camera editor */
     public static final KeyCombo ADD_AT_CURSOR = new KeyCombo("add_at_cursor", UIKeys.CAMERA_TIMELINE_CONTEXT_ADD_AT_CURSOR, GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("camera");
     public static final KeyCombo ADD_AT_TICK = new KeyCombo("add_at_tick", UIKeys.CAMERA_TIMELINE_CONTEXT_ADD_AT_TICK, GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT_ALT).categoryKey("camera");
+    public static final KeyCombo ADD_CAMERA_TAB = new KeyCombo("add_camera_tab", UIKeys.CAMERA_PICKER_OPEN_CAMERA, GLFW.GLFW_KEY_1, GLFW.GLFW_KEY_LEFT_ALT).categoryKey("camera");
+    public static final KeyCombo ADD_EFFECT_TAB = new KeyCombo("add_effect_tab", UIKeys.CAMERA_PICKER_OPEN_EFFECT, GLFW.GLFW_KEY_2, GLFW.GLFW_KEY_LEFT_ALT).categoryKey("camera");
     public static final KeyCombo ADD_ON_TOP = new KeyCombo("add_on_top", UIKeys.CAMERA_TIMELINE_CONTEXT_ADD_ON_TOP, GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT_SHIFT, GLFW.GLFW_KEY_LEFT_ALT).categoryKey("camera");
     public static final KeyCombo CLIP_CUT = new KeyCombo("clip_cut", UIKeys.CAMERA_TIMELINE_CONTEXT_CUT, GLFW.GLFW_KEY_C, GLFW.GLFW_KEY_LEFT_ALT).categoryKey("camera");
     public static final KeyCombo CLIP_DURATION = new KeyCombo("clip_duration", UIKeys.CAMERA_TIMELINE_CONTEXT_SHIFT_DURATION, GLFW.GLFW_KEY_M).categoryKey("camera");

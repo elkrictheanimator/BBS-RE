@@ -401,6 +401,20 @@ public class UIClipPickerMenu extends UIContextMenu
 
     /* Actions */
 
+    /** Open on the tab with this title (when it exists). */
+    public UIClipPickerMenu openOn(IKey title)
+    {
+        for (int i = 0; i < this.pages.size(); i++)
+        {
+            if (this.pages.get(i).title == title)
+            {
+                this.setPage(i);
+            }
+        }
+
+        return this;
+    }
+
     private void setPage(int page)
     {
         int count = this.pages.size();

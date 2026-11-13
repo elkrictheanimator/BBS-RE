@@ -227,6 +227,8 @@ public class UIKeys
     public static final IKey CAMERA_PICKER_TAB_CAMERA = L10n.lang("bbs.ui.camera.picker.tab.camera");
     public static final IKey CAMERA_PICKER_TAB_MEDIA = L10n.lang("bbs.ui.camera.picker.tab.media");
     public static final IKey CAMERA_PICKER_TAB_IMPACT = L10n.lang("bbs.ui.camera.picker.tab.impact");
+    public static final IKey CAMERA_PICKER_OPEN_CAMERA = L10n.lang("bbs.ui.camera.picker.open_camera");
+    public static final IKey CAMERA_PICKER_OPEN_EFFECT = L10n.lang("bbs.ui.camera.picker.open_effect");
     public static final IKey CAMERA_PICKER_GROUP_SCREEN = L10n.lang("bbs.ui.camera.picker.group.screen");
     public static final IKey CAMERA_PICKER_GROUP_CAMERA_FX = L10n.lang("bbs.ui.camera.picker.group.camera_fx");
     public static final IKey CAMERA_PICKER_TAB_OTHER = L10n.lang("bbs.ui.camera.picker.tab.other");
@@ -506,6 +508,9 @@ public class UIKeys
     public static final IKey FORMS_CATEGORIES_CONTEXT_EXPORT_MODEL_DESCRIPTION = L10n.lang("bbs.ui.forms.categories.context.export_model-description");
     public static final IKey FORMS_CATEGORIES_CONTEXT_EXPORT_MODEL_TITLE = L10n.lang("bbs.ui.forms.categories.context.export_model-title");
     public static final IKey FORMS_CATEGORIES_CONTEXT_OPEN_MODEL_EDITOR = L10n.lang("bbs.ui.forms.categories.context.open_model_editor");
+    public static final IKey FORMS_CATEGORIES_CONTEXT_SORT_AZ = L10n.lang("bbs.ui.forms.categories.context.sort_az");
+    public static final IKey FORMS_CATEGORIES_CONTEXT_SORT_ZA = L10n.lang("bbs.ui.forms.categories.context.sort_za");
+    public static final IKey FORMS_CATEGORIES_CONTEXT_SORT_TYPE = L10n.lang("bbs.ui.forms.categories.context.sort_type");
     public static final IKey FORMS_CATEGORIES_CONTEXT_OPEN_MODEL_FOLDER = L10n.lang("bbs.ui.forms.categories.context.open_model_form");
     public static final IKey FORMS_CATEGORIES_CONTEXT_PASTE_FORM = L10n.lang("bbs.ui.forms.categories.context.paste_form");
     public static final IKey FORMS_CATEGORIES_CONTEXT_REMOVE_ALL_FORM = L10n.lang("bbs.ui.forms.categories.context.remove_all_form");

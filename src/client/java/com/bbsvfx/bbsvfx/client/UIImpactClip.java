@@ -142,7 +142,7 @@ public class UIImpactClip extends UIClip<ImpactClip>
         this.keyframes.view.duration(() -> this.clip.duration.get());
         this.keyframes.setUndoId("impact_keyframes");
 
-        this.editKeyframes = new UIButton(IKey.constant("Edit keyframes"), (b) ->
+        this.editKeyframes = new UIButton(IKey.constant("Edit keyframes (all effect curves)"), (b) ->
         {
             this.bbsvfx$setupSheets();
             this.editor.embedView(this.keyframes);

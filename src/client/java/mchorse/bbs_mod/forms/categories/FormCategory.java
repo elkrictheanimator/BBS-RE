@@ -121,6 +121,19 @@ public class FormCategory implements IMapSerializable
         this.modCount += 1;
     }
 
+    /**
+     * Reorder the forms with a comparator (a stable sort, one pass). Views over the category
+     * notice through {@link #modCount}, so the grid is rebuilt once and then cached again.
+     */
+    public void sortForms(java.util.Comparator<Form> comparator)
+    {
+        if (this.forms.size() > 1)
+        {
+            this.forms.sort(comparator);
+            this.modCount += 1;
+        }
+    }
+
     public void removeForm(Form form)
     {
         if (this.forms.remove(form))

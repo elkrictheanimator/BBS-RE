@@ -10,6 +10,8 @@ import mchorse.bbs_mod.film.replays.Replay;
 import mchorse.bbs_mod.forms.forms.Form;
 import mchorse.bbs_mod.settings.values.base.BaseValue;
 import mchorse.bbs_mod.ui.UIKeys;
+import mchorse.bbs_mod.BBSSettings;
+import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.film.UIFilmPanel;
 import mchorse.bbs_mod.ui.forms.UINestedEdit;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
@@ -58,6 +60,7 @@ public class UIReplayPropertiesPanel extends UIElement
     public UIButton pickAxesPreviewBone;
 
     private UIToggle rigHandles;
+    private UIToggle motionPathToggle;
     private UIButton rigClear;
 
     private UIReplayList list;
@@ -168,6 +171,8 @@ public class UIReplayPropertiesPanel extends UIElement
             }
         });
 
+        this.motionPathToggle = this.bound(new UIToggle(UIKeys.FILM_CONTROLLER_MOTION_PATH_TITLE, (b) -> BBSSettings.editorMotionPath.enabled.set(b.getValue())), (r) -> this.motionPathToggle.setValue(BBSSettings.editorMotionPath.enabled.get()));
+        this.motionPathToggle.tooltip(IKey.constant("Draw the replay's motion path in the viewport (key M)"));
         this.rigHandles = this.bound(new UIToggle(UIKeys.FILM_REPLAY_RIG_HANDLES, (b) -> this.edit((replay) -> replay.axesPreview.set(b.getValue()))), (r) -> this.rigHandles.setValue(r.axesPreview.get()));
         this.rigClear = new UIButton(UIKeys.FILM_REPLAY_RIG_CLEAR, (b) -> this.edit((replay) ->
         {
@@ -195,7 +200,7 @@ public class UIReplayPropertiesPanel extends UIElement
         other.setExpanded(false);
 
         this.properties = UI.scrollView(UIConstants.MARGIN, UIConstants.SCROLL_PADDING,
-            this.pickEdit, this.rigHandles, this.rigClear, this.enabled, this.label, this.nameTag,
+            this.pickEdit, this.motionPathToggle, this.rigHandles, this.rigClear, this.enabled, this.label, this.nameTag,
             shadowSection,
             other
         );

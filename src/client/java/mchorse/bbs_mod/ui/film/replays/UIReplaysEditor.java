@@ -330,7 +330,14 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
 
         /* Everything at once is the view to open on: a category is a way to narrow down, and
          * narrowing before the animator has seen what there is hides tracks they came for. */
-        this.setAllTracks();
+        if (BBSSettings.replaysSeparateTabs.get())
+        {
+            this.setCategory(this.category);
+        }
+        else
+        {
+            this.setAllTracks();
+        }
 
         TrackCategories.registerShortcuts(this.keys(), () -> TrackCategories.values().stream()
             .filter(category -> this.tabButtons.get(category).getParent() != null).toList(), this::setCategory);

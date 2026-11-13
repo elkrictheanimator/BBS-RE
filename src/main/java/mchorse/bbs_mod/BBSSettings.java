@@ -49,6 +49,7 @@ public class BBSSettings {
 	public static ValueBoolean blenderButtons;
 	public static ValueInt uiCornerRadius;
 	public static ValueBoolean uiHoverFade;
+	public static ValueBoolean replaysSeparateTabs;
 	public static ValueInt bannerStyle;
 	public static ValueInt bannerColorStart;
 	public static ValueInt bannerColorEnd;
@@ -779,6 +780,7 @@ public class BBSSettings {
 		blenderButtons = builder.getBoolean("blender_buttons", false);
 		uiCornerRadius = builder.getInt("ui_corner_radius", 0, 0, 8);
 		uiHoverFade = builder.getBoolean("ui_hover_fade", false);
+		replaysSeparateTabs = builder.getBoolean("replays_separate_tabs", true);
 		/* Edited from the pencil on the landing screen banner, not from the settings list */
 		bannerStyle = builder.getInt("banner_style", 0, 0, 4);
 		bannerColorStart = builder.getInt("banner_color_start", 0x1b2a4e);

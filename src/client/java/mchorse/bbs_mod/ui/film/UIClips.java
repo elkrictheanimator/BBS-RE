@@ -181,6 +181,8 @@ public class UIClips extends UITimelineCanvas
         this.keys().register(Keys.ADD_ON_TOP, this::showAddsOnTop).category(KEYS_CATEGORY).active(canUseKeybindsSelected);
         this.keys().register(Keys.ADD_AT_CURSOR, this::showAddsAtCursor).category(KEYS_CATEGORY).active(canUseKeybinds);
         this.keys().register(Keys.ADD_AT_TICK, this::showAddsAtTick).category(KEYS_CATEGORY).active(canUseKeybinds);
+        this.keys().register(Keys.ADD_CAMERA_TAB, () -> this.showAddsOnTab(UIKeys.CAMERA_PICKER_TAB_CAMERA)).category(KEYS_CATEGORY).active(canUseKeybinds);
+        this.keys().register(Keys.ADD_EFFECT_TAB, () -> this.showAddsOnTab(UIKeys.CAMERA_PICKER_TAB_IMPACT)).category(KEYS_CATEGORY).active(canUseKeybinds);
         this.keys().register(Keys.COPY, () ->
         {
             if (this.copyPasteController.copy()) UIUtils.playClick();
@@ -293,6 +295,18 @@ public class UIClips extends UITimelineCanvas
         this.showAddClips(context, this.checkSize(this.fromGraphTick(mouseX), this.fromLayerY(mouseY), BBSSettings.getDefaultDuration()));
     }
 
+    private IKey openTab;
+
+    /** Add-clip popup at the cursor tick, opened straight on a tab (camera / effect). */
+    private void showAddsOnTab(IKey tab)
+    {
+        UIContext context = this.getContext();
+
+        this.openTab = tab;
+        this.showAddsAtTick(context, context.mouseX, context.mouseY);
+        this.openTab = null;
+    }
+
     private void showAddsAtTick()
     {
         UIContext context = this.getContext();
@@ -384,6 +398,11 @@ public class UIClips extends UITimelineCanvas
             UIClipPickerMenu menu = new UIClipPickerMenu(pages, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
 
             menu.getEvents().register(UIRemovedEvent.class, (e) -> this.addPreview = null);
+            if (this.openTab != null)
+            {
+                menu.openOn(this.openTab);
+            }
+
             context.replaceContextMenu(menu);
         }
 
@@ -403,7 +422,7 @@ public class UIClips extends UITimelineCanvas
     private static final IKey[] CLIP_GROUP_TITLES = {UIKeys.CAMERA_PICKER_GROUP_BASIC, UIKeys.CAMERA_PICKER_GROUP_TARGET, UIKeys.CAMERA_PICKER_GROUP_PROCEDURAL};
     private static final String[] CLIP_MEDIA = {"audio", "subtitle", "image", "photo", "video"};
     private static final String[] CLIP_IMPACT = {"impact", "letterbox", "transition"};
-    private static final String[] CLIP_CAMERA_FX = {"blink", "vignette"};
+    private static final String[] CLIP_CAMERA_FX = {"blink", "vignette", "punch", "screen_fx"};
 
     private UIClipPickerMenu.Entry pickerEntry(Link key)
     {

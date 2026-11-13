@@ -54,6 +54,61 @@ public class UIFrameBarsRenderer
                 continue;
             }
 
+            if (bar.kind == 3)
+            {
+                /* CRT scanlines: every other thin band */
+                if (Colors.getA(bar.color) > 0F)
+                {
+                    float band = Math.max(1.5F, height / (60F + 200F * (1F - bar.soft)));
+
+                    for (float y = 0; y < height; y += band * 2F)
+                    {
+                        batcher.box(0, y, width, Math.min(height, y + band), bar.color);
+                    }
+                }
+
+                continue;
+            }
+
+            if (bar.kind == 4)
+            {
+                if (Colors.getA(bar.color) > 0F)
+                {
+                    float t = Math.min(width, height) * 0.2F * bar.soft;
+
+                    batcher.box(0, 0, width, t, bar.color);
+                    batcher.box(0, height - t, width, height, bar.color);
+                    batcher.box(0, t, t, height - t, bar.color);
+                    batcher.box(width - t, t, width, height - t, bar.color);
+                }
+
+                continue;
+            }
+
+            if (bar.kind == 5)
+            {
+                if (Colors.getA(bar.color) > 0F)
+                {
+                    int rnd = bar.seed * 2654435 + 12345;
+                    int bars = 3 + (int) (bar.soft * 9F);
+
+                    for (int i = 0; i < bars; i++)
+                    {
+                        rnd = rnd * 1103515245 + 12345;
+                        float y = ((rnd >>> 8) & 1023) / 1023F * height;
+                        rnd = rnd * 1103515245 + 12345;
+                        float h = (0.004F + ((rnd >>> 8) & 255) / 255F * 0.05F) * height;
+                        rnd = rnd * 1103515245 + 12345;
+                        float x = ((rnd >>> 8) & 255) / 255F * width * 0.5F;
+                        float w = width * (0.3F + ((rnd >>> 16) & 255) / 255F * 0.7F);
+
+                        batcher.box(x, y, Math.min(width, x + w), Math.min(height, y + h), bar.color);
+                    }
+                }
+
+                continue;
+            }
+
             if (bar.kind == 2)
             {
                 if (Colors.getA(bar.color) > 0F)
