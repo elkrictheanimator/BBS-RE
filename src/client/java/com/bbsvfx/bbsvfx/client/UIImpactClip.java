@@ -534,7 +534,8 @@ public class UIImpactClip extends UIClip<ImpactClip>
     private static final List<String> PRESET_NAMES = Arrays.asList(
         "Charcoal Slam (B&W)", "Color Swap (aura)", "Manga Speed Lines", "Spider-Verse Pop", "White Flash Hit",
         "Slash Cut (diagonals)", "Negative Invert", "Shockwave Ring", "Red Ink Burst", "Radial Speed Lines",
-        "Glitch Chroma", "Debris Shatter", "Cyber Neon", "Sepia Hit", "Heavy Blackout");
+        "Glitch Chroma", "Debris Shatter", "Cyber Neon", "Sepia Hit", "Heavy Blackout",
+        "Anime X Slash", "Pulse Zoom", "Impact Star", "Ink Silhouette (white)", "Golden Ring");
 
     /* Sheet colours for the keyframe channels (ARGB), cycled. */
     private static final int[] KF_COLORS = {
@@ -896,6 +897,59 @@ public class UIImpactClip extends UIClip<ImpactClip>
                 this.clip.flashStar.set(1F);
                 this.clip.flashStarColor.set(0xFFFFFF);
                 this.clip.flashStarSize.set(0.45F);
+            }
+            case 15 -> /* Anime X Slash: two diagonals cross the frame */
+            {
+                this.clip.cut.set(1F);
+                this.clip.cutCount.set(2F);
+                this.clip.cutAngle.set(45F);
+                this.clip.cutAngleStep.set(90F);
+                this.clip.cutOffsetStep.set(0.02F);
+                this.clip.cutShift.set(0.06F);
+                this.clip.cutWidth.set(0.008F);
+                this.clip.cutColor.set(0xFFFFFF);
+                this.clip.invert.set(0.4F);
+                this.clip.flash.set(0.5F);
+            }
+            case 16 -> /* Pulse Zoom: a quick punch-in with a soft split */
+            {
+                this.clip.zoomBlur.set(0.6F);
+                this.clip.blurMode.set(0);
+                this.clip.flashStar.set(0.4F);
+                this.clip.flashStarColor.set(0xFFFFFF);
+                this.clip.chroma.set(0.3F);
+            }
+            case 17 -> /* Impact Star: a big star flash on the point of contact */
+            {
+                this.clip.centerStar.set(1F);
+                this.clip.flashStar.set(1F);
+                this.clip.flashStarColor.set(0xFFFFFF);
+                this.clip.flashStarSize.set(0.4F);
+                this.clip.flash.set(0.6F);
+                this.clip.zoomBlur.set(0.3F);
+                this.clip.blurMode.set(0);
+            }
+            case 18 -> /* Ink Silhouette: black figure on white with a black burst */
+            {
+                this.clip.silhouette.set(1F);
+                this.clip.silColor.set(0x000000);
+                this.clip.bgColor.set(0xFFFFFF);
+                this.clip.inkBurst.set(0.6F);
+                this.clip.inkColor.set(0x000000);
+                this.clip.inkRadius.set(0.7F);
+                this.clip.inkSpikes.set(18F);
+                this.clip.inkRough.set(0.5F);
+            }
+            case 19 -> /* Golden Ring: a gold shockwave with a warm star */
+            {
+                this.clip.shockwave.set(1F);
+                this.clip.shockwaveProgress.set(0.35F);
+                this.clip.shockwaveRadius.set(0.5F);
+                this.clip.shockwaveWidth.set(0.04F);
+                this.clip.shockwaveColor.set(0xFFE070);
+                this.clip.flashStar.set(0.5F);
+                this.clip.flashStarColor.set(0xFFE070);
+                this.clip.flash.set(0.3F);
             }
         }
 

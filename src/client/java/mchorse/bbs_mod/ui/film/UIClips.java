@@ -399,7 +399,7 @@ public class UIClips extends UITimelineCanvas
     }
 
     /* The "add clip" popup: the camera clips by what they are for (basic ones, ones that follow a
-     * target, procedural ones), then Media and Impact tabs, and an "Other" tab for anything an addon
+     * target, procedural ones), then Media and Effect tabs, and an "Other" tab for anything an addon
      * adds. Clips are matched by name, the order here is the order on screen. An action-clip timeline
      * has none of these names, so it keeps the plain flat list (no pages: null). */
     private static final String[][] CLIP_GROUPS = {
@@ -411,6 +411,7 @@ public class UIClips extends UITimelineCanvas
     private static final IKey[] CLIP_GROUP_TITLES = {UIKeys.CAMERA_PICKER_GROUP_BASIC, UIKeys.CAMERA_PICKER_GROUP_TARGET, UIKeys.CAMERA_PICKER_GROUP_PROCEDURAL};
     private static final String[] CLIP_MEDIA = {"audio", "subtitle", "image", "photo", "video"};
     private static final String[] CLIP_IMPACT = {"impact", "letterbox", "transition"};
+    private static final String[] CLIP_CAMERA_FX = {"blink", "vignette"};
 
     private UIClipPickerMenu.Entry pickerEntry(Link key)
     {
@@ -447,7 +448,8 @@ public class UIClips extends UITimelineCanvas
         }
 
         this.fillPickerGroup(media.group(null), keys, left, CLIP_MEDIA, 0);
-        this.fillPickerGroup(impact.group(null), keys, left, CLIP_IMPACT, 0);
+        this.fillPickerGroup(impact.group(UIKeys.CAMERA_PICKER_GROUP_SCREEN), keys, left, CLIP_IMPACT, 0);
+        this.fillPickerGroup(impact.group(UIKeys.CAMERA_PICKER_GROUP_CAMERA_FX), keys, left, CLIP_CAMERA_FX, 0);
 
         if (camera.isEmpty() && media.isEmpty() && impact.isEmpty())
         {

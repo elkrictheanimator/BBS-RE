@@ -35,6 +35,42 @@ public class UIFrameBarsRenderer
 
         for (FrameBars bar : bars)
         {
+            if (bar.kind == 1)
+            {
+                /* Eyelids: two lids meet in the middle; a soft gradient edge */
+                float lid = height / 2F * bar.factor;
+                float soft = Math.min(lid, height * 0.15F * bar.soft);
+                int clear = bar.color & Colors.RGB;
+
+                batcher.box(0, 0, width, lid - soft, bar.color);
+                batcher.box(0, height - lid + soft, width, height, bar.color);
+
+                if (soft > 0.5F)
+                {
+                    batcher.gradientVBox(0, lid - soft, width, lid, bar.color, clear);
+                    batcher.gradientVBox(0, height - lid, width, height - lid + soft, clear, bar.color);
+                }
+
+                continue;
+            }
+
+            if (bar.kind == 2)
+            {
+                if (Colors.getA(bar.color) > 0F)
+                {
+                    float edgeY = height * bar.soft;
+                    float edgeX = Math.min(width, height) * bar.soft;
+                    int clear = bar.color & Colors.RGB;
+
+                    batcher.gradientVBox(0, 0, width, edgeY, bar.color, clear);
+                    batcher.gradientVBox(0, height - edgeY, width, height, clear, bar.color);
+                    batcher.gradientHBox(0, 0, edgeX, height, bar.color, clear);
+                    batcher.gradientHBox(width - edgeX, 0, width, height, clear, bar.color);
+                }
+
+                continue;
+            }
+
             if (bar.ratio <= 0F)
             {
                 if (Colors.getA(bar.color) > 0F)

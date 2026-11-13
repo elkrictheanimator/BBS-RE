@@ -30,9 +30,11 @@ import mchorse.bbs_mod.camera.clips.misc.AudioClip;
 import mchorse.bbs_mod.camera.clips.misc.CurveClip;
 import mchorse.bbs_mod.camera.clips.misc.ImageClip;
 import mchorse.bbs_mod.camera.clips.misc.PhotoClip;
+import mchorse.bbs_mod.camera.clips.misc.BlinkClip;
 import mchorse.bbs_mod.camera.clips.misc.LetterboxClip;
 import mchorse.bbs_mod.camera.clips.misc.SubtitleClip;
 import mchorse.bbs_mod.camera.clips.misc.TransitionClip;
+import mchorse.bbs_mod.camera.clips.misc.VignetteClip;
 import mchorse.bbs_mod.camera.clips.modifiers.CraneClip;
 import mchorse.bbs_mod.camera.clips.modifiers.OrbitTrackClip;
 import mchorse.bbs_mod.camera.clips.modifiers.ProceduralShakeClip;
@@ -488,7 +490,9 @@ public class BBSMod implements ModInitializer
             .register(Link.bbs("orbit_track"), OrbitTrackClip.class, new ClipFactoryData(Icons.GLOBE, 0x2288dd))
             .register(Link.bbs("crane"), CraneClip.class, new ClipFactoryData(Icons.UPLOAD, 0x2288dd))
             .register(Link.bbs("letterbox"), LetterboxClip.class, new ClipFactoryData(Icons.FULLSCREEN, 0x333333))
-            .register(Link.bbs("transition"), TransitionClip.class, new ClipFactoryData(Icons.FADING, 0x777777));
+            .register(Link.bbs("transition"), TransitionClip.class, new ClipFactoryData(Icons.FADING, 0x777777))
+            .register(Link.bbs("blink"), BlinkClip.class, new ClipFactoryData(Icons.VISIBLE, 0x222222))
+            .register(Link.bbs("vignette"), VignetteClip.class, new ClipFactoryData(Icons.CIRCLE, 0x444444));
 
         events.post(new RegisterCameraClipsEvent(factoryCameraClips));
 
