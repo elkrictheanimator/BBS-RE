@@ -33,6 +33,8 @@ import mchorse.bbs_mod.camera.clips.misc.PhotoClip;
 import mchorse.bbs_mod.camera.clips.misc.LetterboxClip;
 import mchorse.bbs_mod.camera.clips.misc.SubtitleClip;
 import mchorse.bbs_mod.camera.clips.misc.TransitionClip;
+import mchorse.bbs_mod.camera.clips.modifiers.CraneClip;
+import mchorse.bbs_mod.camera.clips.modifiers.OrbitTrackClip;
 import mchorse.bbs_mod.camera.clips.modifiers.ProceduralShakeClip;
 import mchorse.bbs_mod.camera.clips.misc.VideoClip;
 import mchorse.bbs_mod.camera.clips.modifiers.AngleClip;
@@ -483,6 +485,8 @@ public class BBSMod implements ModInitializer
             .register(Link.bbs("tracker"), TrackerClip.class, new ClipFactoryData(Icons.USER, 0xffffff))
             .register(Link.bbs("dolly_zoom"), DollyZoomClip.class, new ClipFactoryData(Icons.FILTER, 0x7d56c9))
             .register(Link.bbs("procedural_shake"), ProceduralShakeClip.class, new ClipFactoryData(Icons.EXCHANGE, 0x15b574))
+            .register(Link.bbs("orbit_track"), OrbitTrackClip.class, new ClipFactoryData(Icons.GLOBE, 0x2288dd))
+            .register(Link.bbs("crane"), CraneClip.class, new ClipFactoryData(Icons.UPLOAD, 0x2288dd))
             .register(Link.bbs("letterbox"), LetterboxClip.class, new ClipFactoryData(Icons.FULLSCREEN, 0x333333))
             .register(Link.bbs("transition"), TransitionClip.class, new ClipFactoryData(Icons.FADING, 0x777777));
 

@@ -139,6 +139,8 @@ public abstract class UIClip <T extends Clip> extends UIElement
         register(CurveClientClip.class, UICurveClip::new);
         register(DollyZoomClip.class, UIDollyZoomClip::new);
         register(mchorse.bbs_mod.camera.clips.modifiers.ProceduralShakeClip.class, UIProceduralShakeClip::new);
+        register(mchorse.bbs_mod.camera.clips.modifiers.OrbitTrackClip.class, UIOrbitTrackClip::new);
+        register(mchorse.bbs_mod.camera.clips.modifiers.CraneClip.class, UICraneClip::new);
         register(mchorse.bbs_mod.camera.clips.misc.LetterboxClip.class, UILetterboxClip::new);
         register(mchorse.bbs_mod.camera.clips.misc.TransitionClip.class, UITransitionClip::new);
 
