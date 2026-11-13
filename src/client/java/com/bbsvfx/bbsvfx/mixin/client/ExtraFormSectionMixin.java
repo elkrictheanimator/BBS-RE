@@ -30,11 +30,6 @@ public abstract class ExtraFormSectionMixin
     @Inject(method = "initiate", at = @At("TAIL"))
     private void bbsvfx$addForms(CallbackInfo ci)
     {
-        this.getCategories().get(0).addForm(new CurveForm());
-        this.getCategories().get(0).addForm(new DestructionBoxForm());
-        this.getCategories().get(0).addForm(new ExplosionForm());
-        this.getCategories().get(0).addForm(new BeamForm());
-        this.getCategories().get(0).addForm(new DomeForm());
-        this.getCategories().get(0).addForm(new WindForm());
+        /* The forms live in their own "BBS FX" category now, built in ExtraFormSection#initiate */
     }
 }

@@ -177,6 +177,7 @@ public class BBSSettings {
 	public static ValueBoolean editorRuleOfThirds;
 	public static ValueBoolean editorCenterLines;
 	public static ValueBoolean editorGoldenRatio;
+	public static ValueInt drawPathStep;
 	public static ValueBoolean editorDiagonals;
 	public static ValueBoolean editorSafeAreas;
 	public static ValueBoolean editorCrosshair;
@@ -903,6 +904,7 @@ public class BBSSettings {
 		editorRuleOfThirds = builder.getBoolean("rule_of_thirds", false);
 		editorCenterLines = builder.getBoolean("center_lines", false);
 		editorGoldenRatio = builder.getBoolean("golden_ratio", false);
+		drawPathStep = builder.getInt("draw_path_step", 10, 1, 200);
 		editorDiagonals = builder.getBoolean("diagonals", false);
 		editorSafeAreas = builder.getBoolean("safe_areas", false);
 		editorCrosshair = builder.getBoolean("crosshair", false);

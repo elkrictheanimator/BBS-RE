@@ -690,6 +690,7 @@ public class BBSModClient implements ClientModInitializer
         BBSMod.events.post(new RegisterFrameOverlaysEvent());
 
         BBSMod.events.post(new RegisterPreviewOverlaysEvent());
+        mchorse.bbs_mod.ui.film.controller.UIFilmController.registerTool(mchorse.bbs_mod.ui.film.controller.DrawPathTool::new);
         BBSMod.events.post(new RegisterFilmToolsEvent());
 
         /* Keybinds */

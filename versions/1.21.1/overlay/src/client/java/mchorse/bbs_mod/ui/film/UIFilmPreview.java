@@ -75,6 +75,7 @@ public class UIFilmPreview extends UIElement
 
     public UIIcon onionSkin;
     public UIIcon motionPath;
+    public UIIcon drawPath;
     public UIIcon plause;
     public UIIcon teleport;
     public UIIcon flight;
@@ -111,6 +112,9 @@ public class UIFilmPreview extends UIElement
         this.motionPath = new UIIcon(Icons.CURVES, (b) -> this.openMotionPath());
         this.motionPath.highlight(() -> this.panel.getController().getMotionPath().enabled.get(), Direction.BOTTOM);
         this.motionPath.tooltip(UIKeys.FILM_CONTROLLER_MOTION_PATH_TITLE);
+        this.drawPath = new UIIcon(Icons.EDIT, (b) -> mchorse.bbs_mod.ui.film.controller.DrawPathTool.toggle());
+        this.drawPath.highlight(mchorse.bbs_mod.ui.film.controller.DrawPathTool::isActive, Direction.BOTTOM);
+        this.drawPath.tooltip(mchorse.bbs_mod.l10n.keys.IKey.constant("Draw path: click blocks in the viewport to drop position keyframes for the selected replay (right click / Esc to stop)"));
         this.plause = new UIIcon(() -> this.panel.isRunning() ? Icons.PAUSE : Icons.PLAY, (b) -> this.panel.togglePlayback());
         this.plause.tooltip(UIKeys.CAMERA_EDITOR_KEYS_EDITOR_PLAUSE);
         this.plause.context((menu) ->
@@ -261,7 +265,7 @@ public class UIFilmPreview extends UIElement
             });
         });
 
-        this.icons.add(this.onionSkin, this.motionPath, this.teleport, this.flight, this.plause, this.control, this.perspective, this.recordReplay, this.recordVideo);
+        this.icons.add(this.onionSkin, this.motionPath, this.drawPath, this.teleport, this.flight, this.plause, this.control, this.perspective, this.recordReplay, this.recordVideo);
         this.add(this.icons);
 
         for (Function<UIFilmPreview, UIElement> factory : OVERLAYS)

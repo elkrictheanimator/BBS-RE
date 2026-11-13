@@ -86,7 +86,17 @@ public class ExtraFormSection extends FormSection
         this.fillMobs(this.mobsHostile, mobHostileIds);
         this.fillMobs(this.mobsMisc, mobMiscIds);
 
-        this.categories = Arrays.asList(this.extra, this.mobsAnimals, this.mobsNeutral, this.mobsHostile, this.mobsMisc);
+        /* BBS FX forms get a category of their own, right under "extra", so they are easy to find */
+        FormCategory fx = new FormCategory(mchorse.bbs_mod.l10n.keys.IKey.constant("BBS FX"), this.parent.preferences.visible("bbs_fx")).icon(Icons.FOUR_STAR);
+
+        fx.addForm(new com.bbsvfx.bbsvfx.forms.ExplosionForm());
+        fx.addForm(new com.bbsvfx.bbsvfx.forms.BeamForm());
+        fx.addForm(new com.bbsvfx.bbsvfx.forms.DomeForm());
+        fx.addForm(new com.bbsvfx.bbsvfx.forms.WindForm());
+        fx.addForm(new com.bbsvfx.bbsvfx.forms.DestructionBoxForm());
+        fx.addForm(new com.bbsvfx.bbsvfx.forms.CurveForm());
+
+        this.categories = Arrays.asList(this.extra, fx, this.mobsAnimals, this.mobsNeutral, this.mobsHostile, this.mobsMisc);
     }
 
     private void fillMobs(FormCategory category, List<String> ids)

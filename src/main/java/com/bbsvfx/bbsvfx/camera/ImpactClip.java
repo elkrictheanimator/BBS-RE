@@ -301,6 +301,74 @@ public class ImpactClip extends CameraClip
         this.kfNames.add(name);
     }
 
+    /**
+     * Write every non-zero slider into its keyframe channel (a key at the start and one at the end)
+     * so each effect shows up in the keyframe editor, ready to be shaped. Channels that already
+     * have keys are left alone, and the picture does not change: a flat channel equals its slider.
+     */
+    public void bakeKeyframes()
+    {
+        float end = Math.max(1, this.duration.get());
+
+        this.bakeOne(this.silhouetteKf, this.silhouette.get(), end);
+        this.bakeOne(this.silStrokesKf, this.silStrokes.get(), end);
+        this.bakeOne(this.inkBurstKf, this.inkBurst.get(), end);
+        this.bakeOne(this.shockwaveKf, this.shockwave.get(), end);
+        this.bakeOne(this.shockwaveProgressKf, this.shockwaveProgress.get(), end);
+        this.bakeOne(this.flashStarKf, this.flashStar.get(), end);
+        this.bakeOne(this.focusXKf, this.focusX.get(), end);
+        this.bakeOne(this.focusYKf, this.focusY.get(), end);
+        this.bakeOne(this.invertKf, this.invert.get(), end);
+        this.bakeOne(this.flashKf, this.flash.get(), end);
+        this.bakeOne(this.grayscaleKf, this.grayscale.get(), end);
+        this.bakeOne(this.thresholdKf, this.threshold.get(), end);
+        this.bakeOne(this.chromaKf, this.chroma.get(), end);
+        this.bakeOne(this.zoomBlurKf, this.zoomBlur.get(), end);
+        this.bakeOne(this.cutKf, this.cut.get(), end);
+        this.bakeOne(this.cutAngleKf, this.cutAngle.get(), end);
+        this.bakeOne(this.cutOffsetKf, this.cutOffset.get(), end);
+        this.bakeOne(this.cutShiftKf, this.cutShift.get(), end);
+        this.bakeOne(this.cutWidthKf, this.cutWidth.get(), end);
+        this.bakeOne(this.zoomLinesKf, this.zoomLines.get(), end);
+        this.bakeOne(this.shapesKf, this.shapes.get(), end);
+        this.bakeOne(this.centerStarKf, this.centerStar.get(), end);
+        this.bakeOne(this.centerCircleKf, this.centerCircle.get(), end);
+        this.bakeOne(this.silStrokeAngleKf, this.silStrokeAngle.get(), end);
+        this.bakeOne(this.silStrokeLengthKf, this.silStrokeLength.get(), end);
+        this.bakeOne(this.silStrokeScaleKf, this.silStrokeScale.get(), end);
+        this.bakeOne(this.silStrokeRoughKf, this.silStrokeRough.get(), end);
+        this.bakeOne(this.inkRadiusKf, this.inkRadius.get(), end);
+        this.bakeOne(this.inkInnerKf, this.inkInner.get(), end);
+        this.bakeOne(this.inkSpikesKf, this.inkSpikes.get(), end);
+        this.bakeOne(this.inkRoughKf, this.inkRough.get(), end);
+        this.bakeOne(this.inkSeedKf, this.inkSeed.get(), end);
+        this.bakeOne(this.shockwaveRadiusKf, this.shockwaveRadius.get(), end);
+        this.bakeOne(this.shockwaveWidthKf, this.shockwaveWidth.get(), end);
+        this.bakeOne(this.flashStarSizeKf, this.flashStarSize.get(), end);
+        this.bakeOne(this.flashStarWidthKf, this.flashStarWidth.get(), end);
+        this.bakeOne(this.flashStarGlowKf, this.flashStarGlow.get(), end);
+        this.bakeOne(this.flashStarRotationKf, this.flashStarRotation.get(), end);
+        this.bakeOne(this.thresholdLevelKf, this.thresholdLevel.get(), end);
+        this.bakeOne(this.thresholdSoftKf, this.thresholdSoft.get(), end);
+        this.bakeOne(this.linesCountKf, this.linesCount.get(), end);
+        this.bakeOne(this.linesThicknessKf, this.linesThickness.get(), end);
+        this.bakeOne(this.linesInnerKf, this.linesInner.get(), end);
+        this.bakeOne(this.linesSeedKf, this.linesSeed.get(), end);
+        this.bakeOne(this.shapesCountKf, this.shapesCount.get(), end);
+        this.bakeOne(this.shapesSizeKf, this.shapesSize.get(), end);
+        this.bakeOne(this.shapesSpreadKf, this.shapesSpread.get(), end);
+        this.bakeOne(this.shapesDelayKf, this.shapesDelay.get(), end);
+    }
+
+    private void bakeOne(KeyframeChannel<Double> channel, float value, float end)
+    {
+        if (channel.isEmpty() && Math.abs(value) > 1.0E-6F)
+        {
+            channel.insert(0F, (double) value);
+            channel.insert(end, (double) value);
+        }
+    }
+
     /** Hybrid read: the channel value at t when it has keyframes, otherwise the slider's static value. */
     private float kf(KeyframeChannel<Double> channel, ValueFloat slider, float t)
     {

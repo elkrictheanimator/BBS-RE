@@ -94,6 +94,7 @@ public class UIImpactClip extends UIClip<ImpactClip>
     public UIButton preset;
     public UIKeyframeEditor keyframes;
     public UIButton editKeyframes;
+    public UIButton bakeKeyframes;
     public UIButton target;
     public UIButton palette;
     public UITrackpad silStrokes;
@@ -149,6 +150,12 @@ public class UIImpactClip extends UIClip<ImpactClip>
             this.keyframes.view.resetView();
             this.keyframes.view.getGraph().clearSelection();
         });
+        this.bakeKeyframes = new UIButton(IKey.constant("Bake sliders → keyframes"), (b) ->
+        {
+            this.clip.bakeKeyframes();
+            this.bbsvfx$setupSheets();
+        });
+        this.bakeKeyframes.tooltip(IKey.constant("Turn every active slider into editable keyframes (start and end of the clip), without changing the look"));
         this.editKeyframes.keys().register(Keys.FORMS_EDIT, () -> this.editKeyframes.clickItself());
         this.editKeyframes.tooltip(IKey.constant("Animate the impact parameters over the clip (a keyframed channel overrides its slider)"));
 
@@ -361,7 +368,7 @@ public class UIImpactClip extends UIClip<ImpactClip>
         super.registerPanels();
 
         this.panels.add(this.preset.marginTop(UIConstants.SECTION_GAP));
-        this.panels.add(BbsVfxUI.section(IKey.constant("Keyframes"), this.editKeyframes));
+        this.panels.add(BbsVfxUI.section(IKey.constant("Keyframes"), this.editKeyframes, this.bakeKeyframes));
 
         this.panels.add(BbsVfxUI.section(
             IKey.constant("Silhouette / negative space"),
@@ -652,6 +659,12 @@ public class UIImpactClip extends UIClip<ImpactClip>
 
     private void bbsvfx$applyPreset(int p)
     {
+        /* Old keyframes would override the preset's sliders, so start from a clean slate */
+        for (var channel : this.clip.kfChannels)
+        {
+            channel.removeAll();
+        }
+
         this.bbsvfx$zeroAll();
 
         switch (p)
@@ -952,6 +965,10 @@ public class UIImpactClip extends UIClip<ImpactClip>
                 this.clip.flash.set(0.3F);
             }
         }
+
+        /* Every effect of the preset becomes visible keyframes in the keyframe editor */
+        this.clip.bakeKeyframes();
+        this.bbsvfx$setupSheets();
 
         this.preset.label = IKey.constant("Preset: " + PRESET_NAMES.get(p));
         this.fillData();

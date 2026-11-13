@@ -26,6 +26,8 @@
     "bbs.config.personalization.blender_buttons-comment": "Nút dùng màu xám trung tính như Blender, chỉ hiện màu chính khi đang bấm",
     "bbs.config.personalization.ui_corner_radius": "Bo góc giao diện",
     "bbs.config.personalization.ui_corner_radius-comment": "Bán kính bo góc của nút (px); 0 là giữ kiểu vuông",
+    "bbs.config.viewport.draw_path_step": "Vẽ đường đi: tick mỗi điểm",
+    "bbs.config.viewport.draw_path_step-comment": "Mỗi lần click một điểm bằng công cụ Vẽ đường đi, con trỏ timeline tiến lên bấy nhiêu tick",
     "bbs.config.personalization.replays_separate_tabs": "Editor replay: tab tách riêng",
     "bbs.config.personalization.replays_separate_tabs-comment": "Mở editor keyframe của replay ở các tab Replay / Form / Pose riêng, thay vì gộp hết trong All tracks",
     "bbs.config.personalization.ui_hover_fade": "Hover mượt",

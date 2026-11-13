@@ -167,6 +167,8 @@
 	"bbs.config.personalization.blender_buttons-comment": "Buttons use a neutral surface like Blender and only show the accent colour while pressed",
 	"bbs.config.personalization.ui_corner_radius": "Rounded corners",
 	"bbs.config.personalization.ui_corner_radius-comment": "Corner radius of buttons in pixels; 0 keeps the square look",
+	"bbs.config.viewport.draw_path_step": "Draw path: ticks per point",
+	"bbs.config.viewport.draw_path_step-comment": "How many ticks the cursor moves forward after each point you click with the Draw path tool",
 	"bbs.config.personalization.replays_separate_tabs": "Replay editor: separate tabs",
 	"bbs.config.personalization.replays_separate_tabs-comment": "Open the replay keyframe editor on its own Replay / Form / Pose tabs instead of everything merged in All tracks",
 	"bbs.config.personalization.ui_hover_fade": "Smooth hover",
