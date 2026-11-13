@@ -19,16 +19,31 @@ public class RoundedBoxes
 
         batcher.box(x1, y1 + radius, x2, y2 - radius, color);
 
-        for (int i = 0; i < radius; i++)
+        /* Rows of a corner that share an inset are drawn as one box: fewer draw calls */
+        int i = 0;
+
+        while (i < radius)
         {
-            float dy = radius - i - 0.5F;
-            float inset = radius - (float) Math.sqrt(radius * radius - dy * dy);
+            float inset = inset(radius, i);
+            int j = i + 1;
 
-            inset = Math.round(inset);
+            while (j < radius && inset(radius, j) == inset)
+            {
+                j++;
+            }
 
-            batcher.box(x1 + inset, y1 + i, x2 - inset, y1 + i + 1, color);
-            batcher.box(x1 + inset, y2 - i - 1, x2 - inset, y2 - i, color);
+            batcher.box(x1 + inset, y1 + i, x2 - inset, y1 + j, color);
+            batcher.box(x1 + inset, y2 - j, x2 - inset, y2 - i, color);
+
+            i = j;
         }
+    }
+
+    private static float inset(int radius, int row)
+    {
+        float dy = radius - row - 0.5F;
+
+        return Math.round(radius - (float) Math.sqrt(radius * radius - dy * dy));
     }
 
     /** Fill an area: rounded by the corner radius setting, a plain box when it is 0. */

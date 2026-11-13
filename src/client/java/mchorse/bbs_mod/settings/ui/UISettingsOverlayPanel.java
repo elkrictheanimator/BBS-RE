@@ -305,6 +305,20 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
      */
     private void appendREControls()
     {
+        UIButton lite = new UIButton(IKey.constant("Chế độ hiệu năng (máy yếu)"), (b) ->
+        {
+            /* Everything that spends frame time on looks, switched off in one go */
+            BBSSettings.listModelPreview.set(false);
+            BBSSettings.freezeModels.set(true);
+            BBSSettings.ikDebug.enabled.set(false);
+            BBSSettings.uiHoverFade.set(false);
+            BBSSettings.uiCornerRadius.set(0);
+            BBSSettings.profilerOverlay.set(false);
+            this.refresh();
+        });
+
+        lite.tooltip(IKey.constant("Tắt xem trước model trong danh sách, đóng băng model trong bảng chọn, tắt lớp debug IK, bo góc và hiệu ứng mượt. Bật lại từng cái trong Settings nếu cần"));
+
         UICirculate theme = new UICirculate((b) ->
         {
             if (b.getValue() > 0)
@@ -343,7 +357,7 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
         UIButton banner = new UIButton(IKey.constant("Chỉnh banner (ảnh, video, vị trí, màu)..."), (b) ->
             UIOverlay.addOverlay(b.getContext(), new UIBannerEditorPanel(UILandingScreen.defaultBannerAspect()), 280, 400));
 
-        this.options.add(theme, backdrop, video, link, image, folder, banner);
+        this.options.add(lite, theme, backdrop, video, link, image, folder, banner);
     }
 
     private void appendValues(ValueGroup category, boolean filtered)

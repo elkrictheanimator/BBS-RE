@@ -53,25 +53,22 @@ public class ShotRemapper
         return null;
     }
 
-    private static List<CameraClip> shots(Replay replay)
+    /** Whether this camera clip names this replay, without splitting or allocating anything. */
+    private static boolean bound(Clip clip, String replayId)
     {
-        List<CameraClip> shots = new ArrayList<>();
-        Film film = findFilm(replay);
-
-        if (film == null)
+        if (!clip.enabled.get() || !(clip instanceof CameraClip shot))
         {
-            return shots;
+            return false;
         }
 
-        for (Clip clip : film.camera.get())
+        String list = shot.boundActors.get();
+
+        if (list.isEmpty())
         {
-            if (clip instanceof CameraClip shot && clip.enabled.get() && isBound(shot, replay.getId()))
-            {
-                shots.add(shot);
-            }
+            return false;
         }
 
-        return shots;
+        return list.equals(replayId) || ("," + list + ",").contains("," + replayId + ",");
     }
 
     private static int source(CameraClip shot)
@@ -84,21 +81,31 @@ public class ShotRemapper
     /** The replay tick a film tick plays: inside a bound shot it follows the shot, around it it holds. */
     public static int remap(Replay replay, int tick)
     {
-        List<CameraClip> shots = shots(replay);
+        Film film = findFilm(replay);
 
-        if (shots.isEmpty())
+        if (film == null)
         {
             return tick;
         }
 
+        String id = replay.getId();
         CameraClip inside = null;
         CameraClip before = null;
         CameraClip after = null;
+        boolean any = false;
 
-        for (CameraClip shot : shots)
+        for (Clip clip : film.camera.get())
         {
+            if (!bound(clip, id))
+            {
+                continue;
+            }
+
+            CameraClip shot = (CameraClip) clip;
             int start = shot.tick.get();
             int end = start + shot.duration.get();
+
+            any = true;
 
             if (tick >= start && tick < end)
             {
@@ -120,6 +127,11 @@ public class ShotRemapper
             }
         }
 
+        if (!any)
+        {
+            return tick;
+        }
+
         if (inside != null)
         {
             return source(inside) + (tick - inside.tick.get());
@@ -136,23 +148,33 @@ public class ShotRemapper
     /** Whether the actor should not be seen: it has shots, and none of them is on at this tick. */
     public static boolean isHidden(Replay replay, int tick)
     {
-        List<CameraClip> shots = shots(replay);
+        Film film = findFilm(replay);
 
-        if (shots.isEmpty())
+        if (film == null)
         {
             return false;
         }
 
-        for (CameraClip shot : shots)
-        {
-            int start = shot.tick.get();
+        String id = replay.getId();
+        boolean any = false;
 
-            if (tick >= start && tick < start + shot.duration.get())
+        for (Clip clip : film.camera.get())
+        {
+            if (!bound(clip, id))
+            {
+                continue;
+            }
+
+            int start = clip.tick.get();
+
+            any = true;
+
+            if (tick >= start && tick < start + clip.duration.get())
             {
                 return false;
             }
         }
 
-        return true;
+        return any;
     }
 }
