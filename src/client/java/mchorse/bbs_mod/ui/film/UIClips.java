@@ -181,6 +181,14 @@ public class UIClips extends UITimelineCanvas
         this.keys().register(Keys.ADD_ON_TOP, this::showAddsOnTop).category(KEYS_CATEGORY).active(canUseKeybindsSelected);
         this.keys().register(Keys.ADD_AT_CURSOR, this::showAddsAtCursor).category(KEYS_CATEGORY).active(canUseKeybinds);
         this.keys().register(Keys.ADD_AT_TICK, this::showAddsAtTick).category(KEYS_CATEGORY).active(canUseKeybinds);
+        this.keys().register(Keys.BLENDER_ADD_CLIP, this::showAddsAtTick).inside().strict().category(KEYS_CATEGORY).active(() -> BBSSettings.keyframeBlenderControls.get() && canUseKeybinds.get());
+
+        /* A button in the corner of the timeline: the same picker, one click away */
+        UIIcon quickAdd = new UIIcon(Icons.ADD, (b) -> this.showAddsAtTick(this.getContext(), b.area.mx(), b.area.y - 2));
+
+        quickAdd.tooltip(UIKeys.CAMERA_TIMELINE_CONTEXT_ADD_AT_TICK);
+        quickAdd.relative(this).x(1F, -28).y(1F, -28).wh(22, 22);
+        this.add(quickAdd);
         this.keys().register(Keys.COPY, () ->
         {
             if (this.copyPasteController.copy()) UIUtils.playClick();

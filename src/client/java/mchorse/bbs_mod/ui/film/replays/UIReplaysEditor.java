@@ -142,6 +142,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
     private final Map<String, FoldState<String>> expandedTracksByReplay = new HashMap<>();
     private final Map<String, String> selectedPartsByReplay = new HashMap<>();
     private String selectedPart = "";
+    private boolean syncingParts;
 
     public static Icon getIcon(String key)
     {
@@ -438,16 +439,19 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
     }
 
     /**
-     * Body parts are no longer a thing you pick: every part's tracks sit on the timeline at once,
-     * like in 2.5.2. A pick in the viewport still leaves the actions timeline, nothing more.
+     * Every part's tracks sit on the timeline at once, like in 2.5.2. Picking a body part in the
+     * list under the replays (or in the viewport) remembers it per replay and leaves the actions timeline.
      */
     public void selectBodyPart(String path)
     {
-        if (this.replay == null)
+        /* Restoring the list's selection after a refresh is not a pick */
+        if (this.syncingParts || this.replay == null)
         {
             return;
         }
 
+        this.selectedPart = path;
+        this.selectedPartsByReplay.put(this.replay.getId(), path);
         this.setActionsMode(false);
     }
 
@@ -516,6 +520,19 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
     {
         this.poseOverlayCount = BBSSettings.recordingPoseOverlays.get();
         this.transformOverlayCount = BBSSettings.recordingTransformOverlays.get();
+
+        /* The Body parts list under the replays follows the selected replay and remembers the pick */
+        this.syncingParts = true;
+
+        try
+        {
+            this.replaysList.setBodyPartsReplay(this.replay != null && this.replay.form.get() != null ? this.replay : null, this.selectedPart);
+        }
+        finally
+        {
+            this.syncingParts = false;
+        }
+
         this.replaysList.resize();
 
         UIKeyframes lastEditor = this.keyframeEditor != null ? this.keyframeEditor.view : null;

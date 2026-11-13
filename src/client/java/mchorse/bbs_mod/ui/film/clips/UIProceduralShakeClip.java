@@ -33,8 +33,13 @@ public class UIProceduralShakeClip extends UIClip<ProceduralShakeClip>
         {
             for (ProceduralShakeClip.Preset p : ProceduralShakeClip.Preset.values())
             {
-                menu.action(Icons.EXCHANGE, IKey.constant(p.label), () -> this.applyPreset(p));
+                if (p != ProceduralShakeClip.Preset.CUSTOM)
+                {
+                    menu.action(Icons.EXCHANGE, IKey.constant(p.label), () -> this.applyPreset(p));
+                }
             }
+
+            menu.action(Icons.EXCHANGE, IKey.constant(ProceduralShakeClip.Preset.CUSTOM.label), () -> this.applyPreset(ProceduralShakeClip.Preset.CUSTOM));
         })), () -> this.preset.label = IKey.constant("Preset: " + ProceduralShakeClip.Preset.values()[this.clip.preset.get()].label));
 
         this.frequency = this.trackpad(this.clip.frequency);
@@ -66,11 +71,27 @@ public class UIProceduralShakeClip extends UIClip<ProceduralShakeClip>
         this.clip.applyPreset(p);
 
         /* A blast or a hit is strong at first and dies down: let the envelope do that */
-        if (p == ProceduralShakeClip.Preset.EXPLOSION || p == ProceduralShakeClip.Preset.IMPACT)
+        float fadeIn = 0F;
+        float fadeOut = 0F;
+
+        switch (p)
+        {
+            case EXPLOSION -> fadeOut = 25F;
+            case IMPACT -> fadeOut = 12F;
+            case RECOIL -> fadeOut = 8F;
+            case EARTHQUAKE ->
+            {
+                fadeIn = 10F;
+                fadeOut = 15F;
+            }
+            default -> {}
+        }
+
+        if (fadeIn > 0F || fadeOut > 0F)
         {
             this.clip.envelope.enabled.set(true);
-            this.clip.envelope.fadeIn.set(0F);
-            this.clip.envelope.fadeOut.set(p == ProceduralShakeClip.Preset.EXPLOSION ? 25F : 12F);
+            this.clip.envelope.fadeIn.set(fadeIn);
+            this.clip.envelope.fadeOut.set(fadeOut);
         }
     }
 

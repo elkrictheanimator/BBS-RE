@@ -235,6 +235,7 @@ public class BBSSettings {
 	public static ValueBoolean recordingOverlays;
 	/** Extra pose tracks every posed form always has, on top of its base pose_overlay: three overlays in all. */
 	public static final int MIN_POSE_OVERLAYS = 2;
+	public static final int MIN_TRANSFORM_OVERLAYS = 2;
 
 	public static ValueInt recordingPoseOverlays;
 	public static ValueInt recordingTransformOverlays;
@@ -650,6 +651,14 @@ public class BBSSettings {
 			migrated = true;
 		}
 
+		/* Transform overlays follow the same rule as pose overlays */
+		if (recording.has("transform_overlays") && recording.getInt("transform_overlays") < MIN_TRANSFORM_OVERLAYS)
+		{
+			recording.putInt("transform_overlays", MIN_TRANSFORM_OVERLAYS);
+			root.put("recording", recording);
+			migrated = true;
+		}
+
 		/* Sections now keep the replay list compact. Reveal their channels once;
 		 * later manual filtering must survive reloads. */
 		MapType appearance = root.getMap("appearance");
@@ -973,7 +982,7 @@ public class BBSSettings {
 		recordingSwipeDamage = builder.getBoolean("swipe_damage", false);
 		recordingOverlays = builder.getBoolean("overlays", true);
 		recordingPoseOverlays = builder.getInt("pose_overlays", MIN_POSE_OVERLAYS, MIN_POSE_OVERLAYS, 42);
-		recordingTransformOverlays = builder.getInt("transform_overlays", 0, 0, 42);
+		recordingTransformOverlays = builder.getInt("transform_overlays", MIN_TRANSFORM_OVERLAYS, MIN_TRANSFORM_OVERLAYS, 42);
 		recordingCameraPreview = builder.getBoolean("camera_preview", true);
 		recordingTeleport = builder.getBoolean("teleport", true);
 
