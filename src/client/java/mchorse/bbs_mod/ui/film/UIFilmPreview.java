@@ -481,6 +481,9 @@ public class UIFilmPreview extends UIElement
 
         boolean needGuides = BBSSettings.editorRuleOfThirds.get()
             || BBSSettings.editorCenterLines.get()
+            || BBSSettings.editorGoldenRatio.get()
+            || BBSSettings.editorDiagonals.get()
+            || BBSSettings.editorSafeAreas.get()
             || BBSSettings.editorCrosshair.get();
         if (needGuides)
         {
@@ -493,6 +496,54 @@ public class UIFilmPreview extends UIElement
 
                 context.batcher.box(area.x, area.y + area.h / 3 - 1, area.x + area.w, area.y + area.h / 3, guidesColor);
                 context.batcher.box(area.x, area.y + area.h - area.h / 3, area.x + area.w, area.y + area.h - area.h / 3 + 1, guidesColor);
+            }
+
+            if (BBSSettings.editorGoldenRatio.get())
+            {
+                /* Golden ratio: the lines sit at 0.382 and 0.618 of the frame */
+                int guidesColor = BBSSettings.editorGuidesColor.get();
+                int gx1 = area.x + Math.round(area.w * 0.382F);
+                int gx2 = area.x + Math.round(area.w * 0.618F);
+                int gy1 = area.y + Math.round(area.h * 0.382F);
+                int gy2 = area.y + Math.round(area.h * 0.618F);
+
+                context.batcher.box(gx1, area.y, gx1 + 1, area.ey(), guidesColor);
+                context.batcher.box(gx2, area.y, gx2 + 1, area.ey(), guidesColor);
+                context.batcher.box(area.x, gy1, area.ex(), gy1 + 1, guidesColor);
+                context.batcher.box(area.x, gy2, area.ex(), gy2 + 1, guidesColor);
+            }
+
+            if (BBSSettings.editorSafeAreas.get())
+            {
+                /* Broadcast safe areas: action safe is 93% of the frame, title safe 90% */
+                int guidesColor = BBSSettings.editorGuidesColor.get();
+
+                for (float k : new float[] {0.93F, 0.9F})
+                {
+                    int mx = Math.round(area.w * (1F - k) / 2F);
+                    int my = Math.round(area.h * (1F - k) / 2F);
+
+                    context.batcher.box(area.x + mx, area.y + my, area.ex() - mx, area.y + my + 1, guidesColor);
+                    context.batcher.box(area.x + mx, area.ey() - my - 1, area.ex() - mx, area.ey() - my, guidesColor);
+                    context.batcher.box(area.x + mx, area.y + my, area.x + mx + 1, area.ey() - my, guidesColor);
+                    context.batcher.box(area.ex() - mx - 1, area.y + my, area.ex() - mx, area.ey() - my, guidesColor);
+                }
+            }
+
+            if (BBSSettings.editorDiagonals.get())
+            {
+                /* Two diagonals corner to corner, drawn as short dashes */
+                int guidesColor = BBSSettings.editorGuidesColor.get();
+                int steps = Math.max(area.w, area.h);
+
+                for (int i = 0; i < steps; i += 3)
+                {
+                    float k = i / (float) steps;
+                    int x = area.x + Math.round(area.w * k);
+
+                    context.batcher.box(x, area.y + Math.round(area.h * k), x + 1, area.y + Math.round(area.h * k) + 1, guidesColor);
+                    context.batcher.box(x, area.ey() - Math.round(area.h * k) - 1, x + 1, area.ey() - Math.round(area.h * k), guidesColor);
+                }
             }
 
             if (BBSSettings.editorCenterLines.get())

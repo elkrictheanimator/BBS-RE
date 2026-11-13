@@ -175,6 +175,9 @@ public class BBSSettings {
 	public static ValueInt editorGuidesColor;
 	public static ValueBoolean editorRuleOfThirds;
 	public static ValueBoolean editorCenterLines;
+	public static ValueBoolean editorGoldenRatio;
+	public static ValueBoolean editorDiagonals;
+	public static ValueBoolean editorSafeAreas;
 	public static ValueBoolean editorCrosshair;
 	public static ValueBoolean editorSeconds;
 	public static ValueBoolean editorTimelineGrid;
@@ -888,6 +891,9 @@ public class BBSSettings {
 		editorGuidesColor = builder.getInt("guides_color", 0x7fffffff).colorAlpha();
 		editorRuleOfThirds = builder.getBoolean("rule_of_thirds", false);
 		editorCenterLines = builder.getBoolean("center_lines", false);
+		editorGoldenRatio = builder.getBoolean("golden_ratio", false);
+		editorDiagonals = builder.getBoolean("diagonals", false);
+		editorSafeAreas = builder.getBoolean("safe_areas", false);
 		editorCrosshair = builder.getBoolean("crosshair", false);
 		editorPreviewSizeMode = builder.getInt("preview_size_mode", 2, 0, 2);
 		editorPreviewCustomWidth = builder.getInt("preview_custom_width", 1280, 2, 16384);
