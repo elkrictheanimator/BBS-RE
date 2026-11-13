@@ -90,9 +90,9 @@ public class UIFrameBarsRenderer
                 if (Colors.getA(bar.color) > 0F)
                 {
                     int rnd = bar.seed * 2654435 + 12345;
-                    int bars = 3 + (int) (bar.soft * 9F);
+                    int glitches = 3 + (int) (bar.soft * 9F);
 
-                    for (int i = 0; i < bars; i++)
+                    for (int i = 0; i < glitches; i++)
                     {
                         rnd = rnd * 1103515245 + 12345;
                         float y = ((rnd >>> 8) & 1023) / 1023F * height;
