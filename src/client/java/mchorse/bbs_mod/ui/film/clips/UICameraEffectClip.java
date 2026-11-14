@@ -4,14 +4,17 @@ import mchorse.bbs_mod.camera.clips.misc.CameraEffectClip;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.film.IUIClipsDelegate;
+import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UICirculate;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIListOverlayPanel;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.ui.framework.elements.input.UIColor;
 import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 
 public class UICameraEffectClip extends UIClip<CameraEffectClip>
 {
-    private UICirculate type;
+    private UIButton type;
     private UITrackpad strength;
     private UITrackpad size;
     private UITrackpad speed;
@@ -42,12 +45,29 @@ public class UICameraEffectClip extends UIClip<CameraEffectClip>
     {
         super.registerUI();
 
-        this.type = this.bind(new UICirculate((b) -> this.clip.type.set(b.getValue())), () -> this.type.setValue(this.clip.type.get()));
-
-        for (String label : CameraEffectClip.LABELS)
+        this.type = this.bind(new UIButton(IKey.constant(""), (b) ->
         {
-            this.type.addLabel(IKey.constant(label));
-        }
+            UIListOverlayPanel panel = new UIListOverlayPanel(IKey.constant("Camera effect"), (label) ->
+            {
+                for (int i = 0; i < CameraEffectClip.LABELS.length; i++)
+                {
+                    if (CameraEffectClip.LABELS[i].equals(label))
+                    {
+                        this.editor.editMultiple(this.clip.type, i);
+
+                        break;
+                    }
+                }
+            });
+
+            for (int index : CameraEffectClip.ORDER)
+            {
+                panel.list.list.add(CameraEffectClip.LABELS[index]);
+            }
+
+            panel.setValue(CameraEffectClip.LABELS[this.clip.type.get()]);
+            UIOverlay.addOverlay(this.getContext(), panel, 260, 0.8F);
+        }), () -> this.type.label = IKey.constant(CameraEffectClip.LABELS[this.clip.type.get()] + "  \u25BE"));
 
         this.strength = this.trackpad(this.clip.strength);
         this.strength.tooltip(IKey.constant("Overall strength of the effect"));

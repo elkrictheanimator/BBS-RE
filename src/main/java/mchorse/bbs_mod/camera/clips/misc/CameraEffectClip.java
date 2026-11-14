@@ -16,11 +16,23 @@ import mchorse.bbs_mod.utils.colors.Colors;
  */
 public class CameraEffectClip extends CameraClip
 {
+    /** Indexes are stored in films: never reorder, only append. The picker shows them in ORDER. */
     public static final String[] LABELS = {
-        "Blink", "Wake up (open eyes)", "Fall asleep (close eyes)", "Squint (hold)",
-        "Vignette", "Scanlines (CRT)", "Frame border", "Glitch bars", "Punch / dutch tilt",
+        "Eyes: Blink", "Eyes: Wake up (open)", "Eyes: Fall asleep (close)", "Eyes: Squint (hold)",
+        "Screen: Vignette", "Screen: Scanlines (CRT)", "Screen: Frame border", "Screen: Glitch bars", "Camera: Punch / dutch tilt",
         "MC: Nausea", "MC: Blindness", "MC: Darkness", "MC: Pumpkin head", "MC: Powder snow (freezing)",
-        "MC: Hurt (damage)", "MC: Nether portal", "MC: Underwater", "MC: On fire", "MC: Poison", "MC: Wither", "MC: Low health"
+        "MC: Hurt (damage)", "MC: Nether portal", "MC: Underwater", "MC: On fire", "MC: Poison", "MC: Wither", "MC: Low health",
+        "Shake: Handheld", "Shake: Earthquake", "Shake: Explosion (decay)", "Shake: Hit (one kick)", "Shake: Vibration",
+        "Impact: White flash", "Impact: Black flash", "Impact: Strobe (white / black)", "Impact: Manga flash (W-B-W)", "Impact: Red hit", "Impact: Freeze flash + zoom"
+    };
+
+    /** Display order of the picker, grouped. */
+    public static final int[] ORDER = {
+        0, 1, 2, 3,
+        4, 5, 6, 7, 8,
+        26, 27, 28, 29, 30, 31,
+        21, 22, 23, 24, 25,
+        9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
     };
 
     public static final String[] SHAPES = {"Hold", "Pulse (up and back)", "Decay (hit, then settle)", "Build (ramp up)"};
@@ -130,6 +142,16 @@ public class CameraEffectClip extends CameraClip
         {
             bars.add(new FrameBars(0F, argb(rgb, alpha), 1F).kind(2, size));
         }
+    }
+
+    /** Layered sine noise on yaw / pitch / roll. */
+    private static void shake(Position position, float s, float freq, float yaw, float pitch, float roll, int seed)
+    {
+        float p = seed * 1.7F;
+
+        position.angle.yaw += (float) (Math.sin(s * freq + p) + 0.5 * Math.sin(s * freq * 2.31F + p * 1.3F)) * yaw * 0.67F;
+        position.angle.pitch += (float) (Math.sin(s * freq * 1.17F + p + 1.9F) + 0.5 * Math.sin(s * freq * 2.77F + p * 0.7F)) * pitch * 0.67F;
+        position.angle.roll += (float) (Math.sin(s * freq * 0.83F + p + 4.1F) + 0.5 * Math.sin(s * freq * 1.93F + p * 1.9F)) * roll * 0.67F;
     }
 
     private static float wave(float s, float freq, float phase)
@@ -314,6 +336,111 @@ public class CameraEffectClip extends CameraClip
 
                 tint(bars, this.col(0x1A1A1A), a * (0.2F + 0.15F * p));
                 vignette(bars, this.col(0x111111), a * 0.75F, 0.42F);
+
+                break;
+            }
+            case 21: /* shake: handheld */
+            {
+                shake(position, s, 1.2F, 0.8F * a, 0.6F * a, 0.3F * a, this.seed.get());
+
+                break;
+            }
+            case 22: /* shake: earthquake */
+            {
+                shake(position, s, 14F, 1.5F * a, 2F * a, 1F * a, this.seed.get());
+                shake(position, s, 3F, 0.6F * a, 0.8F * a, 0.4F * a, this.seed.get() + 7);
+
+                break;
+            }
+            case 23: /* shake: explosion */
+            {
+                k = (1F - t) * (1F - t) * env * this.strength.get();
+                shake(position, s, 22F, 5F * k, 6F * k, 3F * k, this.seed.get());
+                position.angle.fov += 6F * k;
+
+                break;
+            }
+            case 24: /* shake: hit */
+            {
+                k = (1F - t) * (1F - t) * (1F - t) * env * this.strength.get();
+                position.angle.pitch += 6F * k * (float) Math.cos(s * 18F);
+                position.angle.roll += 2F * k * (float) Math.sin(s * 23F);
+
+                break;
+            }
+            case 25: /* shake: vibration */
+            {
+                shake(position, s, 40F, 0.3F * a, 0.4F * a, 0.4F * a, this.seed.get());
+
+                break;
+            }
+            case 26: /* impact: white flash */
+            {
+                k = (1F - t) * (1F - t);
+
+                tint(bars, this.col(0xFFFFFF), this.strength.get() * k);
+
+                break;
+            }
+            case 27: /* impact: black flash */
+            {
+                k = (1F - t) * (1F - t);
+
+                tint(bars, this.col(0), this.strength.get() * k);
+
+                break;
+            }
+            case 28: /* impact: strobe */
+            {
+                boolean white = ((int) Math.floor(ticks / 2F * this.speed.get())) % 2 == 0;
+
+                tint(bars, white ? this.col(0xFFFFFF) : 0, this.strength.get() * (1F - t * t));
+
+                break;
+            }
+            case 29: /* impact: manga flash, white / black / white then it fades out */
+            {
+                float f = ticks * this.speed.get();
+
+                if (f < 2F)
+                {
+                    tint(bars, 0xFFFFFF, this.strength.get());
+                }
+                else if (f < 4F)
+                {
+                    tint(bars, 0, this.strength.get());
+                }
+                else if (f < 6F)
+                {
+                    tint(bars, 0xFFFFFF, this.strength.get());
+                }
+                else
+                {
+                    float rest = Math.max(1F, duration * this.speed.get() - 6F);
+                    float k2 = Math.max(0F, 1F - (f - 6F) / rest);
+
+                    tint(bars, this.col(0xFFFFFF), this.strength.get() * k2 * k2 * 0.6F);
+                    vignette(bars, 0, this.strength.get() * k2, 0.4F);
+                }
+
+                break;
+            }
+            case 30: /* impact: red hit */
+            {
+                k = (1F - t) * (1F - t);
+
+                tint(bars, this.col(0xFF1010), this.strength.get() * k * 0.7F);
+                vignette(bars, 0x300000, this.strength.get() * k, 0.45F);
+                shake(position, s, 20F, 3F * k * this.strength.get(), 3.5F * k * this.strength.get(), 2F * k * this.strength.get(), this.seed.get());
+
+                break;
+            }
+            case 31: /* impact: freeze flash with a zoom punch */
+            {
+                k = (1F - t) * (1F - t) * (1F - t);
+
+                tint(bars, this.col(0xFFFFFF), this.strength.get() * k);
+                position.angle.fov += -10F * k * this.strength.get();
 
                 break;
             }
