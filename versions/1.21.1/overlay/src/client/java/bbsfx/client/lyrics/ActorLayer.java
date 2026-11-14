@@ -1,5 +1,6 @@
 package bbsfx.client.lyrics;
 
+import net.minecraft.client.render.VertexConsumerProvider.Immediate;
 import bbsfx.text.Lyrics3DClip;
 import bbsfx.text.TextFlashClip;
 import com.mojang.blaze3d.platform.GlStateManager;

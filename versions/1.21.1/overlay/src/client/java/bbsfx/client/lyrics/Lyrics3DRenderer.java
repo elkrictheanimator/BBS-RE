@@ -1,5 +1,7 @@
 package bbsfx.client.lyrics;
 
+import net.minecraft.client.render.VertexConsumerProvider.Immediate;
+import net.minecraft.client.font.TextRenderer.TextLayerType;
 import bbsfx.BillboardMath;
 import bbsfx.TextGradient;
 import bbsfx.Wiggle;

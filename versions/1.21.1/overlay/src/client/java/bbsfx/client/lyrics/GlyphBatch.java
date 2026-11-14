@@ -55,7 +55,7 @@ public final class GlyphBatch {
             RenderSystem.setShaderTexture(0, page.texture);
             BufferBuilder builder = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
-            for (GlyphBatch.Quad quad : (List)entry.getValue()) {
+            for (GlyphBatch.Quad quad : entry.getValue()) {
                int a = quad.argb >>> 24;
                int r = quad.argb >> 16 & 0xFF;
                int g = quad.argb >> 8 & 0xFF;
