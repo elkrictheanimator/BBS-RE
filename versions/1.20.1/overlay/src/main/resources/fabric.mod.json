@@ -49,7 +49,11 @@
     ],
     "bbs-addon": [
       "com.bbsvfx.bbsvfx.BbsVfxAddon",
-      "com.bbsvfx.vfxlights.VfxLightsAddon"
+      "com.bbsvfx.vfxlights.VfxLightsAddon",
+      "bbsfx.BBSFxAddon"
+    ],
+    "bbs-client-addon": [
+      "bbsfx.client.BBSFxClientAddon"
     ],
     "vfx-module": [
       "com.bbsvfx.vfxlights.VfxLightsModule"
