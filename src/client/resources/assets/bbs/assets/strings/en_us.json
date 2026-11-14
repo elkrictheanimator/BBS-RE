@@ -533,6 +533,7 @@
 	"bbs.ui.camera.clips.bbs:crane": "Crane",
 	"bbs.ui.camera.clips.bbs:letterbox": "Letterbox",
 	"bbs.ui.camera.clips.bbs:transition": "Transition",
+	"bbs.ui.camera.clips.bbs:camera_effect": "Camera Effect (eyes, screen, Minecraft)",
 	"bbs.ui.camera.clips.bbs:blink": "Eye blink / eyelids",
 	"bbs.ui.camera.clips.bbs:vignette": "Vignette",
 	"bbs.ui.camera.clips.bbs:screen_fx": "Scanlines / frame / glitch",

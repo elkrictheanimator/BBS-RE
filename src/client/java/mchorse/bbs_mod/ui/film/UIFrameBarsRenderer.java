@@ -35,6 +35,39 @@ public class UIFrameBarsRenderer
 
         for (FrameBars bar : bars)
         {
+            if (bar.kind == 6)
+            {
+                /* Curved eyelids: the lids arch towards the middle, so they close like a real eye */
+                float lid = height / 2F * bar.factor;
+                float soft = height * 0.12F * bar.soft;
+                int clear = bar.color & Colors.RGB;
+                int slices = 120;
+                float step = width / slices;
+
+                for (int i = 0; i < slices; i++)
+                {
+                    float u = ((i + 0.5F) / slices) * 2F - 1F;
+                    float edge = Math.min(height / 2F, lid * (1F + bar.curve * (1F - u * u)));
+                    float x1 = i * step;
+                    float x2 = i == slices - 1 ? width : x1 + step + 0.5F;
+                    float body = Math.max(0F, edge - soft);
+
+                    if (body > 0F)
+                    {
+                        batcher.box(x1, 0, x2, body, bar.color);
+                        batcher.box(x1, height - body, x2, height, bar.color);
+                    }
+
+                    if (soft > 0.5F && edge < height / 2F - 0.5F)
+                    {
+                        batcher.gradientVBox(x1, body, x2, edge, bar.color, clear);
+                        batcher.gradientVBox(x1, height - edge, x2, height - body, clear, bar.color);
+                    }
+                }
+
+                continue;
+            }
+
             if (bar.kind == 1)
             {
                 /* Eyelids: two lids meet in the middle; a soft gradient edge */

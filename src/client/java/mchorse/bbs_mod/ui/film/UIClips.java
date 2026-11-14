@@ -423,7 +423,9 @@ public class UIClips extends UITimelineCanvas
     private static final String[] CLIP_MEDIA = {"audio", "subtitle", "image", "photo", "video"};
     private static final String[] CLIP_IMPACT = {"impact", "letterbox", "transition"};
     private static final String[] CLIP_TEXT_FX = {"textflash", "lyrics", "text3d"};
-    private static final String[] CLIP_CAMERA_FX = {"blink", "vignette", "punch", "screen_fx"};
+    private static final String[] CLIP_CAMERA_FX = {"camera_effect"};
+    /** Folded into camera_effect; still registered so old films keep working, but hidden from the picker. */
+    private static final String[] CLIP_LEGACY_FX = {"blink", "vignette", "punch", "screen_fx"};
 
     private UIClipPickerMenu.Entry pickerEntry(Link key)
     {
@@ -473,6 +475,11 @@ public class UIClips extends UITimelineCanvas
 
         for (Link key : left)
         {
+            if (java.util.Arrays.asList(CLIP_LEGACY_FX).contains(key.path))
+            {
+                continue;
+            }
+
             rest.add(this.pickerEntry(key));
         }
 

@@ -144,6 +144,7 @@ public abstract class UIClip <T extends Clip> extends UIElement
         register(mchorse.bbs_mod.camera.clips.misc.LetterboxClip.class, UILetterboxClip::new);
         register(mchorse.bbs_mod.camera.clips.misc.TransitionClip.class, UITransitionClip::new);
         register(mchorse.bbs_mod.camera.clips.misc.BlinkClip.class, UIBlinkClip::new);
+        register(mchorse.bbs_mod.camera.clips.misc.CameraEffectClip.class, UICameraEffectClip::new);
         register(mchorse.bbs_mod.camera.clips.misc.VignetteClip.class, UIVignetteClip::new);
         register(mchorse.bbs_mod.camera.clips.misc.ScreenFxClip.class, UIScreenFxClip::new);
         register(mchorse.bbs_mod.camera.clips.modifiers.PunchClip.class, UIPunchClip::new);

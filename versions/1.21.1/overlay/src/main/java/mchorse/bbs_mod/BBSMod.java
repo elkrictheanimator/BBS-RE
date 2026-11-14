@@ -34,6 +34,7 @@ import mchorse.bbs_mod.camera.clips.misc.SubtitleClip;
 import mchorse.bbs_mod.camera.clips.misc.VideoClip;
 import mchorse.bbs_mod.camera.clips.modifiers.AngleClip;
 import mchorse.bbs_mod.camera.clips.misc.BlinkClip;
+import mchorse.bbs_mod.camera.clips.misc.CameraEffectClip;
 import mchorse.bbs_mod.camera.clips.misc.LetterboxClip;
 import mchorse.bbs_mod.camera.clips.misc.ScreenFxClip;
 import mchorse.bbs_mod.camera.clips.modifiers.PunchClip;
@@ -506,7 +507,8 @@ public class BBSMod implements ModInitializer
             .register(Link.bbs("blink"), BlinkClip.class, new ClipFactoryData(Icons.VISIBLE, 0x222222))
             .register(Link.bbs("vignette"), VignetteClip.class, new ClipFactoryData(Icons.CIRCLE, 0x444444))
             .register(Link.bbs("screen_fx"), ScreenFxClip.class, new ClipFactoryData(Icons.FILTER, 0x335566))
-            .register(Link.bbs("punch"), PunchClip.class, new ClipFactoryData(Icons.CAMERA, 0x664433));
+            .register(Link.bbs("punch"), PunchClip.class, new ClipFactoryData(Icons.CAMERA, 0x664433))
+            .register(Link.bbs("camera_effect"), CameraEffectClip.class, new ClipFactoryData(Icons.VISIBLE, 0x2F2F4A));
 
         events.post(new RegisterCameraClipsEvent(factoryCameraClips));
 
