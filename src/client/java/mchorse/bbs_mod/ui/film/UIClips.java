@@ -422,6 +422,7 @@ public class UIClips extends UITimelineCanvas
     private static final IKey[] CLIP_GROUP_TITLES = {UIKeys.CAMERA_PICKER_GROUP_BASIC, UIKeys.CAMERA_PICKER_GROUP_TARGET, UIKeys.CAMERA_PICKER_GROUP_PROCEDURAL};
     private static final String[] CLIP_MEDIA = {"audio", "subtitle", "image", "photo", "video"};
     private static final String[] CLIP_IMPACT = {"impact", "letterbox", "transition"};
+    private static final String[] CLIP_TEXT_FX = {"textflash", "lyrics", "text3d"};
     private static final String[] CLIP_CAMERA_FX = {"blink", "vignette", "punch", "screen_fx"};
 
     private UIClipPickerMenu.Entry pickerEntry(Link key)
@@ -461,6 +462,7 @@ public class UIClips extends UITimelineCanvas
         this.fillPickerGroup(media.group(null), keys, left, CLIP_MEDIA, 0);
         this.fillPickerGroup(impact.group(UIKeys.CAMERA_PICKER_GROUP_SCREEN), keys, left, CLIP_IMPACT, 0);
         this.fillPickerGroup(impact.group(UIKeys.CAMERA_PICKER_GROUP_CAMERA_FX), keys, left, CLIP_CAMERA_FX, 0);
+        this.fillPickerGroup(impact.group(UIKeys.CAMERA_PICKER_GROUP_TEXT_FX), keys, left, CLIP_TEXT_FX, 0);
 
         if (camera.isEmpty() && media.isEmpty() && impact.isEmpty())
         {

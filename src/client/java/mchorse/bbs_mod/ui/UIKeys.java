@@ -230,6 +230,7 @@ public class UIKeys
     public static final IKey CAMERA_PICKER_OPEN_CAMERA = L10n.lang("bbs.ui.camera.picker.open_camera");
     public static final IKey CAMERA_PICKER_OPEN_EFFECT = L10n.lang("bbs.ui.camera.picker.open_effect");
     public static final IKey CAMERA_PICKER_GROUP_SCREEN = L10n.lang("bbs.ui.camera.picker.group.screen");
+    public static final IKey CAMERA_PICKER_GROUP_TEXT_FX = L10n.lang("bbs.ui.camera.picker.group.text_fx");
     public static final IKey CAMERA_PICKER_GROUP_CAMERA_FX = L10n.lang("bbs.ui.camera.picker.group.camera_fx");
     public static final IKey CAMERA_PICKER_TAB_OTHER = L10n.lang("bbs.ui.camera.picker.tab.other");
     public static final IKey CAMERA_PICKER_GROUP_BASIC = L10n.lang("bbs.ui.camera.picker.group.basic");

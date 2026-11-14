@@ -406,6 +406,7 @@
     "bbs.ui.forms.categories.context.sort_type": "Sắp xếp mục theo loại",
     "bbs.ui.camera.picker.open_camera": "Thêm clip: tab Camera",
     "bbs.ui.camera.picker.open_effect": "Thêm clip: tab Hiệu ứng",
+    "bbs.ui.camera.picker.group.text_fx": "Chữ / lời bài hát",
     "bbs.ui.camera.picker.group.screen": "Hiệu ứng màn hình",
     "bbs.ui.camera.picker.group.camera_fx": "Hiệu ứng camera",
     "bbs.ui.camera.picker.tab.other": "Khác",

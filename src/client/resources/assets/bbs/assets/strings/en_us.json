@@ -745,6 +745,7 @@
 	"bbs.ui.camera.picker.tab.impact": "Effect",
 	"bbs.ui.camera.picker.open_camera": "Add clip: Camera tab",
 	"bbs.ui.camera.picker.open_effect": "Add clip: Effect tab",
+	"bbs.ui.camera.picker.group.text_fx": "Text / lyrics",
 	"bbs.ui.camera.picker.group.screen": "Screen effect",
 	"bbs.ui.camera.picker.group.camera_fx": "Camera effect",
 	"bbs.ui.camera.picker.tab.other": "Other",
