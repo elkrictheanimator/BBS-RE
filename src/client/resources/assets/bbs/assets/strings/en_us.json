@@ -171,6 +171,8 @@
 	"bbs.config.viewport.draw_path_step-comment": "How many ticks the cursor moves forward after each point you click with the Draw path tool",
 	"bbs.config.personalization.replays_separate_tabs": "Replay editor: separate tabs",
 	"bbs.config.personalization.replays_separate_tabs-comment": "Open the replay keyframe editor on its own Replay / Form / Pose tabs instead of everything merged in All tracks",
+	"bbs.config.personalization.replays_part_separate": "Replay editor: body part has its own keyframes",
+	"bbs.config.personalization.replays_part_separate-comment": "Picking a body part shows only that part's tracks instead of every part merged on one timeline (All tracks still merges)",
 	"bbs.config.personalization.ui_hover_fade": "Smooth hover",
 	"bbs.config.personalization.ui_hover_fade-comment": "Buttons fade to their hover colour instead of jumping, and context menus glide into place",
 	"bbs.config.personalization.stencil_highlight_color": "Selection highlight color",

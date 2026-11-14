@@ -30,6 +30,8 @@
     "bbs.config.viewport.draw_path_step-comment": "Mỗi lần click một điểm bằng công cụ Vẽ đường đi, con trỏ timeline tiến lên bấy nhiêu tick",
     "bbs.config.personalization.replays_separate_tabs": "Editor replay: tab tách riêng",
     "bbs.config.personalization.replays_separate_tabs-comment": "Mở editor keyframe của replay ở các tab Replay / Form / Pose riêng, thay vì gộp hết trong All tracks",
+    "bbs.config.personalization.replays_part_separate": "Editor replay: body part có keyframe riêng",
+    "bbs.config.personalization.replays_part_separate-comment": "Chọn một body part thì chỉ hiện track của part đó, không gộp mọi part vào một timeline (All tracks vẫn gộp)",
     "bbs.config.personalization.ui_hover_fade": "Hover mượt",
     "bbs.config.personalization.ui_hover_fade-comment": "Nút chuyển dần sang màu khi rê chuột thay vì đổi ngay, menu chuột phải trượt vào chỗ",
     "bbs.config.timeline.track_width": "Keyframe track thickness",

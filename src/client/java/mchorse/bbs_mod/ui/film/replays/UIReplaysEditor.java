@@ -592,6 +592,19 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
         /* The body-part tree already chose the owner; tabs narrow down its properties. */
         sheets.removeIf((v) -> !this.allMode && categoryOf(v) != this.category);
 
+        /* A picked body part gets its own keyframe editor: only that part's tracks, not every part merged. "All tracks" still merges. */
+        if (!this.allMode && BBSSettings.replaysPartSeparate.get())
+        {
+            String part = this.selectedPart == null ? "" : this.selectedPart;
+
+            sheets.removeIf((v) ->
+            {
+                Form owner = getSheetForm(v);
+
+                return owner != null && !FormUtils.getPath(owner).equals(part);
+            });
+        }
+
         /* The tab isn't empty by itself - so if the filter empties it, the timeline has to stay (see below). */
         boolean hadTracks = !sheets.isEmpty();
 
