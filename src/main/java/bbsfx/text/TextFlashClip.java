@@ -82,7 +82,7 @@ public class TextFlashClip extends MusicTextClip {
    }
 
    public static List<TextFlashClip.Frame> getFrames(ClipContext context) {
-      return (List<TextFlashClip.Frame>)context.clipData.get("bbsfx:textflash", ArrayList::new);
+      return context.clipData.get("bbsfx:textflash", () -> new ArrayList<TextFlashClip.Frame>());
    }
 
    public TextFlashLayout.Style style() {

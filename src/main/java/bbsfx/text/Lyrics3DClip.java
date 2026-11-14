@@ -109,7 +109,7 @@ public class Lyrics3DClip extends MusicTextClip {
    }
 
    public static List<Lyrics3DClip.Frame> getFrames(ClipContext context) {
-      return (List<Lyrics3DClip.Frame>)context.clipData.get("bbsfx:lyrics3d", ArrayList::new);
+      return context.clipData.get("bbsfx:lyrics3d", () -> new ArrayList<Lyrics3DClip.Frame>());
    }
 
    @Override

@@ -43,7 +43,6 @@ public final class TextFlashLayout {
          if (row == null || alone || needed > capacity) {
             row = new TextFlashLayout.Row();
             rows.add(row);
-            int var20 = false;
             needed = length;
          }
 
