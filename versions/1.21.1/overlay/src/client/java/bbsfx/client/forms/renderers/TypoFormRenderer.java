@@ -1,5 +1,7 @@
 package bbsfx.client.forms.renderers;
 
+import net.minecraft.client.font.TextRenderer.TextLayerType;
+import net.minecraft.client.render.VertexFormat.DrawMode;
 import bbsfx.BezierEasing;
 import bbsfx.BillboardMath;
 import bbsfx.ChatColorCodes;
@@ -56,7 +58,6 @@ import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.font.TextRenderer;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 

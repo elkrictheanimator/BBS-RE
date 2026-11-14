@@ -10,6 +10,9 @@ import net.fabricmc.api.Environment;
 public final class UISkin
 {
     public static int accent = 0xFF7B68EE;
+    public static boolean glass = false;
+    public static int glassAlpha = 200;
+    public static int rounding = 3;
 
     private UISkin()
     {}
