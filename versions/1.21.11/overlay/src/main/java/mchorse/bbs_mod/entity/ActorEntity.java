@@ -78,7 +78,7 @@ public class ActorEntity extends LivingEntity implements IEntityFormProvider
         return this.replayId;
     }
 
-    public MCEntity getEntity()
+    public MCEntity getFormEntity()
     {
         return this.entity;
     }
@@ -149,18 +149,6 @@ public class ActorEntity extends LivingEntity implements IEntityFormProvider
         }
 
         return distance < (d * 256D) * (d * 256D);
-    }
-
-    @Override
-    public Iterable<ItemStack> getHandItems()
-    {
-        return List.of(this.getEquippedStack(EquipmentSlot.MAINHAND), this.getEquippedStack(EquipmentSlot.OFFHAND));
-    }
-
-    @Override
-    public Iterable<ItemStack> getArmorItems()
-    {
-        return List.of(this.getEquippedStack(EquipmentSlot.FEET), this.getEquippedStack(EquipmentSlot.LEGS), this.getEquippedStack(EquipmentSlot.CHEST), this.getEquippedStack(EquipmentSlot.HEAD));
     }
 
     @Override
@@ -294,11 +282,5 @@ public class ActorEntity extends LivingEntity implements IEntityFormProvider
         super.writeCustomData(view);
 
         view.putBoolean("despawn", true);
-    }
-
-    @Override
-    protected int getPermissionLevel()
-    {
-        return 4;
     }
 }

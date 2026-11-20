@@ -277,7 +277,7 @@ public class MCEntity implements IEntity
     @Override
     public float getFallDistance()
     {
-        return this.mcEntity.fallDistance;
+        return (float) this.mcEntity.fallDistance;
     }
 
     @Override
@@ -542,7 +542,7 @@ public class MCEntity implements IEntity
     @Override
     public void setPrevYaw(float prevYaw)
     {
-        this.mcEntity.lastYaw = lastYaw;
+        this.mcEntity.lastYaw = prevYaw;
     }
 
     @Override
@@ -578,7 +578,7 @@ public class MCEntity implements IEntity
     {
         if (this.mcEntity instanceof LivingEntity living)
         {
-            living.lastHeadYaw = lastHeadYaw;
+            living.lastHeadYaw = prevHeadYaw;
         }
     }
 
@@ -603,7 +603,7 @@ public class MCEntity implements IEntity
     @Override
     public void setPrevPitch(float prevPitch)
     {
-        this.mcEntity.lastPitch = lastPitch;
+        this.mcEntity.lastPitch = prevPitch;
     }
 
     @Override
@@ -645,7 +645,7 @@ public class MCEntity implements IEntity
     {
         if (this.mcEntity instanceof LivingEntity living)
         {
-            living.lastBodyYaw = lastBodyYaw;
+            living.lastBodyYaw = prevBodyYaw;
         }
     }
 
@@ -707,7 +707,7 @@ public class MCEntity implements IEntity
     {
         if (this.mcEntity instanceof LivingEntity living)
         {
-            return living.limbAnimator.getPos(tickDelta);
+            return living.limbAnimator.getAnimationProgress(tickDelta);
         }
 
         return 0F;
@@ -718,7 +718,7 @@ public class MCEntity implements IEntity
     {
         if (this.mcEntity instanceof LivingEntity living)
         {
-            return living.limbAnimator.getSpeed(tickDelta);
+            return living.limbAnimator.getAmplitude(tickDelta);
         }
 
         return 0F;
@@ -775,7 +775,7 @@ public class MCEntity implements IEntity
     {
         if (this.mcEntity instanceof LivingEntity living)
         {
-            return living.isFallFlying();
+            return living.isGliding();
         }
 
         return false;

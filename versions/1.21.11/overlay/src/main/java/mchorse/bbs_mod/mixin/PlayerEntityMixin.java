@@ -27,7 +27,7 @@ public class PlayerEntityMixin
     {
         if (this instanceof IMorphProvider provider)
         {
-            view.put("BBSMorph", NbtCompound.CODEC, provider.getMorph().toNbt());
+            view.put("BBSMorph", NbtCompound.CODEC, (NbtCompound) provider.getMorph().toNbt());
         }
     }
 

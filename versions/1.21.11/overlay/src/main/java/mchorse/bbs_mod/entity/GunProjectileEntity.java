@@ -88,7 +88,7 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
     {
         if (!command.isEmpty())
         {
-            this.getEntityWorld().getServer().getCommandManager().parseAndExecute(this.getCommandSource(), command);
+            this.getEntityWorld().getServer().getCommandManager().parseAndExecute(this.getCommandSource((net.minecraft.server.world.ServerWorld) this.getEntityWorld()).withPermissions(net.minecraft.command.permission.LeveledPermissionPredicate.GAMEMASTERS), command);
         }
     }
 
@@ -130,18 +130,11 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
         }
     }
 
-    public IEntity getEntity()
+    public IEntity getFormEntity()
     {
         return this.properties.useTarget ? this.target : this.stub;
     }
 
-    @Override
-    protected int getPermissionLevel()
-    {
-        return 2;
-    }
-
-    @Override
     public boolean shouldReceiveFeedback()
     {
         return false;
@@ -158,11 +151,11 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
     {
         super.tick();
 
-        this.getEntity().update();
+        this.getFormEntity().update();
 
         if (this.form != null)
         {
-            this.form.update(this.getEntity());
+            this.form.update(this.getFormEntity());
         }
 
         if (!this.getEntityWorld().isClient())
@@ -185,13 +178,13 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
         /* Movement code */
         Vec3d v = this.getVelocity();
 
-        if (this.prevPitch == 0F && this.prevYaw == 0F)
+        if (this.lastPitch == 0F && this.lastYaw == 0F)
         {
             this.setYaw(MathUtils.toDeg((float) MathHelper.atan2(v.x, v.z)));
             this.setPitch(MathUtils.toDeg((float) MathHelper.atan2(v.y, v.horizontalLength())));
 
-            this.prevYaw = this.getYaw();
-            this.prevPitch = this.getPitch();
+            this.lastYaw = this.getYaw();
+            this.lastPitch = this.getPitch();
         }
 
         BlockPos blockPos = this.getBlockPos();
@@ -212,7 +205,7 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
         }
         else
         {
-            Vec3d oldPos = this.getPos();
+            Vec3d oldPos = this.getEntityPos();
 
             pos = oldPos.add(v);
 
@@ -250,8 +243,8 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
 
             this.setYaw(MathUtils.toDeg((float) MathHelper.atan2(v.x, v.z)));
             this.setPitch(MathUtils.toDeg((float) MathHelper.atan2(v.y, d)));
-            this.setPitch(updateRotation(this.prevPitch, this.getPitch()));
-            this.setYaw(updateRotation(this.prevYaw, this.getYaw()));
+            this.setPitch(updateRotation(this.lastPitch, this.getPitch()));
+            this.setYaw(updateRotation(this.lastYaw, this.getYaw()));
 
             float friction = this.properties.friction;
             float gravity = this.properties.gravity;
@@ -262,7 +255,7 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
                 {
                     float hitbox = 0.25F;
 
-                    this.getEntityWorld().addParticle(ParticleTypes.BUBBLE, x - v.x * hitbox, y - v.y * hitbox, z - v.z * hitbox, v.x, v.y, v.z);
+                    this.getEntityWorld().addParticleClient(ParticleTypes.BUBBLE, false, false, x - v.x * hitbox, y - v.y * hitbox, z - v.z * hitbox, v.x, v.y, v.z);
                 }
 
                 friction = 0.6F;
@@ -270,7 +263,7 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
 
             this.setVelocity(v.multiply(friction).subtract(0, gravity, 0));
             this.setPosition(x, y, z);
-            this.checkBlockCollision();
+            this.tickBlockCollision();
         }
     }
 
@@ -287,7 +280,7 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
 
     private boolean shouldFall()
     {
-        return this.stuck && this.getEntityWorld().isSpaceEmpty((new Box(this.getPos(), this.getPos())).expand(0.06));
+        return this.stuck && this.getEntityWorld().isSpaceEmpty((new Box(this.getEntityPos(), this.getEntityPos())).expand(0.06));
     }
 
     private void fall()
@@ -334,7 +327,7 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
             entity.setOnFireFor(5);
         }
 
-        if (entity.damage(source, (float) damage))
+        if (entity.damage((net.minecraft.server.world.ServerWorld) this.getEntityWorld(), source, (float) damage))
         {
             if (entity instanceof LivingEntity livingEntity)
             {
@@ -362,7 +355,7 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
             this.setVelocity(this.getVelocity().multiply(-0.1D));
             this.setYaw(this.getYaw() + 180F);
 
-            this.prevYaw += 180F;
+            this.lastYaw += 180F;
         }
     }
 
