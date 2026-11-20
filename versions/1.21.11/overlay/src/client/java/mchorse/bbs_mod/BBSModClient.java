@@ -527,6 +527,8 @@ public class BBSModClient implements ClientModInitializer
     @Override
     public void onInitializeClient()
     {
+        FreezeWatchdog.start();
+
         /* The client's own registries, for the vanilla codecs BBS serializes data with (see
          * GameRegistries). Taken from the play connection, and NOT interchangeable with an
          * integrated server's: the client builds its own copy of the dynamic registries, so a
