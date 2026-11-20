@@ -14,14 +14,13 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.TypedEntityData;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.state.StateManager;
@@ -29,7 +28,6 @@ import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
@@ -214,7 +212,7 @@ public class ModelBlock extends Block implements BlockEntityProvider, Waterlogga
         {
             ItemStack stack = new ItemStack(this);
 
-            stack.set(DataComponentTypes.BLOCK_ENTITY_DATA, net.minecraft.entity.TypedEntityData.create(BBSMod.MODEL_BLOCK_ENTITY, modelBlock.createNbtWithIdentifyingData(world.getRegistryManager())));
+            stack.set(DataComponentTypes.BLOCK_ENTITY_DATA, TypedEntityData.create(BBSMod.MODEL_BLOCK_ENTITY, modelBlock.createNbt(world.getRegistryManager())));
 
             return stack;
         }
@@ -281,7 +279,7 @@ public class ModelBlock extends Block implements BlockEntityProvider, Waterlogga
             {
                 ItemStack stack = new ItemStack(this);
 
-                stack.set(DataComponentTypes.BLOCK_ENTITY_DATA, net.minecraft.entity.TypedEntityData.create(BBSMod.MODEL_BLOCK_ENTITY, model.createNbtWithIdentifyingData(world.getRegistryManager())));
+                stack.set(DataComponentTypes.BLOCK_ENTITY_DATA, TypedEntityData.create(BBSMod.MODEL_BLOCK_ENTITY, model.createNbt(world.getRegistryManager())));
 
                 ItemScatterer.spawn(world, pos, DefaultedList.ofSize(1, stack));
             }

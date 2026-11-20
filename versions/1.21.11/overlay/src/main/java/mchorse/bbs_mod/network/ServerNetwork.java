@@ -38,8 +38,10 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.TypedEntityData;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -340,11 +342,11 @@ public class ServerNetwork
 
                     if (stack.getItem() == BBSMod.MODEL_BLOCK_ITEM)
                     {
-                        net.minecraft.entity.TypedEntityData<?> beComponent = stack.get(DataComponentTypes.BLOCK_ENTITY_DATA);
+                        TypedEntityData<BlockEntityType<?>> beComponent = stack.get(DataComponentTypes.BLOCK_ENTITY_DATA);
                         NbtCompound beNbt = beComponent != null ? beComponent.copyNbtWithoutId() : new NbtCompound();
 
                         beNbt.put("Properties", DataStorageUtils.toNbt(data));
-                        stack.set(DataComponentTypes.BLOCK_ENTITY_DATA, net.minecraft.entity.TypedEntityData.create(BBSMod.MODEL_BLOCK_ENTITY, beNbt));
+                        stack.set(DataComponentTypes.BLOCK_ENTITY_DATA, TypedEntityData.create(BBSMod.MODEL_BLOCK_ENTITY, beNbt));
                     }
                     else if (stack.getItem() == BBSMod.GUN_ITEM)
                     {

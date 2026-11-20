@@ -24,11 +24,12 @@ public class CommandActionClip extends ActionClip
         this.applyPositionRotation(player, replay, tick);
 
         String command = this.command.get();
+        net.minecraft.server.world.ServerWorld world = player.getEntityWorld();
         ServerCommandSource source = actor == null
             ? player.getCommandSource()
-            : actor.getCommandSource((net.minecraft.server.world.ServerWorld) actor.getEntityWorld()).withPermissions(net.minecraft.command.permission.LeveledPermissionPredicate.OWNERS);
+            : actor.getCommandSource(world);
 
-        player.getEntityWorld().getServer().getCommandManager().parseAndExecute(source, command);
+        world.getServer().getCommandManager().parseAndExecute(source, command);
     }
 
     @Override

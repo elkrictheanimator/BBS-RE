@@ -13,12 +13,12 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.World;
@@ -128,7 +128,7 @@ public class ModelBlockEntity extends BlockEntity
     @Override
     public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registryLookup)
     {
-        return this.createNbtWithIdentifyingData(registryLookup);
+        return this.createNbt(registryLookup);
     }
 
     @Override
@@ -136,10 +136,12 @@ public class ModelBlockEntity extends BlockEntity
     {
         super.writeData(view);
 
-        NbtCompound holder = new NbtCompound();
+        MapType data = this.properties.toData();
+        NbtCompound nbt = new NbtCompound();
 
-        DataStorageUtils.writeToNbtCompound(holder, "Properties", this.properties.toData());
-        holder.getCompound("Properties").ifPresent((compound) -> view.put("Properties", NbtCompound.CODEC, compound));
+        DataStorageUtils.writeToNbtCompound(nbt, "Properties", data);
+
+        view.put("Properties", NbtCompound.CODEC, nbt.getCompoundOrEmpty("Properties"));
     }
 
     @Override
@@ -147,19 +149,27 @@ public class ModelBlockEntity extends BlockEntity
     {
         super.readData(view);
 
-        view.read("Properties", NbtCompound.CODEC).ifPresent((compound) ->
+        NbtCompound nbt = new NbtCompound();
+
+        view.read("Properties", NbtCompound.CODEC).ifPresent((compound) -> nbt.put("Properties", compound));
+
+        this.readProperties(nbt);
+    }
+
+    /**
+     * Read the properties out of a raw block-entity NBT compound — the shape {@link #writeData(WriteView)}
+     * produces, and the shape the item's {@code BLOCK_ENTITY_DATA} component carries. The item renderer
+     * hydrates its off-world entity through here: {@link #readData(ReadView)} is protected, and the
+     * component hands out plain NBT rather than a {@link ReadView}.
+     */
+    public void readProperties(NbtCompound nbt)
+    {
+        BaseType baseType = DataStorageUtils.readFromNbtCompound(nbt, "Properties");
+
+        if (baseType instanceof MapType mapType)
         {
-            NbtCompound holder = new NbtCompound();
-
-            holder.put("Properties", compound);
-
-            BaseType baseType = DataStorageUtils.readFromNbtCompound(holder, "Properties");
-
-            if (baseType instanceof MapType mapType)
-            {
-                this.properties.fromData(mapType);
-            }
-        });
+            this.properties.fromData(mapType);
+        }
     }
 
     public void updateForm(MapType data, World world)

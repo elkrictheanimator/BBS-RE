@@ -13,12 +13,11 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.ItemStack;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.ItemPickupAnimationS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.Arm;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
@@ -78,6 +77,7 @@ public class ActorEntity extends LivingEntity implements IEntityFormProvider
         return this.replayId;
     }
 
+    /* Not getEntity(): LivingEntity itself declares one in 1.21.11, returning a LivingEntity. */
     public MCEntity getFormEntity()
     {
         return this.entity;
@@ -149,6 +149,16 @@ public class ActorEntity extends LivingEntity implements IEntityFormProvider
         }
 
         return distance < (d * 256D) * (d * 256D);
+    }
+
+    public Iterable<ItemStack> getHandItems()
+    {
+        return List.of(this.getEquippedStack(EquipmentSlot.MAINHAND), this.getEquippedStack(EquipmentSlot.OFFHAND));
+    }
+
+    public Iterable<ItemStack> getArmorItems()
+    {
+        return List.of(this.getEquippedStack(EquipmentSlot.FEET), this.getEquippedStack(EquipmentSlot.LEGS), this.getEquippedStack(EquipmentSlot.CHEST), this.getEquippedStack(EquipmentSlot.HEAD));
     }
 
     @Override

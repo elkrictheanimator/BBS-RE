@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
@@ -47,6 +48,8 @@ public class GunItem extends Item
 
         if (!world.isClient())
         {
+            ServerWorld serverWorld = (ServerWorld) world;
+
             /* Shoot projectiles */
             int projectiles = Math.max(properties.projectiles, 1);
 
@@ -67,7 +70,7 @@ public class GunItem extends Item
 
             if (!properties.cmdFiring.isEmpty())
             {
-                owner.getEntityWorld().getServer().getCommandManager().parseAndExecute(owner.getCommandSource((net.minecraft.server.world.ServerWorld) owner.getEntityWorld()), properties.cmdFiring);
+                serverWorld.getServer().getCommandManager().parseAndExecute(owner.getCommandSource(serverWorld), properties.cmdFiring);
             }
         }
 

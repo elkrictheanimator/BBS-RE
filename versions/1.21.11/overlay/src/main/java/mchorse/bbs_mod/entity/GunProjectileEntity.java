@@ -11,7 +11,6 @@ import mchorse.bbs_mod.utils.MathUtils;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -20,12 +19,12 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.EntityTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -86,9 +85,9 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
 
     private void executeCommand(String command)
     {
-        if (!command.isEmpty())
+        if (!command.isEmpty() && this.getEntityWorld() instanceof ServerWorld serverWorld)
         {
-            this.getEntityWorld().getServer().getCommandManager().parseAndExecute(this.getCommandSource((net.minecraft.server.world.ServerWorld) this.getEntityWorld()).withPermissions(net.minecraft.command.permission.LeveledPermissionPredicate.GAMEMASTERS), command);
+            serverWorld.getServer().getCommandManager().parseAndExecute(this.getCommandSource(serverWorld).withSilent(), command);
         }
     }
 
@@ -133,11 +132,6 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
     public IEntity getFormEntity()
     {
         return this.properties.useTarget ? this.target : this.stub;
-    }
-
-    public boolean shouldReceiveFeedback()
-    {
-        return false;
     }
 
     @Override
@@ -255,7 +249,7 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
                 {
                     float hitbox = 0.25F;
 
-                    this.getEntityWorld().addParticleClient(ParticleTypes.BUBBLE, false, false, x - v.x * hitbox, y - v.y * hitbox, z - v.z * hitbox, v.x, v.y, v.z);
+                    this.getEntityWorld().addParticleClient(ParticleTypes.BUBBLE, x - v.x * hitbox, y - v.y * hitbox, z - v.z * hitbox, v.x, v.y, v.z);
                 }
 
                 friction = 0.6F;
@@ -327,7 +321,7 @@ public class GunProjectileEntity extends ProjectileEntity implements IEntityForm
             entity.setOnFireFor(5);
         }
 
-        if (entity.damage((net.minecraft.server.world.ServerWorld) this.getEntityWorld(), source, (float) damage))
+        if (entity.damage((ServerWorld) this.getEntityWorld(), source, (float) damage))
         {
             if (entity instanceof LivingEntity livingEntity)
             {

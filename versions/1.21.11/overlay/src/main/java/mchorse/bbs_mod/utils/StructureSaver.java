@@ -15,6 +15,7 @@ import net.minecraft.structure.StructureTemplate;
 import net.minecraft.util.math.BlockPos;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Writes a region of the world out as a structure NBT file, the one the {@code bbs:structure} form
@@ -58,7 +59,7 @@ public class StructureSaver
             StructureTemplate template = new StructureTemplate();
             NbtCompound nbt = new NbtCompound();
 
-            template.saveFromWorld(world, min(from, to), size(from, to), true, java.util.List.of(Blocks.STRUCTURE_VOID));
+            template.saveFromWorld(world, min(from, to), size(from, to), true, List.of(Blocks.STRUCTURE_VOID));
             template.writeNbt(nbt);
 
             /* Stamped the way the vanilla manager stamps its own, so a file written here is the

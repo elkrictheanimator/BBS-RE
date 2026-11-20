@@ -118,5 +118,4 @@ if os.path.isfile(_transform):
     exec(compile(open(_transform, encoding="utf8").read(), _transform, "exec"), _ns)
     _ns["run"](root)
 
-if version == "1.21.11" and not os.environ.get("BBS_SKIP_RESOLVE"):
-    resolve_placeholders()
+

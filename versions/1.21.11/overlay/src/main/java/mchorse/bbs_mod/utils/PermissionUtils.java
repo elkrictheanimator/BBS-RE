@@ -9,6 +9,9 @@ public class PermissionUtils
 {
     public static boolean arePanelsAllowed(MinecraftServer server, ServerPlayerEntity player)
     {
-        return BBSMod.bbsEditing || server.getPlayerManager().isOperator(new PlayerConfigEntry(player.getGameProfile()));
+        boolean rule = server.getOverworld().getGameRules().getValue(BBSMod.BBS_EDITING_RULE);
+        boolean allowed = rule || server.getPlayerManager().isOperator(new PlayerConfigEntry(player.getGameProfile()));
+
+        return allowed;
     }
 }

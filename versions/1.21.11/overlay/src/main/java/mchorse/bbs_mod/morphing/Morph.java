@@ -14,6 +14,8 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.storage.NbtWriteView;
+import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 
@@ -55,9 +57,9 @@ public class Morph
         }
 
         MobForm form = new MobForm();
-        net.minecraft.storage.NbtWriteView view = net.minecraft.storage.NbtWriteView.create(net.minecraft.util.ErrorReporter.EMPTY, target.getRegistryManager());
+        NbtWriteView view = NbtWriteView.create(ErrorReporter.EMPTY);
 
-        target.writeData(view);
+        target.saveData(view);
 
         NbtCompound compound = view.getNbt();
 

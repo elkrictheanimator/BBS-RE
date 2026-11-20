@@ -3,6 +3,7 @@ package mchorse.bbs_mod.actions;
 import com.google.common.collect.MapMaker;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.entity.SignBlockEntity;
+import net.minecraft.command.permission.PermissionPredicate;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.passive.AbstractHorseEntity;
@@ -10,9 +11,11 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.server.command.CommandOutput;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.stat.Stat;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,19 +101,38 @@ public class SuperFakePlayer extends ServerPlayerEntity
     }
 
     @Override
-    public net.minecraft.command.permission.PermissionPredicate getPermissions()
+    public PermissionPredicate getPermissions()
     {
-        return net.minecraft.command.permission.LeveledPermissionPredicate.GAMEMASTERS;
+        return PermissionPredicate.ALL;
     }
 
-    public boolean shouldBroadcastConsoleToOps()
+    @Override
+    public CommandOutput getCommandOutput()
     {
-        return false;
-    }
+        return new CommandOutput()
+        {
+            @Override
+            public void sendMessage(Text message)
+            {}
 
-    public boolean shouldReceiveFeedback()
-    {
-        return false;
+            @Override
+            public boolean shouldReceiveFeedback()
+            {
+                return false;
+            }
+
+            @Override
+            public boolean shouldTrackOutput()
+            {
+                return false;
+            }
+
+            @Override
+            public boolean shouldBroadcastConsoleToOps()
+            {
+                return false;
+            }
+        };
     }
 
     @Override
@@ -130,7 +152,7 @@ public class SuperFakePlayer extends ServerPlayerEntity
     {}
 
     @Override
-    public boolean isInvulnerableTo(net.minecraft.server.world.ServerWorld world, DamageSource damageSource)
+    public boolean isInvulnerableTo(ServerWorld world, DamageSource damageSource)
     {
         return true;
     }
@@ -147,7 +169,7 @@ public class SuperFakePlayer extends ServerPlayerEntity
     {}
 
     @Override
-    public boolean startRiding(Entity entity, boolean force, boolean emitEvent)
+    public boolean startRiding(Entity entity, boolean force, boolean shouldCancelInteract)
     {
         return false;
     }

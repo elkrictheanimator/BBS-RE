@@ -538,7 +538,7 @@ public class StubEntity implements IEntity
         float delta = (float) MathHelper.magnitude(this.x - this.prevX, 0D, this.z - this.prevZ);
         float speed = Math.min(delta * 4F, 1F);
 
-        this.limbAnimator.updateLimbs(speed, 0.4F, 1F);
+        this.limbAnimator.updateLimbs(speed, 0.4F, 1.0F);
 
         this.armSwing -= 1;
         this.age += 1;
@@ -571,12 +571,14 @@ public class StubEntity implements IEntity
     @Override
     public float getLimbPos(float tickDelta)
     {
+        /* 1.21.11: getPos(tickDelta) became getAnimationProgress(tickDelta) (the ever-growing walk phase) */
         return this.limbAnimator.getAnimationProgress(tickDelta);
     }
 
     @Override
     public float getLimbSpeed(float tickDelta)
     {
+        /* 1.21.11: getSpeed(tickDelta) became getAmplitude(tickDelta) (interpolated limb swing amount) */
         return this.limbAnimator.getAmplitude(tickDelta);
     }
 
