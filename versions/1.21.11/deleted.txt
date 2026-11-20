@@ -1,4 +1,5 @@
 src/client/java/mchorse/bbs_mod/cubic/render/CubicVAOBuilderRenderer.java
+src/client/java/mchorse/bbs_mod/cubic/render/CubicVAORenderer.java
 src/client/java/mchorse/bbs_mod/cubic/render/WeldGeometryCache.java
 src/client/java/mchorse/bbs_mod/cubic/render/vao/Attributes.java
 src/client/java/mchorse/bbs_mod/cubic/render/vao/IModelVAO.java
@@ -36,4 +37,3 @@ src/main/resources/assets/minecraft/shaders/program/bbs_kawase_down.fsh
 src/main/resources/assets/minecraft/shaders/program/bbs_kawase_down.json
 src/main/resources/assets/minecraft/shaders/program/bbs_kawase_up.fsh
 src/main/resources/assets/minecraft/shaders/program/bbs_kawase_up.json
-src/client/java/mchorse/bbs_mod/cubic/render/CubicVAORenderer.java
