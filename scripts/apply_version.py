@@ -111,5 +111,12 @@ if version == "1.20.4":
 
 apply_layer(version)
 
-if version == "1.21.11":
+_transform = os.path.join(root, "versions", version, "transform.py")
+
+if os.path.isfile(_transform):
+    _ns = {}
+    exec(compile(open(_transform, encoding="utf8").read(), _transform, "exec"), _ns)
+    _ns["run"](root)
+
+if version == "1.21.11" and not os.environ.get("BBS_SKIP_RESOLVE"):
     resolve_placeholders()
