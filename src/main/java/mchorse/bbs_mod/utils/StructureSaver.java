@@ -66,7 +66,7 @@ public class StructureSaver
             NbtHelper.putDataVersion(nbt);
 
             file.getParentFile().mkdirs();
-            NbtIo.writeCompressed(nbt, file);
+            NbtIo.writeCompressed(nbt, file.toPath());
 
             return true;
         }

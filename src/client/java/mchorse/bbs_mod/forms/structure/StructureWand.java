@@ -443,9 +443,9 @@ public class StructureWand
 
     private static void renderBox(MatrixStack stack, Vec3d camera, Box box)
     {
-        float w = (float) box.getXLength();
-        float h = (float) box.getYLength();
-        float d = (float) box.getZLength();
+        float w = (float) box.getLengthX();
+        float h = (float) box.getLengthY();
+        float d = (float) box.getLengthZ();
 
         COLOR.set(BBSSettings.primaryColor.get());
 

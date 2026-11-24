@@ -2,8 +2,6 @@ package mchorse.bbs_mod.mixin.client;
 
 import mchorse.bbs_mod.forms.structure.StructureWand;
 import mchorse.bbs_mod.graphics.window.Window;
-import mchorse.bbs_mod.ui.framework.UIScreen;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,11 +17,6 @@ public class MouseMixin
         if (window == Window.getWindow())
         {
             Window.setVerticalScroll((int) vertical);
-        }
-
-        if (MinecraftClient.getInstance().currentScreen instanceof UIScreen screen)
-        {
-            screen.setHorizontal(horizontal);
         }
     }
 
