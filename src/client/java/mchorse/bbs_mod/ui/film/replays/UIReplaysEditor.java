@@ -457,9 +457,18 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
             return;
         }
 
+        boolean changed = !path.equals(this.selectedPart);
+
         this.selectedPart = path;
         this.selectedPartsByReplay.put(this.replay.getId(), path);
         this.setActionsMode(false);
+
+        /* The keyframe editor shows only the picked part's tracks, so a different part needs it rebuilt right now;
+         * otherwise the old part's editor stays until the part is clicked a second time. */
+        if (changed && BBSSettings.replaysPartSeparate.get())
+        {
+            this.updateChannelsList();
+        }
     }
 
     public void setReplay(Replay replay)
