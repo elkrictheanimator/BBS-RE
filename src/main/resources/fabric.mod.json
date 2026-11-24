@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "bbs",
-  "version": "2.7-1.20.4",
+  "version": "2.7-1.20.1",
   "name": "BBS Reality's Edge",
   "description": "A new generation of video production mod",
   "authors": [
@@ -79,7 +79,7 @@
   "accessWidener": "bbs.accesswidener",
   "depends": {
     "fabricloader": ">=0.15.0",
-    "minecraft": "~1.20.4",
+    "minecraft": "=1.20.1",
     "java": ">=17",
     "fabric-api": "*"
   },

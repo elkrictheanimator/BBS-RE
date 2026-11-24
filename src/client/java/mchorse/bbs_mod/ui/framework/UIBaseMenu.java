@@ -248,11 +248,11 @@ public abstract class UIBaseMenu
         this.context.unfocus();
     }
 
-    public boolean mouseScrolled(int x, int y, double h, double v)
+    public boolean mouseScrolled(int x, int y, double v)
     {
         boolean result = false;
 
-        this.context.setMouseWheel(x, y, v, h);
+        this.context.setMouseWheel(x, y, v, this.context.mouseWheelHorizontal);
 
         IUIElement owner = this.getPointerOwner();
 

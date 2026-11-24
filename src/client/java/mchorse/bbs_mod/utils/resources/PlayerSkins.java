@@ -379,7 +379,7 @@ public class PlayerSkins
     {
         for (Property property : profile.getProperties().get("textures"))
         {
-            String url = skinUrlFromTextures(property.value());
+            String url = skinUrlFromTextures(property.getValue());
 
             if (url != null)
             {
