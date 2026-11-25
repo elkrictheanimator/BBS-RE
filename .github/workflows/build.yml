@@ -48,13 +48,13 @@ jobs:
           sudo apt-get install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 libopenal1 > /dev/null
           mkdir -p run
           echo "eula=true" > run/eula.txt
-          (timeout 420 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient --no-daemon > smoke.log 2>&1 || true)
+          (ALSOFT_DRIVERS=null timeout 420 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient --no-daemon > smoke.log 2>&1 || true)
           echo "=== distinct problems ==="
           grep -E "ERROR|FATAL|Mixin apply|InvalidInjection|MixinTransformerError|Exception|crash" smoke.log | grep -v "^\s*at \|Narrator\|flite\|OpenAL\|SoundSystem\|Downloading\|has no attributes" | sed -E 's/^\[[0-9:]+\] //' | sort | uniq -c | sort -rn | head -70 | cut -c1-260
           echo "=== progress markers ==="
           grep -E "Reloading ResourceManager|Created: .*gui|Setting user|Dashboard|Sound engine|Loaded .* recipes|Starting integrated" smoke.log | head -10 | cut -c1-200
           echo "=== tail ==="
-          tail -15 smoke.log | cut -c1-220
+          tail -120 smoke.log | cut -c1-200
 
       - uses: actions/upload-artifact@v4
         with:
