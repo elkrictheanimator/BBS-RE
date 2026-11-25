@@ -58,3 +58,6 @@ def run(root):
         return t.rstrip("\n") + "\naccessible method net/minecraft/world/GameRules$BooleanRule create (Z)Lnet/minecraft/world/GameRules$Type;\n"
 
     edit(root, "src/main/resources/bbs.accesswidener", widener)
+
+    edit(root, "src/client/java/mchorse/bbs_mod/client/BBSRendering.java",
+         lambda t: t.replace("import net.irisshaders.iris.uniforms.custom.cached.CachedUniform;", "import mchorse.bbs_mod.utils.iris.IrisUtils.CachedUniform;"))

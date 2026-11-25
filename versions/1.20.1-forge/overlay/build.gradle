@@ -38,6 +38,9 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	forge "net.minecraftforge:forge:${project.forge_version}"
+
+	/* Forge 1.20.1 ships MixinExtras at runtime; this is only for compiling against it. */
+	compileOnly annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5")
 }
 
 processResources {
