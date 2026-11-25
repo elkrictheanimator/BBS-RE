@@ -40,6 +40,20 @@ jobs:
           unzip -p "$J" bbs.client.mixins.json | grep -c '"' || true
           unzip -p "$J" META-INF/MANIFEST.MF
 
+      - name: Smoke test the Forge client (headless)
+        if: matrix.mc == '1.20.1-forge'
+        continue-on-error: true
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 libopenal1 > /dev/null
+          mkdir -p run
+          echo "eula=true" > run/eula.txt
+          (timeout 420 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient --no-daemon > smoke.log 2>&1 || true)
+          echo "=== lines of interest ==="
+          grep -nE "Mixin|mixin|ERROR|FATAL|Exception|Caused by|bbs|BBS|Registry|Failed|crash" smoke.log | grep -v "^.*Downloading" | head -150
+          echo "=== tail ==="
+          tail -40 smoke.log
+
       - uses: actions/upload-artifact@v4
         with:
           name: bbs-re-${{ matrix.mc }}
