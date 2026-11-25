@@ -18,12 +18,11 @@ import net.minecraftforge.registries.RegisterEvent;
 @Mod("bbs")
 public class BBSForge
 {
+    private static boolean initialized;
+
     public BBSForge()
     {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-
-        ForgeNetwork.channel();
-        new BBSMod().onInitialize();
 
         bus.addListener(BBSForge::onRegister);
         bus.addListener(BBSForge::onAttributes);
@@ -39,6 +38,16 @@ public class BBSForge
      */
     private static void onRegister(RegisterEvent event)
     {
+        /* Blocks, items and entity types take an intrusive holder in their constructors, which only works
+         * while the registries are open, so the initializer waits for the first register event */
+        if (!initialized)
+        {
+            initialized = true;
+
+            ForgeNetwork.channel();
+            new BBSMod().onInitialize();
+        }
+
         ForgeRegistry.flush(event);
     }
 
