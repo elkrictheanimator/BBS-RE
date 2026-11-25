@@ -9,7 +9,6 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegisterEvent;
 
 /**
@@ -19,11 +18,12 @@ import net.minecraftforge.registries.RegisterEvent;
 @Mod("bbs")
 public class BBSForge
 {
-    private static boolean initialized;
-
     public BBSForge()
     {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        ForgeNetwork.channel();
+        new BBSMod().onInitialize();
 
         bus.addListener(BBSForge::onRegister);
         bus.addListener(BBSForge::onAttributes);
@@ -34,19 +34,12 @@ public class BBSForge
     }
 
     /**
-     * The mod registers blocks, entities and so on with {@code Registry.register} from static fields and
-     * its initializer. Vanilla registries are open only while Forge fires its register events, so the
-     * whole initializer runs inside the first one.
+     * The mod registers blocks, entities and so on from static fields and its initializer. Those calls are
+     * queued (see {@link ForgeRegistry}) and handed to Forge when the event of each registry fires.
      */
     private static void onRegister(RegisterEvent event)
     {
-        if (!initialized && event.getRegistryKey().equals(ForgeRegistries.Keys.BLOCKS))
-        {
-            initialized = true;
-
-            ForgeNetwork.channel();
-            new BBSMod().onInitialize();
-        }
+        ForgeRegistry.flush(event);
     }
 
     private static void onAttributes(EntityAttributeCreationEvent event)
