@@ -55,7 +55,7 @@ def run(root):
     edit(root, "src/main/java/mchorse/bbs_mod/items/GunItem.java", gun)
 
     def widener(t):
-        return t.rstrip("\n") + "\naccessible method net/minecraft/world/GameRules$BooleanRule create (Z)Lnet/minecraft/world/GameRules$Type;\n"
+        return t.rstrip("\n") + "\naccessible method net/minecraft/world/GameRules$BooleanRule create (Z)Lnet/minecraft/world/GameRules$Type;\naccessible field net/minecraft/server/command/CommandManager$RegistrationEnvironment dedicated Z\n"
 
     edit(root, "src/main/resources/bbs.accesswidener", widener)
 
