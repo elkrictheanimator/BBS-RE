@@ -53,6 +53,6 @@ public class BBSForge
 
     private static void onAttributes(EntityAttributeCreationEvent event)
     {
-        FabricDefaultAttributeRegistry.PENDING.forEach(event::put);
+        FabricDefaultAttributeRegistry.PENDING.forEach((type, container) -> event.put(type, container.get()));
     }
 }

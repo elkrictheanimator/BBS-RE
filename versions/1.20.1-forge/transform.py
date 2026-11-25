@@ -34,6 +34,7 @@ def run(root):
 
 
     def bbsmod(t):
+        t = t.replace("FabricDefaultAttributeRegistry.register(ACTOR_ENTITY, ActorEntity.createActorAttributes());", "FabricDefaultAttributeRegistry.registerLazy(ACTOR_ENTITY, ActorEntity::createActorAttributes);")
         t = t.replace("new BlockItem(MODEL_BLOCK, new Item.Settings())", "new mchorse.bbs_mod.forge.RenderedBlockItem(MODEL_BLOCK, new Item.Settings())")
 
         return t
