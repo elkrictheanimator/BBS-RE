@@ -107,3 +107,6 @@ def run(root):
                     rel = os.path.relpath(os.path.join(dirpath, f), root)
 
                     edit(root, rel, lambda t: t.replace("net.fabricmc.", "mchorse.bbs_mod.fabricshim.") if "net.fabricmc." in t else t)
+
+    edit(root, "src/client/java/mchorse/bbs_mod/forms/renderers/ModelFormRenderer.java",
+         lambda t: t.replace("ActorEntityRenderer.armorRenderer.renderArmorSlot(", "mchorse.bbs_mod.forge.ForgeArmor.get().renderArmorSlot("))
