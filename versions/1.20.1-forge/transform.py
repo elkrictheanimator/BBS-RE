@@ -82,3 +82,28 @@ def run(root):
 
     edit(root, "src/main/resources/bbs.mixins.json", minversion)
     edit(root, "src/client/resources/bbs.client.mixins.json", minversion)
+
+    # The Fabric API shim must not live in net.fabricmc.*: when Sinytra Connector / Fabric API are in
+    # the mods folder they own those packages too, and Forge's module layer refuses two modules with
+    # the same package (the game then exits during loading). Move the shim into our own package.
+    old_dir = os.path.join(root, "src/main/java/net/fabricmc")
+    new_dir = os.path.join(root, "src/main/java/mchorse/bbs_mod/fabricshim")
+
+    if os.path.isdir(old_dir):
+        import shutil
+
+        os.makedirs(os.path.dirname(new_dir), exist_ok=True)
+        shutil.move(old_dir, new_dir)
+
+        parent = os.path.join(root, "src/main/java/net")
+
+        if os.path.isdir(parent) and not os.listdir(parent):
+            os.rmdir(parent)
+
+    for base in ("src/main/java", "src/client/java"):
+        for dirpath, _, files in os.walk(os.path.join(root, base)):
+            for f in files:
+                if f.endswith(".java"):
+                    rel = os.path.relpath(os.path.join(dirpath, f), root)
+
+                    edit(root, rel, lambda t: t.replace("net.fabricmc.", "mchorse.bbs_mod.fabricshim.") if "net.fabricmc." in t else t)

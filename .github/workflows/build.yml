@@ -56,6 +56,26 @@ jobs:
           echo "=== tail ==="
           tail -120 smoke.log | cut -c1-200
 
+      - name: Smoke test the Forge client with Sinytra Connector + Fabric API (headless)
+        if: matrix.mc == '1.20.1-forge'
+        continue-on-error: true
+        run: |
+          mkdir -p run/mods
+          get() { curl -s "https://api.modrinth.com/v2/project/$1/version?game_versions=%5B%221.20.1%22%5D&loaders=%5B%22$2%22%5D" | python3 -c "import sys,json; v=json.load(sys.stdin); print(v[0]['files'][0]['url'] if v else '')"; }
+          for spec in "connector forge" "fabric-api fabric"; do
+            set -- $spec
+            url=$(get $1 $2)
+            echo "$1 -> $url"
+            [ -n "$url" ] && curl -sL -o "run/mods/$1.jar" "$url"
+          done
+          ls -la run/mods
+          rm -f run/logs/latest.log
+          (ALSOFT_DRIVERS=null timeout 420 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient --no-daemon > smoke2.log 2>&1 || true)
+          echo "=== distinct problems (with Connector) ==="
+          grep -E "ERROR|FATAL|Mixin apply|InvalidInjection|MixinTransformerError|Exception|crash|split|module|Module" smoke2.log | grep -v "^\s*at \|Narrator\|flite\|OpenAL\|SoundSystem\|Downloading\|has no attributes" | sed -E 's/^\[[0-9:]+\] //' | sort | uniq -c | sort -rn | head -40 | cut -c1-260
+          echo "=== tail (with Connector) ==="
+          tail -60 smoke2.log | cut -c1-220
+
       - uses: actions/upload-artifact@v4
         with:
           name: bbs-re-${{ matrix.mc }}
