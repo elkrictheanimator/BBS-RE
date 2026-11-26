@@ -129,6 +129,7 @@ public abstract class UIClip <T extends Clip> extends UIElement
         register(MathClip.class, UIMathClip::new);
         register(LookClip.class, UILookClip::new);
         register(TrackerClientClip.class, UITrackerClip::new);
+        register(mchorse.bbs_mod.camera.clips.misc.FirstPersonClientClip.class, UIFirstPersonClip::new);
         register(OrbitClip.class, UIOrbitClip::new);
         register(RemapperClip.class, UIRemapperClip::new);
         register(AudioClientClip.class, UIAudioClip::new);

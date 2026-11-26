@@ -510,6 +510,7 @@ public class BBSMod implements ModInitializer
             .register(Link.bbs("photo"), PhotoClip.class, new ClipFactoryData(Icons.PICTURE, 0x2d9fd2))
             .register(Link.bbs("video"), VideoClip.class, new ClipFactoryData(Icons.VIDEO_CAMERA, 0xd21f3c))
             .register(Link.bbs("curve"), CurveClip.class, new ClipFactoryData(Icons.ARC, 0xff1493))
+            .register(Link.bbs("first_person"), mchorse.bbs_mod.camera.clips.misc.FirstPersonClip.class, new ClipFactoryData(Icons.VISIBLE, 0xffb347))
             .register(Link.bbs("tracker"), TrackerClip.class, new ClipFactoryData(Icons.USER, 0xffffff))
             .register(Link.bbs("dolly_zoom"), DollyZoomClip.class, new ClipFactoryData(Icons.FILTER, 0x7d56c9))
             .register(Link.bbs("procedural_shake"), ProceduralShakeClip.class, new ClipFactoryData(Icons.EXCHANGE, 0x15b574))
