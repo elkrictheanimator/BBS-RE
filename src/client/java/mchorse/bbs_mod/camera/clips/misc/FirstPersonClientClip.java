@@ -1,6 +1,7 @@
 package mchorse.bbs_mod.camera.clips.misc;
 
 import mchorse.bbs_mod.camera.Camera;
+import mchorse.bbs_mod.camera.clips.CameraClipContext;
 import mchorse.bbs_mod.camera.data.Position;
 import mchorse.bbs_mod.camera.data.Point;
 import mchorse.bbs_mod.forms.entities.IEntity;
@@ -18,12 +19,20 @@ public class FirstPersonClientClip extends FirstPersonClip
     {
         List<IEntity> entities = this.getEntities(context);
 
-        if (entities.isEmpty())
+        IEntity actor = entities.isEmpty() ? null : entities.get(0);
+
+        /* No replay picked yet: use the film's first replay instead of leaving the camera at the origin
+         * (which shows an empty viewport). */
+        if (actor == null && context instanceof CameraClipContext cameraContext && !cameraContext.entities.isEmpty())
+        {
+            actor = cameraContext.entities.values().iterator().next();
+        }
+
+        if (actor == null)
         {
             return;
         }
 
-        IEntity actor = entities.get(0);
         Camera camera = new Camera();
         int mode = this.mode.get();
 
