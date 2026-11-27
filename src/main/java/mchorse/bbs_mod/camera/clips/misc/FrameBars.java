@@ -12,6 +12,36 @@ public class FrameBars
     public int color;
     /** 0..1: how far the bars have closed in. */
     public float factor = 1F;
+    /** 0: bars / tint, 1: eyelids closing from top and bottom, 2: vignette (dark edges), 3: scanlines, 4: frame border, 5: glitch bars, 6: curved eyelids. */
+    public int kind;
+    /** 0..1: softness of the eyelid edge, or how far a vignette reaches into the frame. */
+    public float soft;
+
+    public int seed;
+    /** Kind 6 (curved eyelids): how much the lids arch toward the middle. */
+    public float curve;
+
+    public FrameBars curve(float curve)
+    {
+        this.curve = curve;
+
+        return this;
+    }
+
+    public FrameBars seed(int seed)
+    {
+        this.seed = seed;
+
+        return this;
+    }
+
+    public FrameBars kind(int kind, float soft)
+    {
+        this.kind = kind;
+        this.soft = soft;
+
+        return this;
+    }
 
     public FrameBars(float ratio, int color, float factor)
     {

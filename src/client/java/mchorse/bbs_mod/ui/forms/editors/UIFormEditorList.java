@@ -22,6 +22,13 @@ public class UIFormEditorList extends UIFormList
     {
         if (context.isPressed(GLFW.GLFW_KEY_ESCAPE))
         {
+            if (this.isInFolder())
+            {
+                this.exitFolder();
+
+                return true;
+            }
+
             this.palette.exit();
         }
 

@@ -94,6 +94,7 @@ public class UIImpactClip extends UIClip<ImpactClip>
     public UIButton preset;
     public UIKeyframeEditor keyframes;
     public UIButton editKeyframes;
+    public UIButton bakeKeyframes;
     public UIButton target;
     public UIButton palette;
     public UITrackpad silStrokes;
@@ -142,13 +143,19 @@ public class UIImpactClip extends UIClip<ImpactClip>
         this.keyframes.view.duration(() -> this.clip.duration.get());
         this.keyframes.setUndoId("impact_keyframes");
 
-        this.editKeyframes = new UIButton(IKey.constant("Edit keyframes"), (b) ->
+        this.editKeyframes = new UIButton(IKey.constant("Edit keyframes (all effect curves)"), (b) ->
         {
             this.bbsvfx$setupSheets();
             this.editor.embedView(this.keyframes);
             this.keyframes.view.resetView();
             this.keyframes.view.getGraph().clearSelection();
         });
+        this.bakeKeyframes = new UIButton(IKey.constant("Bake sliders → keyframes"), (b) ->
+        {
+            this.clip.bakeKeyframes();
+            this.bbsvfx$setupSheets();
+        });
+        this.bakeKeyframes.tooltip(IKey.constant("Turn every active slider into editable keyframes (start and end of the clip), without changing the look"));
         this.editKeyframes.keys().register(Keys.FORMS_EDIT, () -> this.editKeyframes.clickItself());
         this.editKeyframes.tooltip(IKey.constant("Animate the impact parameters over the clip (a keyframed channel overrides its slider)"));
 
@@ -361,7 +368,7 @@ public class UIImpactClip extends UIClip<ImpactClip>
         super.registerPanels();
 
         this.panels.add(this.preset.marginTop(UIConstants.SECTION_GAP));
-        this.panels.add(BbsVfxUI.section(IKey.constant("Keyframes"), this.editKeyframes));
+        this.panels.add(BbsVfxUI.section(IKey.constant("Keyframes"), this.editKeyframes, this.bakeKeyframes));
 
         this.panels.add(BbsVfxUI.section(
             IKey.constant("Silhouette / negative space"),
@@ -532,7 +539,10 @@ public class UIImpactClip extends UIClip<ImpactClip>
     /* ---- Full impact-frame presets (curated by the references) ---- */
 
     private static final List<String> PRESET_NAMES = Arrays.asList(
-        "Charcoal Slam (B&W)", "Color Swap (aura)", "Manga Speed Lines", "Spider-Verse Pop", "White Flash Hit");
+        "Charcoal Slam (B&W)", "Color Swap (aura)", "Manga Speed Lines", "Spider-Verse Pop", "White Flash Hit",
+        "Slash Cut (diagonals)", "Negative Invert", "Shockwave Ring", "Red Ink Burst", "Radial Speed Lines",
+        "Glitch Chroma", "Debris Shatter", "Cyber Neon", "Sepia Hit", "Heavy Blackout",
+        "Anime X Slash", "Pulse Zoom", "Impact Star", "Ink Silhouette (white)", "Golden Ring");
 
     /* Sheet colours for the keyframe channels (ARGB), cycled. */
     private static final int[] KF_COLORS = {
@@ -649,6 +659,12 @@ public class UIImpactClip extends UIClip<ImpactClip>
 
     private void bbsvfx$applyPreset(int p)
     {
+        /* Old keyframes would override the preset's sliders, so start from a clean slate */
+        for (var channel : this.clip.kfChannels)
+        {
+            channel.removeAll();
+        }
+
         this.bbsvfx$zeroAll();
 
         switch (p)
@@ -770,7 +786,189 @@ public class UIImpactClip extends UIClip<ImpactClip>
                 this.clip.shockwaveProgress.set(0.5F);
                 this.clip.chroma.set(0.2F);
             }
+            case 5 -> /* Slash Cut: the picture breaks along diagonal cuts */
+            {
+                this.clip.cut.set(1F);
+                this.clip.cutCount.set(3F);
+                this.clip.cutAngle.set(25F);
+                this.clip.cutAngleStep.set(30F);
+                this.clip.cutOffsetStep.set(0.14F);
+                this.clip.cutShift.set(0.08F);
+                this.clip.cutWidth.set(0.006F);
+                this.clip.cutColor.set(0xFFFFFF);
+                this.clip.flash.set(0.3F);
+                this.clip.invert.set(0.2F);
+            }
+            case 6 -> /* Negative Invert: hard black and white negative */
+            {
+                this.clip.invert.set(1F);
+                this.clip.threshold.set(0.8F);
+                this.clip.thresholdLevel.set(0.5F);
+                this.clip.thresholdSoft.set(0.04F);
+                this.clip.darkColor.set(0x000000);
+                this.clip.lightColor.set(0xFFFFFF);
+                this.clip.chroma.set(0.1F);
+            }
+            case 7 -> /* Shockwave Ring: a ring leaves the point of contact */
+            {
+                this.clip.shockwave.set(1F);
+                this.clip.shockwaveProgress.set(0.6F);
+                this.clip.shockwaveRadius.set(0.8F);
+                this.clip.shockwaveWidth.set(0.05F);
+                this.clip.shockwaveColor.set(0xFFFFFF);
+                this.clip.flashStar.set(0.6F);
+                this.clip.flashStarColor.set(0xFFFFFF);
+                this.clip.zoomBlur.set(0.25F);
+                this.clip.blurMode.set(0);
+            }
+            case 8 -> /* Red Ink Burst: black silhouette, red brush burst */
+            {
+                this.clip.silhouette.set(1F);
+                this.clip.silColor.set(0x000000);
+                this.clip.bgColor.set(0xFFFFFF);
+                this.clip.inkBurst.set(1F);
+                this.clip.inkColor.set(0xCC0000);
+                this.clip.inkRadius.set(0.75F);
+                this.clip.inkInner.set(0.1F);
+                this.clip.inkSpikes.set(22F);
+                this.clip.inkRough.set(0.7F);
+                this.clip.flashStar.set(0.7F);
+                this.clip.flashStarColor.set(0xCC0000);
+            }
+            case 9 -> /* Radial Speed Lines */
+            {
+                this.clip.zoomLines.set(1F);
+                this.clip.linesMode.set(0);
+                this.clip.linesCount.set(120F);
+                this.clip.linesThickness.set(0.18F);
+                this.clip.linesInner.set(0.45F);
+                this.clip.linesColor.set(0x000000);
+                this.clip.threshold.set(0.5F);
+                this.clip.thresholdLevel.set(0.4F);
+                this.clip.darkColor.set(0x000000);
+                this.clip.lightColor.set(0xFFFFFF);
+            }
+            case 10 -> /* Glitch Chroma: colour split and scattered cuts */
+            {
+                this.clip.chroma.set(1F);
+                this.clip.flash.set(0.2F);
+                this.clip.cut.set(1F);
+                this.clip.cutCount.set(4F);
+                this.clip.cutScatter.set(0.6F);
+                this.clip.cutShift.set(0.05F);
+                this.clip.cutWidth.set(0.002F);
+                this.clip.cutColor.set(0x00FFFF);
+                this.clip.zoomBlur.set(0.2F);
+                this.clip.blurMode.set(0);
+            }
+            case 11 -> /* Debris Shatter: shards fly out just after the hit */
+            {
+                this.clip.shapes.set(1F);
+                this.clip.shapesCount.set(20F);
+                this.clip.shapesSize.set(0.04F);
+                this.clip.shapesSpread.set(1.2F);
+                this.clip.shapesDelay.set(3F);
+                this.clip.shapesColor.set(0xFFFFFF);
+                this.clip.centerStar.set(1F);
+                this.clip.flash.set(0.4F);
+                this.clip.invert.set(0.3F);
+            }
+            case 12 -> /* Cyber Neon: dark duotone with magenta lines */
+            {
+                this.clip.threshold.set(1F);
+                this.clip.thresholdLevel.set(0.45F);
+                this.clip.thresholdSoft.set(0.08F);
+                this.clip.darkColor.set(0x05010F);
+                this.clip.lightColor.set(0x00FFE0);
+                this.clip.chroma.set(0.6F);
+                this.clip.zoomLines.set(0.5F);
+                this.clip.linesMode.set(0);
+                this.clip.linesColor.set(0xFF2DD4);
+                this.clip.linesCount.set(70F);
+                this.clip.flashStar.set(0.7F);
+                this.clip.flashStarColor.set(0xFF2DD4);
+            }
+            case 13 -> /* Sepia Hit: grey frame with a punch of blur */
+            {
+                this.clip.grayscale.set(1F);
+                this.clip.flash.set(0.5F);
+                this.clip.zoomBlur.set(0.4F);
+                this.clip.blurMode.set(0);
+                this.clip.shockwave.set(0.3F);
+                this.clip.shockwaveColor.set(0xFFFFFF);
+                this.clip.shockwaveProgress.set(0.4F);
+            }
+            case 14 -> /* Heavy Blackout: white silhouette on black */
+            {
+                this.clip.silhouette.set(1F);
+                this.clip.silColor.set(0xFFFFFF);
+                this.clip.bgColor.set(0x000000);
+                this.clip.inkBurst.set(1F);
+                this.clip.inkColor.set(0xFFFFFF);
+                this.clip.inkRadius.set(0.8F);
+                this.clip.inkSpikes.set(28F);
+                this.clip.flashStar.set(1F);
+                this.clip.flashStarColor.set(0xFFFFFF);
+                this.clip.flashStarSize.set(0.45F);
+            }
+            case 15 -> /* Anime X Slash: two diagonals cross the frame */
+            {
+                this.clip.cut.set(1F);
+                this.clip.cutCount.set(2F);
+                this.clip.cutAngle.set(45F);
+                this.clip.cutAngleStep.set(90F);
+                this.clip.cutOffsetStep.set(0.02F);
+                this.clip.cutShift.set(0.06F);
+                this.clip.cutWidth.set(0.008F);
+                this.clip.cutColor.set(0xFFFFFF);
+                this.clip.invert.set(0.4F);
+                this.clip.flash.set(0.5F);
+            }
+            case 16 -> /* Pulse Zoom: a quick punch-in with a soft split */
+            {
+                this.clip.zoomBlur.set(0.6F);
+                this.clip.blurMode.set(0);
+                this.clip.flashStar.set(0.4F);
+                this.clip.flashStarColor.set(0xFFFFFF);
+                this.clip.chroma.set(0.3F);
+            }
+            case 17 -> /* Impact Star: a big star flash on the point of contact */
+            {
+                this.clip.centerStar.set(1F);
+                this.clip.flashStar.set(1F);
+                this.clip.flashStarColor.set(0xFFFFFF);
+                this.clip.flashStarSize.set(0.4F);
+                this.clip.flash.set(0.6F);
+                this.clip.zoomBlur.set(0.3F);
+                this.clip.blurMode.set(0);
+            }
+            case 18 -> /* Ink Silhouette: black figure on white with a black burst */
+            {
+                this.clip.silhouette.set(1F);
+                this.clip.silColor.set(0x000000);
+                this.clip.bgColor.set(0xFFFFFF);
+                this.clip.inkBurst.set(0.6F);
+                this.clip.inkColor.set(0x000000);
+                this.clip.inkRadius.set(0.7F);
+                this.clip.inkSpikes.set(18F);
+                this.clip.inkRough.set(0.5F);
+            }
+            case 19 -> /* Golden Ring: a gold shockwave with a warm star */
+            {
+                this.clip.shockwave.set(1F);
+                this.clip.shockwaveProgress.set(0.35F);
+                this.clip.shockwaveRadius.set(0.5F);
+                this.clip.shockwaveWidth.set(0.04F);
+                this.clip.shockwaveColor.set(0xFFE070);
+                this.clip.flashStar.set(0.5F);
+                this.clip.flashStarColor.set(0xFFE070);
+                this.clip.flash.set(0.3F);
+            }
         }
+
+        /* Every effect of the preset becomes visible keyframes in the keyframe editor */
+        this.clip.bakeKeyframes();
+        this.bbsvfx$setupSheets();
 
         this.preset.label = IKey.constant("Preset: " + PRESET_NAMES.get(p));
         this.fillData();

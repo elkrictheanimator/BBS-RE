@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mc: [ "1.20.1", "1.20.4", "1.21.1" ]
+        mc: [ "1.20.1", "1.20.4", "1.21.1", "1.21.11", "1.20.1-forge" ]
     steps:
       - uses: actions/checkout@v4
 
@@ -28,6 +28,53 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew build --no-daemon -Dorg.gradle.jvmargs=-Xmx3G
+
+      - name: Inspect jar
+        if: matrix.mc == '1.20.1-forge'
+        run: |
+          J=$(ls build/libs/*.jar | grep -v -e sources -e dev | head -1)
+          echo "JAR $J"
+          unzip -l "$J" | grep -E "META-INF/|refmap|mixins.json|pack.mcmeta|fabric.mod|accesstransformer" | head -30
+          unzip -p "$J" META-INF/mods.toml | head -30
+          unzip -p "$J" bbs.mixins.json | head -20
+          unzip -p "$J" bbs.client.mixins.json | grep -c '"' || true
+          unzip -p "$J" META-INF/MANIFEST.MF
+
+      - name: Smoke test the Forge client (headless)
+        if: matrix.mc == '1.20.1-forge'
+        continue-on-error: true
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 libopenal1 > /dev/null
+          mkdir -p run
+          echo "eula=true" > run/eula.txt
+          (ALSOFT_DRIVERS=null timeout 420 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient --no-daemon > smoke.log 2>&1 || true)
+          echo "=== distinct problems ==="
+          grep -E "ERROR|FATAL|Mixin apply|InvalidInjection|MixinTransformerError|Exception|crash" smoke.log | grep -v "^\s*at \|Narrator\|flite\|OpenAL\|SoundSystem\|Downloading\|has no attributes" | sed -E 's/^\[[0-9:]+\] //' | sort | uniq -c | sort -rn | head -70 | cut -c1-260
+          echo "=== progress markers ==="
+          grep -E "Reloading ResourceManager|Created: .*gui|Setting user|Dashboard|Sound engine|Loaded .* recipes|Starting integrated" smoke.log | head -10 | cut -c1-200
+          echo "=== tail ==="
+          tail -120 smoke.log | cut -c1-200
+
+      - name: Smoke test the Forge client with Sinytra Connector + Fabric API (headless)
+        if: matrix.mc == '1.20.1-forge'
+        continue-on-error: true
+        run: |
+          mkdir -p run/mods
+          get() { curl -s "https://api.modrinth.com/v2/project/$1/version?game_versions=%5B%221.20.1%22%5D&loaders=%5B%22$2%22%5D" | python3 -c "import sys,json; v=json.load(sys.stdin); print(v[0]['files'][0]['url'] if v else '')"; }
+          for spec in "connector forge" "fabric-api fabric"; do
+            set -- $spec
+            url=$(get $1 $2)
+            echo "$1 -> $url"
+            [ -n "$url" ] && curl -sL -o "run/mods/$1.jar" "$url"
+          done
+          ls -la run/mods
+          rm -f run/logs/latest.log
+          (ALSOFT_DRIVERS=null timeout 420 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient --no-daemon > smoke2.log 2>&1 || true)
+          echo "=== distinct problems (with Connector) ==="
+          grep -E "ERROR|FATAL|Mixin apply|InvalidInjection|MixinTransformerError|Exception|crash|split|module|Module" smoke2.log | grep -v "^\s*at \|Narrator\|flite\|OpenAL\|SoundSystem\|Downloading\|has no attributes" | sed -E 's/^\[[0-9:]+\] //' | sort | uniq -c | sort -rn | head -40 | cut -c1-260
+          echo "=== tail (with Connector) ==="
+          tail -60 smoke2.log | cut -c1-220
 
       - uses: actions/upload-artifact@v4
         with:

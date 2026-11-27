@@ -7,6 +7,7 @@ import mchorse.bbs_mod.cubic.model.ModelManager;
 import mchorse.bbs_mod.data.DataToString;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.forms.categories.FormCategory;
+import mchorse.bbs_mod.forms.categories.ModelFormCategory;
 import mchorse.bbs_mod.forms.forms.ModelForm;
 import mchorse.bbs_mod.forms.renderers.ModelFormRenderer;
 import mchorse.bbs_mod.ui.UIKeys;
@@ -61,5 +62,16 @@ public class UIModelFormCategory extends UIFormCategory
                 }
             });
         });
+    }
+
+    public ModelFormCategory getModelCategory()
+    {
+        return (ModelFormCategory) this.category;
+    }
+
+    @Override
+    protected boolean isExpanded()
+    {
+        return (this.list != null && this.list.isActiveFolder(this)) || super.isExpanded();
     }
 }

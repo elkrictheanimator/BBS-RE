@@ -142,6 +142,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
     private final Map<String, FoldState<String>> expandedTracksByReplay = new HashMap<>();
     private final Map<String, String> selectedPartsByReplay = new HashMap<>();
     private String selectedPart = "";
+    private boolean syncingParts;
 
     public static Icon getIcon(String key)
     {
@@ -329,7 +330,14 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
 
         /* Everything at once is the view to open on: a category is a way to narrow down, and
          * narrowing before the animator has seen what there is hides tracks they came for. */
-        this.setAllTracks();
+        if (BBSSettings.replaysSeparateTabs.get())
+        {
+            this.setCategory(this.category);
+        }
+        else
+        {
+            this.setAllTracks();
+        }
 
         TrackCategories.registerShortcuts(this.keys(), () -> TrackCategories.values().stream()
             .filter(category -> this.tabButtons.get(category).getParent() != null).toList(), this::setCategory);
@@ -438,17 +446,29 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
     }
 
     /**
-     * Body parts are no longer a thing you pick: every part's tracks sit on the timeline at once,
-     * like in 2.5.2. A pick in the viewport still leaves the actions timeline, nothing more.
+     * Every part's tracks sit on the timeline at once, like in 2.5.2. Picking a body part in the
+     * list under the replays (or in the viewport) remembers it per replay and leaves the actions timeline.
      */
     public void selectBodyPart(String path)
     {
-        if (this.replay == null)
+        /* Restoring the list's selection after a refresh is not a pick */
+        if (this.syncingParts || this.replay == null)
         {
             return;
         }
 
+        boolean changed = !path.equals(this.selectedPart);
+
+        this.selectedPart = path;
+        this.selectedPartsByReplay.put(this.replay.getId(), path);
         this.setActionsMode(false);
+
+        /* The keyframe editor shows only the picked part's tracks, so a different part needs it rebuilt right now;
+         * otherwise the old part's editor stays until the part is clicked a second time. */
+        if (changed && BBSSettings.replaysPartSeparate.get())
+        {
+            this.updateChannelsList();
+        }
     }
 
     public void setReplay(Replay replay)
@@ -516,6 +536,19 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
     {
         this.poseOverlayCount = BBSSettings.recordingPoseOverlays.get();
         this.transformOverlayCount = BBSSettings.recordingTransformOverlays.get();
+
+        /* The Body parts list under the replays follows the selected replay and remembers the pick */
+        this.syncingParts = true;
+
+        try
+        {
+            this.replaysList.setBodyPartsReplay(this.replay != null && this.replay.form.get() != null ? this.replay : null, this.selectedPart);
+        }
+        finally
+        {
+            this.syncingParts = false;
+        }
+
         this.replaysList.resize();
 
         UIKeyframes lastEditor = this.keyframeEditor != null ? this.keyframeEditor.view : null;
@@ -567,6 +600,19 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
 
         /* The body-part tree already chose the owner; tabs narrow down its properties. */
         sheets.removeIf((v) -> !this.allMode && categoryOf(v) != this.category);
+
+        /* A picked body part gets its own keyframe editor: only that part's tracks, not every part merged. "All tracks" still merges. */
+        if (!this.allMode && BBSSettings.replaysPartSeparate.get())
+        {
+            String part = this.selectedPart == null ? "" : this.selectedPart;
+
+            sheets.removeIf((v) ->
+            {
+                Form owner = getSheetForm(v);
+
+                return owner != null && !FormUtils.getPath(owner).equals(part);
+            });
+        }
 
         /* The tab isn't empty by itself - so if the filter empties it, the timeline has to stay (see below). */
         boolean hadTracks = !sheets.isEmpty();

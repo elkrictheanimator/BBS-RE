@@ -201,6 +201,10 @@ public class UIFormCategory extends UIItemGrid<Form>
             ));
         }).label(UIKeys.FORMS_CATEGORIES_CONTEXT_ADD_CATEGORY);
 
+        menu.action(Icons.ARROW_DOWN, UIKeys.FORMS_CATEGORIES_CONTEXT_SORT_AZ, () -> this.sortBy(false, false));
+        menu.action(Icons.ARROW_UP, UIKeys.FORMS_CATEGORIES_CONTEXT_SORT_ZA, () -> this.sortBy(true, false));
+        menu.action(Icons.FILTER, UIKeys.FORMS_CATEGORIES_CONTEXT_SORT_TYPE, () -> this.sortBy(false, true));
+
         if (form != null)
         {
             menu.action(Icons.COPY, UIKeys.FORMS_CATEGORIES_CONTEXT_COPY_FORM, () -> Window.setClipboard(FormUtils.toData(form)));
@@ -258,6 +262,24 @@ public class UIFormCategory extends UIItemGrid<Form>
                 });
             }
         }
+    }
+
+    /** Sort this category's forms by name (or by form type, then name). Names are cached once per sort. */
+    private void sortBy(boolean reverse, boolean byType)
+    {
+        java.util.Map<Form, String> keys = new java.util.IdentityHashMap<>();
+
+        for (Form f : this.category.getForms())
+        {
+            String name = f.getDisplayName();
+            String key = name == null ? "" : name.toLowerCase();
+
+            keys.put(f, byType ? f.getClass().getSimpleName() + "\u0000" + key : key);
+        }
+
+        java.util.Comparator<Form> comparator = (a, b) -> keys.get(a).compareTo(keys.get(b));
+
+        this.category.sortForms(reverse ? comparator.reversed() : comparator);
     }
 
     private void openModelEditorAction(ContextMenuManager menu, ModelForm form)

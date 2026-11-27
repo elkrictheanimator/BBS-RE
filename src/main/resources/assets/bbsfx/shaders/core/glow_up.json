@@ -1,0 +1,12 @@
+{
+    "vertex": "bbsfx:glow_quad",
+    "fragment": "bbsfx:glow_up",
+    "attributes": [ "Position", "UV0" ],
+    "samplers": [
+        { "name": "Sampler0" }
+    ],
+    "uniforms": [
+        { "name": "Texel", "type": "float", "count": 2, "values": [ 0.0, 0.0 ] },
+        { "name": "Intensity", "type": "float", "count": 1, "values": [ 1.0 ] }
+    ]
+}

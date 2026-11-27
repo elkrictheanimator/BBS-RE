@@ -129,6 +129,7 @@ public abstract class UIClip <T extends Clip> extends UIElement
         register(MathClip.class, UIMathClip::new);
         register(LookClip.class, UILookClip::new);
         register(TrackerClientClip.class, UITrackerClip::new);
+        register(mchorse.bbs_mod.camera.clips.misc.FirstPersonClientClip.class, UIFirstPersonClip::new);
         register(OrbitClip.class, UIOrbitClip::new);
         register(RemapperClip.class, UIRemapperClip::new);
         register(AudioClientClip.class, UIAudioClip::new);
@@ -139,8 +140,15 @@ public abstract class UIClip <T extends Clip> extends UIElement
         register(CurveClientClip.class, UICurveClip::new);
         register(DollyZoomClip.class, UIDollyZoomClip::new);
         register(mchorse.bbs_mod.camera.clips.modifiers.ProceduralShakeClip.class, UIProceduralShakeClip::new);
+        register(mchorse.bbs_mod.camera.clips.modifiers.OrbitTrackClip.class, UIOrbitTrackClip::new);
+        register(mchorse.bbs_mod.camera.clips.modifiers.CraneClip.class, UICraneClip::new);
         register(mchorse.bbs_mod.camera.clips.misc.LetterboxClip.class, UILetterboxClip::new);
         register(mchorse.bbs_mod.camera.clips.misc.TransitionClip.class, UITransitionClip::new);
+        register(mchorse.bbs_mod.camera.clips.misc.BlinkClip.class, UIBlinkClip::new);
+        register(mchorse.bbs_mod.camera.clips.misc.CameraEffectClip.class, UICameraEffectClip::new);
+        register(mchorse.bbs_mod.camera.clips.misc.VignetteClip.class, UIVignetteClip::new);
+        register(mchorse.bbs_mod.camera.clips.misc.ScreenFxClip.class, UIScreenFxClip::new);
+        register(mchorse.bbs_mod.camera.clips.modifiers.PunchClip.class, UIPunchClip::new);
 
         register(ChatActionClip.class, UIChatActionClip::new);
         register(CommandActionClip.class, UICommandActionClip::new);

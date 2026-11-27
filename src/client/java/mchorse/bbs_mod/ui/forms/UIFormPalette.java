@@ -215,6 +215,13 @@ public class UIFormPalette extends UIElement implements IUIFormList
     {
         if (context.isPressed(GLFW.GLFW_KEY_ESCAPE))
         {
+            if (!this.editor.isEditing() && this.list.isInFolder())
+            {
+                this.list.exitFolder();
+
+                return true;
+            }
+
             boolean wasEditing = this.editor.isEditing();
 
             this.exit();

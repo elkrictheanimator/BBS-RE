@@ -181,6 +181,8 @@ public class UIClips extends UITimelineCanvas
         this.keys().register(Keys.ADD_ON_TOP, this::showAddsOnTop).category(KEYS_CATEGORY).active(canUseKeybindsSelected);
         this.keys().register(Keys.ADD_AT_CURSOR, this::showAddsAtCursor).category(KEYS_CATEGORY).active(canUseKeybinds);
         this.keys().register(Keys.ADD_AT_TICK, this::showAddsAtTick).category(KEYS_CATEGORY).active(canUseKeybinds);
+        this.keys().register(Keys.ADD_CAMERA_TAB, () -> this.showAddsOnTab(UIKeys.CAMERA_PICKER_TAB_CAMERA)).category(KEYS_CATEGORY).active(canUseKeybinds);
+        this.keys().register(Keys.ADD_EFFECT_TAB, () -> this.showAddsOnTab(UIKeys.CAMERA_PICKER_TAB_IMPACT)).category(KEYS_CATEGORY).active(canUseKeybinds);
         this.keys().register(Keys.COPY, () ->
         {
             if (this.copyPasteController.copy()) UIUtils.playClick();
@@ -293,6 +295,18 @@ public class UIClips extends UITimelineCanvas
         this.showAddClips(context, this.checkSize(this.fromGraphTick(mouseX), this.fromLayerY(mouseY), BBSSettings.getDefaultDuration()));
     }
 
+    private IKey openTab;
+
+    /** Add-clip popup at the cursor tick, opened straight on a tab (camera / effect). */
+    private void showAddsOnTab(IKey tab)
+    {
+        UIContext context = this.getContext();
+
+        this.openTab = tab;
+        this.showAddsAtTick(context, context.mouseX, context.mouseY);
+        this.openTab = null;
+    }
+
     private void showAddsAtTick()
     {
         UIContext context = this.getContext();
@@ -384,6 +398,11 @@ public class UIClips extends UITimelineCanvas
             UIClipPickerMenu menu = new UIClipPickerMenu(pages, (type) -> this.addClip(type, preview.x, preview.y, preview.z));
 
             menu.getEvents().register(UIRemovedEvent.class, (e) -> this.addPreview = null);
+            if (this.openTab != null)
+            {
+                menu.openOn(this.openTab);
+            }
+
             context.replaceContextMenu(menu);
         }
 
@@ -391,18 +410,23 @@ public class UIClips extends UITimelineCanvas
     }
 
     /* The "add clip" popup: the camera clips by what they are for (basic ones, ones that follow a
-     * target, procedural ones), then Media and Impact tabs, and an "Other" tab for anything an addon
+     * target, procedural ones), then Media and Effect tabs, and an "Other" tab for anything an addon
      * adds. Clips are matched by name, the order here is the order on screen. An action-clip timeline
      * has none of these names, so it keeps the plain flat list (no pages: null). */
     private static final String[][] CLIP_GROUPS = {
         {"basic", "idle", "keyframe", "path", "dolly", "translate", "angle"},
         {"target", "look", "orbit", "orbit_path", "tracker", "dolly_zoom"},
-        {"procedural", "math", "curve", "follow_curve", "drag", "shake", "procedural_shake", "remapper"}
+        {"procedural", "math", "curve", "follow_curve", "drag", "shake", "procedural_shake", "orbit_track", "crane", "remapper"}
     };
 
     private static final IKey[] CLIP_GROUP_TITLES = {UIKeys.CAMERA_PICKER_GROUP_BASIC, UIKeys.CAMERA_PICKER_GROUP_TARGET, UIKeys.CAMERA_PICKER_GROUP_PROCEDURAL};
+    private static final String[] CLIP_FIRST_PERSON = {"first_person"};
     private static final String[] CLIP_MEDIA = {"audio", "subtitle", "image", "photo", "video"};
     private static final String[] CLIP_IMPACT = {"impact", "letterbox", "transition"};
+    private static final String[] CLIP_TEXT_FX = {"textflash", "lyrics", "text3d"};
+    private static final String[] CLIP_CAMERA_FX = {"camera_effect"};
+    /** Folded into camera_effect; still registered so old films keep working, but hidden from the picker. */
+    private static final String[] CLIP_LEGACY_FX = {"blink", "vignette", "punch", "screen_fx"};
 
     private UIClipPickerMenu.Entry pickerEntry(Link key)
     {
@@ -431,6 +455,7 @@ public class UIClips extends UITimelineCanvas
         UIClipPickerMenu.Page camera = new UIClipPickerMenu.Page(Icons.CAMERA, UIKeys.CAMERA_PICKER_TAB_CAMERA);
         UIClipPickerMenu.Page media = new UIClipPickerMenu.Page(Icons.PICTURE, UIKeys.CAMERA_PICKER_TAB_MEDIA);
         UIClipPickerMenu.Page impact = new UIClipPickerMenu.Page(Icons.LIGHT, UIKeys.CAMERA_PICKER_TAB_IMPACT);
+        UIClipPickerMenu.Page firstPerson = new UIClipPickerMenu.Page(Icons.VISIBLE, IKey.constant("First Person"));
         UIClipPickerMenu.Page other = new UIClipPickerMenu.Page(Icons.PROPERTIES, UIKeys.CAMERA_PICKER_TAB_OTHER);
 
         for (int i = 0; i < CLIP_GROUPS.length; i++)
@@ -438,10 +463,13 @@ public class UIClips extends UITimelineCanvas
             this.fillPickerGroup(camera.group(CLIP_GROUP_TITLES[i]), keys, left, CLIP_GROUPS[i], 1);
         }
 
+        this.fillPickerGroup(firstPerson.group(null), keys, left, CLIP_FIRST_PERSON, 0);
         this.fillPickerGroup(media.group(null), keys, left, CLIP_MEDIA, 0);
-        this.fillPickerGroup(impact.group(null), keys, left, CLIP_IMPACT, 0);
+        this.fillPickerGroup(impact.group(UIKeys.CAMERA_PICKER_GROUP_SCREEN), keys, left, CLIP_IMPACT, 0);
+        this.fillPickerGroup(impact.group(UIKeys.CAMERA_PICKER_GROUP_CAMERA_FX), keys, left, CLIP_CAMERA_FX, 0);
+        this.fillPickerGroup(impact.group(UIKeys.CAMERA_PICKER_GROUP_TEXT_FX), keys, left, CLIP_TEXT_FX, 0);
 
-        if (camera.isEmpty() && media.isEmpty() && impact.isEmpty())
+        if (camera.isEmpty() && firstPerson.isEmpty() && media.isEmpty() && impact.isEmpty())
         {
             return null;
         }
@@ -450,12 +478,21 @@ public class UIClips extends UITimelineCanvas
 
         for (Link key : left)
         {
+            if (java.util.Arrays.asList(CLIP_LEGACY_FX).contains(key.path))
+            {
+                continue;
+            }
+
             rest.add(this.pickerEntry(key));
         }
 
         List<UIClipPickerMenu.Page> pages = new ArrayList<>();
 
         pages.add(camera);
+        if (!firstPerson.isEmpty())
+        {
+            pages.add(firstPerson);
+        }
         pages.add(media);
         pages.add(impact);
         pages.add(other);

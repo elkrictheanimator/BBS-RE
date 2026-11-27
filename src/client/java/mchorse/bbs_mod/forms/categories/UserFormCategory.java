@@ -56,6 +56,14 @@ public class UserFormCategory extends FormCategory
     }
 
     @Override
+    public void sortForms(java.util.Comparator<Form> comparator)
+    {
+        super.sortForms(comparator);
+
+        this.section.writeUserCategories(this);
+    }
+
+    @Override
     public void removeForm(Form form)
     {
         super.removeForm(form);

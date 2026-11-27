@@ -2,6 +2,7 @@ package mchorse.bbs_mod.cubic.model;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The main-thread tail of model loading — VAO baking and other GL work a freshly parsed model
@@ -20,10 +21,17 @@ public class ModelSetupQueue
     private static final long BUDGET_NANOS = 4_000_000L;
 
     private static final Queue<Runnable> QUEUE = new ConcurrentLinkedQueue<>();
+    private static final AtomicInteger PENDING = new AtomicInteger();
 
     public static void add(Runnable task)
     {
+        PENDING.incrementAndGet();
         QUEUE.add(task);
+    }
+
+    public static int size()
+    {
+        return Math.max(0, PENDING.get());
     }
 
     /** Called once per frame from the render begin hook, on the render thread. */
@@ -39,11 +47,13 @@ public class ModelSetupQueue
 
         while ((task = QUEUE.poll()) != null)
         {
+            PENDING.decrementAndGet();
+
             try
             {
                 task.run();
             }
-            catch (Exception e)
+            catch (Throwable e)
             {
                 e.printStackTrace();
             }

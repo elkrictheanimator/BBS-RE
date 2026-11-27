@@ -49,6 +49,8 @@ public class BBSSettings {
 	public static ValueBoolean blenderButtons;
 	public static ValueInt uiCornerRadius;
 	public static ValueBoolean uiHoverFade;
+	public static ValueBoolean replaysSeparateTabs;
+	public static ValueBoolean replaysPartSeparate;
 	public static ValueInt bannerStyle;
 	public static ValueInt bannerColorStart;
 	public static ValueInt bannerColorEnd;
@@ -81,6 +83,7 @@ public class BBSSettings {
 	public static ValueBoolean forceQwerty;
 	public static ValueBoolean freezeModels;
 	public static ValueBoolean listModelPreview;
+	public static ValueBoolean formPickerFolders;
 	public static ValueBoolean morphingFocusSearch;
 	public static ValueInt formCellSize;
 	public static ValueInt textureCellSize;
@@ -175,6 +178,10 @@ public class BBSSettings {
 	public static ValueInt editorGuidesColor;
 	public static ValueBoolean editorRuleOfThirds;
 	public static ValueBoolean editorCenterLines;
+	public static ValueBoolean editorGoldenRatio;
+	public static ValueInt drawPathStep;
+	public static ValueBoolean editorDiagonals;
+	public static ValueBoolean editorSafeAreas;
 	public static ValueBoolean editorCrosshair;
 	public static ValueBoolean editorSeconds;
 	public static ValueBoolean editorTimelineGrid;
@@ -232,6 +239,7 @@ public class BBSSettings {
 	public static ValueBoolean recordingOverlays;
 	/** Extra pose tracks every posed form always has, on top of its base pose_overlay: three overlays in all. */
 	public static final int MIN_POSE_OVERLAYS = 2;
+	public static final int MIN_TRANSFORM_OVERLAYS = 2;
 
 	public static ValueInt recordingPoseOverlays;
 	public static ValueInt recordingTransformOverlays;
@@ -500,6 +508,11 @@ public class BBSSettings {
 		return interfaceGlow == null || interfaceGlow.get();
 	}
 
+	public static boolean isFormPickerFoldersEnabled()
+	{
+		return formPickerFolders == null || formPickerFolders.get();
+	}
+
 	public static int getDefaultDuration()
 	{
 		return duration == null ? 100 : duration.get();
@@ -647,6 +660,14 @@ public class BBSSettings {
 			migrated = true;
 		}
 
+		/* Transform overlays follow the same rule as pose overlays */
+		if (recording.has("transform_overlays") && recording.getInt("transform_overlays") < MIN_TRANSFORM_OVERLAYS)
+		{
+			recording.putInt("transform_overlays", MIN_TRANSFORM_OVERLAYS);
+			root.put("recording", recording);
+			migrated = true;
+		}
+
 		/* Sections now keep the replay list compact. Reveal their channels once;
 		 * later manual filtering must survive reloads. */
 		MapType appearance = root.getMap("appearance");
@@ -767,6 +788,8 @@ public class BBSSettings {
 		blenderButtons = builder.getBoolean("blender_buttons", false);
 		uiCornerRadius = builder.getInt("ui_corner_radius", 0, 0, 8);
 		uiHoverFade = builder.getBoolean("ui_hover_fade", false);
+		replaysSeparateTabs = builder.getBoolean("replays_separate_tabs", true);
+		replaysPartSeparate = builder.getBoolean("replays_part_separate", true);
 		/* Edited from the pencil on the landing screen banner, not from the settings list */
 		bannerStyle = builder.getInt("banner_style", 0, 0, 4);
 		bannerColorStart = builder.getInt("banner_color_start", 0x1b2a4e);
@@ -888,6 +911,10 @@ public class BBSSettings {
 		editorGuidesColor = builder.getInt("guides_color", 0x7fffffff).colorAlpha();
 		editorRuleOfThirds = builder.getBoolean("rule_of_thirds", false);
 		editorCenterLines = builder.getBoolean("center_lines", false);
+		editorGoldenRatio = builder.getBoolean("golden_ratio", false);
+		drawPathStep = builder.getInt("draw_path_step", 10, 1, 200);
+		editorDiagonals = builder.getBoolean("diagonals", false);
+		editorSafeAreas = builder.getBoolean("safe_areas", false);
 		editorCrosshair = builder.getBoolean("crosshair", false);
 		editorPreviewSizeMode = builder.getInt("preview_size_mode", 2, 0, 2);
 		editorPreviewCustomWidth = builder.getInt("preview_custom_width", 1280, 2, 16384);
@@ -907,6 +934,7 @@ public class BBSSettings {
 		 * resolution and how often, what it computes in parallel, plus the counters that
 		 * show where the frame goes. */
 		builder.category("performance", Icons.PROCESSOR);
+		formPickerFolders = builder.getBoolean("form_picker_folders", true);
 		listModelPreview = builder.getBoolean("list_model_preview", true);
 		freezeModels = builder.getBoolean("freeze_models", false);
 		translucencyQueue = builder.getBoolean("translucency_queue", false);
@@ -967,7 +995,7 @@ public class BBSSettings {
 		recordingSwipeDamage = builder.getBoolean("swipe_damage", false);
 		recordingOverlays = builder.getBoolean("overlays", true);
 		recordingPoseOverlays = builder.getInt("pose_overlays", MIN_POSE_OVERLAYS, MIN_POSE_OVERLAYS, 42);
-		recordingTransformOverlays = builder.getInt("transform_overlays", 0, 0, 42);
+		recordingTransformOverlays = builder.getInt("transform_overlays", MIN_TRANSFORM_OVERLAYS, MIN_TRANSFORM_OVERLAYS, 42);
 		recordingCameraPreview = builder.getBoolean("camera_preview", true);
 		recordingTeleport = builder.getBoolean("teleport", true);
 

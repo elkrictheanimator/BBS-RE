@@ -26,7 +26,16 @@ public class ProceduralShakeClip extends CameraClip
         IMPACT("Impact", 6F, 3, 0.1F, 0.22F, 0.15F, 3.5F, 2F, 3F),
         FOOTSTEP("Footstep", 1.8F, 2, 0.02F, 0.05F, 0.01F, 0.9F, 0.4F, 0.5F),
         VEHICLE("Vehicle", 12F, 3, 0.02F, 0.04F, 0.02F, 0.6F, 0.5F, 0.9F),
-        CUSTOM("Custom", 1.5F, 3, 0.05F, 0.05F, 0.05F, 1F, 1F, 1F);
+        CUSTOM("Custom", 1.5F, 3, 0.05F, 0.05F, 0.05F, 1F, 1F, 1F),
+        /* Added after Custom so the saved preset indexes of older clips keep their meaning */
+        EARTHQUAKE("Earthquake", 9F, 4, 0.12F, 0.1F, 0.12F, 2.2F, 2.2F, 3.5F),
+        HELICOPTER("Helicopter", 14F, 2, 0.02F, 0.05F, 0.02F, 0.5F, 0.4F, 1F),
+        BOAT("Boat / waves", 0.5F, 2, 0.04F, 0.15F, 0.03F, 1.8F, 0.6F, 3F),
+        RECOIL("Gun recoil", 7F, 2, 0.03F, 0.06F, 0.12F, 4F, 1.2F, 1.5F),
+        HEARTBEAT("Heartbeat", 1.6F, 1, 0F, 0.02F, 0F, 0.5F, 0F, 0.3F),
+        DRUNK("Drunk / dizzy", 0.6F, 3, 0.08F, 0.08F, 0.05F, 3F, 5F, 6F),
+        ENGINE("Engine idle", 18F, 2, 0.01F, 0.015F, 0.01F, 0.25F, 0.25F, 0.35F),
+        UNDERWATER("Underwater sway", 0.35F, 2, 0.05F, 0.1F, 0.05F, 1.2F, 1.5F, 2F);
 
         public final String label;
         public final float frequency;
