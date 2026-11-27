@@ -83,6 +83,7 @@ public class BBSSettings {
 	public static ValueBoolean forceQwerty;
 	public static ValueBoolean freezeModels;
 	public static ValueBoolean listModelPreview;
+	public static ValueBoolean formPickerFolders;
 	public static ValueBoolean morphingFocusSearch;
 	public static ValueInt formCellSize;
 	public static ValueInt textureCellSize;
@@ -507,6 +508,11 @@ public class BBSSettings {
 		return interfaceGlow == null || interfaceGlow.get();
 	}
 
+	public static boolean isFormPickerFoldersEnabled()
+	{
+		return formPickerFolders == null || formPickerFolders.get();
+	}
+
 	public static int getDefaultDuration()
 	{
 		return duration == null ? 100 : duration.get();
@@ -928,6 +934,7 @@ public class BBSSettings {
 		 * resolution and how often, what it computes in parallel, plus the counters that
 		 * show where the frame goes. */
 		builder.category("performance", Icons.PROCESSOR);
+		formPickerFolders = builder.getBoolean("form_picker_folders", true);
 		listModelPreview = builder.getBoolean("list_model_preview", true);
 		freezeModels = builder.getBoolean("freeze_models", false);
 		translucencyQueue = builder.getBoolean("translucency_queue", false);

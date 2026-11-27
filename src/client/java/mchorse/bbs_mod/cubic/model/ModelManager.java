@@ -1,6 +1,7 @@
 package mchorse.bbs_mod.cubic.model;
 
 import mchorse.bbs_mod.BBSMod;
+import mchorse.bbs_mod.BBSModClient;
 import mchorse.bbs_mod.cubic.CubicLoader;
 import mchorse.bbs_mod.cubic.ModelInstance;
 import mchorse.bbs_mod.cubic.MolangHelper;
@@ -19,6 +20,8 @@ import mchorse.bbs_mod.cubic.model.loaders.VoxModelLoader;
 import mchorse.bbs_mod.data.DataToString;
 import mchorse.bbs_mod.data.types.BaseType;
 import mchorse.bbs_mod.data.types.MapType;
+import mchorse.bbs_mod.graphics.texture.Texture;
+import mchorse.bbs_mod.graphics.texture.TextureManager;
 import mchorse.bbs_mod.math.molang.MolangParser;
 import mchorse.bbs_mod.resources.AssetProvider;
 import mchorse.bbs_mod.resources.Link;
@@ -26,12 +29,14 @@ import mchorse.bbs_mod.utils.IOUtils;
 import mchorse.bbs_mod.utils.PNGEncoder;
 import mchorse.bbs_mod.utils.StringUtils;
 import mchorse.bbs_mod.utils.colors.Colors;
+import mchorse.bbs_mod.utils.resources.MultiLink;
 import mchorse.bbs_mod.utils.resources.Pixels;
 import mchorse.bbs_mod.utils.pose.PoseManager;
 import mchorse.bbs_mod.utils.pose.ShapeKeysManager;
 import mchorse.bbs_mod.utils.watchdog.IWatchDogListener;
 import mchorse.bbs_mod.utils.watchdog.WatchDogEvent;
 import org.joml.Vector2f;
+import org.lwjgl.opengl.GL11;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +46,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -70,6 +77,9 @@ public class ModelManager implements IWatchDogListener
      * in {@link #requested} — both sides are touched by the render thread and the loader. */
     public final Map<String, ModelInstance> models = new ConcurrentHashMap<>();
     private final Set<String> requested = ConcurrentHashMap.newKeySet();
+    private final Set<String> failed = ConcurrentHashMap.newKeySet();
+    private final Set<String> previewReady = ConcurrentHashMap.newKeySet();
+    private final Set<Link> preloadedTextures = ConcurrentHashMap.newKeySet();
     public final List<IModelLoader> loaders = new ArrayList<>();
     public final AssetProvider provider;
     public final MolangParser parser;
@@ -150,6 +160,11 @@ public class ModelManager implements IWatchDogListener
 
     public ModelInstance getModel(String id)
     {
+        if (id == null || id.isEmpty())
+        {
+            return null;
+        }
+
         ModelInstance model = this.models.get(id);
 
         if (model != null)
@@ -165,6 +180,76 @@ public class ModelManager implements IWatchDogListener
         }
 
         return null;
+    }
+
+    /** Whether a model is parsed AND its GPU VAOs/textures have finished uploading for lag-free UI preview. */
+    public boolean isPreviewReady(String id)
+    {
+        return id != null && !id.isEmpty() && this.models.containsKey(id) && this.previewReady.contains(id);
+    }
+
+    public boolean isModelFailed(String id)
+    {
+        return id == null || id.isEmpty() || this.failed.contains(id);
+    }
+
+    public boolean isLoadingOrQueued(String id)
+    {
+        return id != null && !id.isEmpty() && !this.failed.contains(id) && (this.requested.contains(id) || (this.models.containsKey(id) && !this.previewReady.contains(id)));
+    }
+
+    void markFailed(String id)
+    {
+        if (id != null && !id.isEmpty())
+        {
+            this.failed.add(id);
+        }
+    }
+
+    /**
+     * Request gradual background loading for a form-picker cell. Admits only a couple of models
+     * at a time and respects GPU setup backpressure so scrolling a large folder never freezes.
+     */
+    public boolean requestPreview(String id, boolean priority)
+    {
+        if (id == null || id.isEmpty())
+        {
+            return false;
+        }
+
+        if (this.isPreviewReady(id))
+        {
+            return true;
+        }
+
+        if (this.failed.contains(id) || this.models.containsKey(id))
+        {
+            return false;
+        }
+
+        if (this.requested.contains(id))
+        {
+            if (priority)
+            {
+                this.loader.promotePreview(id);
+            }
+
+            return false;
+        }
+
+        if (!priority && ModelSetupQueue.size() > 6)
+        {
+            return false;
+        }
+
+        this.loader.offerPreview(id, priority, this.requested);
+
+        return false;
+    }
+
+    public void cancelPendingPreviews()
+    {
+        this.loader.clearPendingPreviews(this.requested);
     }
 
     public ModelInstance loadModel(String id)
@@ -188,17 +273,143 @@ public class ModelManager implements IWatchDogListener
 
         if (model == null)
         {
+            this.failed.add(id);
             System.err.println("Model \"" + id + "\" wasn't loaded properly, or was loaded with no top level groups!");
         }
         else
         {
             System.out.println("Model \"" + id + "\" was loaded!");
 
+            this.scheduleTexturePreloads(model);
             model.setup();
             this.models.put(id, model);
+
+            final ModelInstance loadedModel = model;
+
+            ModelSetupQueue.add(() ->
+            {
+                if (this.models.get(id) == loadedModel)
+                {
+                    this.previewReady.add(id);
+                }
+            });
         }
 
         return model;
+    }
+
+    /**
+     * Decode plain PNG textures referenced by a model on the background loader thread and
+     * queue their GL upload through {@link ModelSetupQueue}, avoiding synchronous PNG decoding
+     * stalls on the render thread when a heavy model cell first draws.
+     */
+    private void scheduleTexturePreloads(ModelInstance model)
+    {
+        Set<Link> links = new LinkedHashSet<>();
+
+        if (model.baseTexture != null)
+        {
+            links.add(model.baseTexture);
+        }
+
+        Link configured = model.getTexture();
+
+        if (configured != null)
+        {
+            links.add(configured);
+        }
+
+        if (model.materialTextures != null)
+        {
+            for (Link materialLink : model.materialTextures.values())
+            {
+                if (materialLink != null)
+                {
+                    links.add(materialLink);
+                }
+            }
+        }
+
+        for (Link link : links)
+        {
+            this.preloadPlainPng(link);
+        }
+    }
+
+    private void preloadPlainPng(Link link)
+    {
+        if (link == null || link instanceof MultiLink || Link.COLOR.equals(link.source) || link.source.startsWith("http"))
+        {
+            return;
+        }
+
+        if (!link.path.toLowerCase(Locale.ROOT).endsWith(".png"))
+        {
+            return;
+        }
+
+        if (!this.preloadedTextures.add(link))
+        {
+            return;
+        }
+
+        /* Leave animated .png.mcmeta strips to TextureManager's animated path */
+        try (InputStream mcmeta = this.provider.getAsset(new Link(link.source, link.path + ".mcmeta")))
+        {
+            if (mcmeta != null)
+            {
+                return;
+            }
+        }
+        catch (Exception ignored)
+        {}
+
+        Pixels pixels;
+
+        try (InputStream stream = this.provider.getAsset(link))
+        {
+            if (stream == null)
+            {
+                return;
+            }
+
+            pixels = Pixels.fromPNGStream(stream);
+        }
+        catch (Throwable ignored)
+        {
+            return;
+        }
+
+        if (pixels == null || pixels.getBuffer() == null)
+        {
+            return;
+        }
+
+        ModelSetupQueue.add(() ->
+        {
+            try
+            {
+                TextureManager textures = BBSModClient.getTextures();
+
+                if (textures != null && textures.textures.get(link) == null && textures.animatedTextures.get(link) == null)
+                {
+                    Texture texture = Texture.textureFromPixels(pixels, GL11.GL_NEAREST);
+
+                    textures.textures.put(link, texture);
+                }
+                else if (pixels.getBuffer() != null)
+                {
+                    pixels.delete();
+                }
+            }
+            catch (Throwable ignored)
+            {
+                if (pixels.getBuffer() != null)
+                {
+                    pixels.delete();
+                }
+            }
+        });
     }
 
     private MapType loadConfig(Link modelLink)
@@ -383,8 +594,12 @@ public class ModelManager implements IWatchDogListener
             }
         }
 
+        this.loader.clearPendingPreviews(this.requested);
         this.models.clear();
         this.requested.clear();
+        this.failed.clear();
+        this.previewReady.clear();
+        this.preloadedTextures.clear();
         ModelPhysicsRuntime.clearCache();
         PoseManager.INSTANCE.clear();
         ShapeKeysManager.INSTANCE.clear();
@@ -481,6 +696,8 @@ public class ModelManager implements IWatchDogListener
             if (key.startsWith(prefix))
             {
                 this.requested.remove(key);
+                this.failed.remove(key);
+                this.previewReady.remove(key);
             }
         }
     }
@@ -498,6 +715,8 @@ public class ModelManager implements IWatchDogListener
         /* Un-mark it too, or the next getModel would treat the key as already queued and
          * the edited model would never reload. */
         this.requested.remove(key);
+        this.failed.remove(key);
+        this.previewReady.remove(key);
 
         if (model != null)
         {

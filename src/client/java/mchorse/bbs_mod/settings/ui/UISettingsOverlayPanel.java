@@ -308,6 +308,7 @@ public class UISettingsOverlayPanel extends UIOverlayPanel
         UIButton lite = new UIButton(IKey.constant("Chế độ hiệu năng (máy yếu)"), (b) ->
         {
             /* Everything that spends frame time on looks, switched off in one go */
+            BBSSettings.formPickerFolders.set(true);
             BBSSettings.listModelPreview.set(false);
             BBSSettings.freezeModels.set(true);
             BBSSettings.ikDebug.enabled.set(false);

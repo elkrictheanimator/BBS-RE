@@ -82,7 +82,7 @@ public class ModelFormSection extends SubFormSection
             uiKey = IKey.comp(Arrays.asList(this.getTitle(), IKey.constant(" ("), UIKeys.FORMS_CATEGORIES_MODELS_PACKS, IKey.constant(rest + ")")));
         }
 
-        return new ModelFormCategory(uiKey, this.parent.preferences.visible("models_" + id));
+        return new ModelFormCategory(uiKey, this.parent.preferences.visible("models_" + id), folder);
     }
 
     @Override

@@ -2,38 +2,45 @@ package mchorse.bbs_mod.ui.forms;
 
 import mchorse.bbs_mod.BBSModClient;
 import mchorse.bbs_mod.BBSSettings;
+import mchorse.bbs_mod.cubic.model.ModelManager;
 import mchorse.bbs_mod.forms.FormCategories;
 import mchorse.bbs_mod.forms.FormUtils;
-import mchorse.bbs_mod.forms.FormUtilsClient;
 import mchorse.bbs_mod.forms.categories.FormCategory;
+import mchorse.bbs_mod.forms.categories.ModelFormCategory;
 import mchorse.bbs_mod.forms.categories.UserFormCategory;
 import mchorse.bbs_mod.forms.forms.Form;
+import mchorse.bbs_mod.forms.forms.ModelForm;
 import mchorse.bbs_mod.forms.sections.UserFormSection;
 import mchorse.bbs_mod.graphics.window.Window;
 import mchorse.bbs_mod.ui.Keys;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.forms.categories.UIFormCategory;
+import mchorse.bbs_mod.ui.forms.categories.UIModelFolderHomeCategory;
+import mchorse.bbs_mod.ui.forms.categories.UIModelFormCategory;
 import mchorse.bbs_mod.ui.forms.categories.UIRecentFormCategory;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.IUIElement;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
-import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
-import mchorse.bbs_mod.ui.morphing.UIMorphFormCategoryFilterOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.UIScrollView;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.input.items.ItemDrag;
 import mchorse.bbs_mod.ui.framework.elements.input.items.Selection;
+import mchorse.bbs_mod.ui.framework.elements.input.items.UIItemGrid;
 import mchorse.bbs_mod.ui.framework.elements.input.text.UITextbox;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.ui.framework.elements.utils.Batcher2D;
 import mchorse.bbs_mod.ui.framework.elements.utils.FontRenderer;
+import mchorse.bbs_mod.ui.framework.elements.utils.RowStyle;
+import mchorse.bbs_mod.ui.morphing.UIMorphFormCategoryFilterOverlayPanel;
 import mchorse.bbs_mod.ui.utils.Area;
 import mchorse.bbs_mod.ui.utils.Marquee;
 import mchorse.bbs_mod.ui.utils.Scroll;
-import mchorse.bbs_mod.ui.utils.UIStrip;
-import mchorse.bbs_mod.ui.utils.cells.DragGhost;
 import mchorse.bbs_mod.ui.utils.ScrollZoomAnchor;
 import mchorse.bbs_mod.ui.utils.UI;
+import mchorse.bbs_mod.ui.utils.UIStrip;
+import mchorse.bbs_mod.ui.utils.cells.DragGhost;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
+import mchorse.bbs_mod.ui.utils.keys.KeyAction;
 import mchorse.bbs_mod.ui.utils.keys.KeyCodes;
 import mchorse.bbs_mod.utils.Direction;
 import mchorse.bbs_mod.utils.MathUtils;
@@ -65,12 +72,14 @@ public class UIFormList extends UIElement
     public UIScrollView forms;
 
     public UIStrip bar;
+    public UIIcon back;
     public UITextbox search;
     public UIIcon edit;
     public UIIcon close;
     public UIIcon categoryFilter;
     public UIIcon collapseAll;
     public UIIcon expandAll;
+    public UIElement folderNavBar;
 
     /* Forms are matched by identity: two equal-looking forms in different categories are different picks */
     public final Selection<Form> selection = new Selection<>((a, b) -> a == b);
@@ -90,10 +99,22 @@ public class UIFormList extends UIElement
     private final List<Form> marqueeBase = new ArrayList<>();
 
     private UIFormCategory recent;
+    /** Every enabled category (including unmounted model folders while on Home). */
+    private final List<UIFormCategory> allCategories = new ArrayList<>();
+    /** Enabled model folder categories for the Home folder cards view. */
+    private final List<UIModelFormCategory> modelCategories = new ArrayList<>();
+    /** Categories currently mounted inside {@link #forms}. */
     private List<UIFormCategory> categories = new ArrayList<>();
 
+    private UIModelFolderHomeCategory folderHome;
+    private UIModelFormCategory activeFolder;
+    private String activeFolderKey;
+    private int homeScroll = -1;
+    private boolean lastFolderMode;
+    private boolean wasShowingFolderHome;
+
     private long lastUpdate;
-    private int lastScroll;
+    private int lastScroll = -1;
     private boolean pendingScrollToSelected;
 
     /** A header pressed but not yet released: a release without a drag collapses it. */
@@ -106,14 +127,23 @@ public class UIFormList extends UIElement
         this.forms = UI.scrollView(0, 0);
         this.forms.scroll.cancelScrolling();
         this.bar = new UIStrip(BAR_HEIGHT);
+        this.back = new UIIcon(Icons.ARROW_LEFT, (b) -> this.exitFolder());
+        this.back.tooltip(UIKeys.GENERAL_BACK, Direction.TOP);
+        this.back.w(20);
+        this.back.setVisible(false);
         this.search = new UITextbox(100, this::onSearchQuery).placeholder(UIKeys.FORMS_LIST_SEARCH);
         this.edit = new UIIcon(Icons.EDIT, this::edit);
         this.edit.tooltip(UIKeys.FORMS_LIST_EDIT, Direction.TOP);
         this.close = new UIIcon(Icons.CLOSE, this::close);
 
+        this.folderNavBar = new UIFolderNavBar();
+        this.folderNavBar.setVisible(false);
+        this.folderHome = new UIModelFolderHomeCategory(this);
+
         /* The bar sits along the top, as dark as the category headers, with a status line
          * about the chosen form under it; the list scrolls under both */
         this.bar.relative(this).xy(0, 0).w(1F).h(BAR_HEIGHT);
+        this.folderNavBar.relative(this).xy(0, BAR_HEIGHT + STATUS_HEIGHT).w(1F).h(BAR_HEIGHT);
         this.forms.relative(this).xy(0, BAR_HEIGHT + STATUS_HEIGHT).w(1F).h(1F, -BAR_HEIGHT - STATUS_HEIGHT);
         this.close.w(20);
 
@@ -126,14 +156,103 @@ public class UIFormList extends UIElement
         this.expandAll = new UIIcon(Icons.EXPAND_ALL, (b) -> this.setAllExpanded(true));
         this.expandAll.tooltip(UIKeys.FORMS_LIST_EXPAND_ALL, Direction.TOP);
         this.expandAll.w(20);
-        this.bar.add(this.categoryFilter, this.collapseAll, this.expandAll, this.search, this.edit, this.close);
+        this.bar.add(this.back, this.categoryFilter, this.collapseAll, this.expandAll, this.search, this.edit, this.close);
 
-        this.add(this.forms, this.bar);
+        this.add(this.forms, this.folderNavBar, this.bar);
 
         this.search.keys().register(Keys.FORMS_FOCUS, this::focusSearchInput);
 
         this.markContainer();
         this.setupForms(BBSModClient.getFormCategories());
+    }
+
+    public boolean isInFolder()
+    {
+        return this.activeFolder != null;
+    }
+
+    public boolean isActiveFolder(UIModelFormCategory category)
+    {
+        return category != null && this.activeFolder == category;
+    }
+
+    public boolean isShowingFolderHome()
+    {
+        String s = this.search.getText();
+        boolean emptySearch = s == null || s.trim().isEmpty();
+
+        return this.lastFolderMode && this.activeFolder == null && emptySearch && !this.modelCategories.isEmpty();
+    }
+
+    public void openModelFolder(UIModelFormCategory folder)
+    {
+        if (folder == null)
+        {
+            return;
+        }
+
+        this.homeScroll = (int) this.forms.scroll.getScroll();
+        this.activeFolder = folder;
+        this.activeFolderKey = folder.getModelCategory().folderKey;
+        this.rebuildDisplayedCategories();
+        this.forms.scroll.cancelScrolling();
+
+        if (folder.selected != null)
+        {
+            this.scrollToSelected();
+        }
+        else
+        {
+            this.forms.scroll.setScroll(0);
+        }
+    }
+
+    public void exitFolder()
+    {
+        if (this.activeFolder == null)
+        {
+            return;
+        }
+
+        BBSModClient.getModels().cancelPendingPreviews();
+
+        this.activeFolder = null;
+        this.activeFolderKey = null;
+
+        int restoreScroll = this.homeScroll;
+
+        this.homeScroll = -1;
+
+        if (!this.search.getText().isEmpty())
+        {
+            this.search.setText("");
+
+            for (UIFormCategory category : this.allCategories)
+            {
+                category.search("");
+            }
+        }
+
+        this.rebuildDisplayedCategories();
+        this.forms.scroll.cancelScrolling();
+
+        if (restoreScroll >= 0)
+        {
+            this.lastScroll = restoreScroll;
+        }
+    }
+
+    private void updateChromeLayout()
+    {
+        boolean inFolder = this.isInFolder();
+        int topOffset = BAR_HEIGHT + STATUS_HEIGHT + (inFolder ? BAR_HEIGHT : 0);
+
+        this.back.setVisible(inFolder);
+        this.collapseAll.setVisible(!inFolder);
+        this.expandAll.setVisible(!inFolder);
+        this.folderNavBar.setVisible(inFolder);
+        this.folderNavBar.relative(this).xy(0, BAR_HEIGHT + STATUS_HEIGHT).w(1F).h(BAR_HEIGHT);
+        this.forms.relative(this).xy(0, topOffset).w(1F).h(1F, -topOffset);
     }
 
     private void openMorphCategoryFilter(UIIcon b)
@@ -173,8 +292,12 @@ public class UIFormList extends UIElement
 
     public void setupForms(FormCategories forms)
     {
+        this.lastFolderMode = BBSSettings.isFormPickerFoldersEnabled();
+        this.allCategories.clear();
+        this.modelCategories.clear();
         this.categories.clear();
         this.forms.removeAll();
+        this.recent = null;
 
         for (FormCategory category : forms.getAllCategories())
         {
@@ -185,8 +308,12 @@ public class UIFormList extends UIElement
 
             UIFormCategory uiCategory = category.createUI(this);
 
-            this.forms.add(uiCategory);
-            this.categories.add(uiCategory);
+            this.allCategories.add(uiCategory);
+
+            if (uiCategory instanceof UIModelFormCategory modelUi)
+            {
+                this.modelCategories.add(modelUi);
+            }
 
             if (uiCategory instanceof UIRecentFormCategory)
             {
@@ -194,16 +321,110 @@ public class UIFormList extends UIElement
             }
         }
 
-        if (!this.categories.isEmpty())
+        if (this.lastFolderMode && this.activeFolderKey != null)
         {
-            this.categories.get(this.categories.size() - 1).marginBottom(20);
+            UIModelFormCategory matched = null;
+
+            for (UIModelFormCategory modelUi : this.modelCategories)
+            {
+                if (modelUi.getModelCategory().folderKey.equals(this.activeFolderKey))
+                {
+                    matched = modelUi;
+
+                    break;
+                }
+            }
+
+            this.activeFolder = matched;
+
+            if (matched == null)
+            {
+                this.activeFolderKey = null;
+            }
+        }
+        else
+        {
+            this.activeFolder = null;
+            this.activeFolderKey = null;
         }
 
-        this.resize();
+        this.folderHome.setFolders(this.modelCategories);
+
+        String query = this.search.getText();
+        String normalized = query == null ? "" : query.trim();
+
+        for (UIFormCategory category : this.allCategories)
+        {
+            category.search(normalized);
+        }
 
         this.lastUpdate = forms.getLastUpdate();
-        this.applySearchFromTextbox();
+        this.rebuildDisplayedCategories();
         this.reconcile();
+    }
+
+    private void rebuildDisplayedCategories()
+    {
+        for (UIFormCategory category : this.allCategories)
+        {
+            category.marginBottom(0);
+        }
+
+        this.folderHome.marginBottom(0);
+        this.categories.clear();
+        this.forms.removeAll();
+
+        UIElement lastAdded = null;
+        boolean showHomeCards = this.isShowingFolderHome();
+
+        this.wasShowingFolderHome = showHomeCards;
+
+        if (this.activeFolder != null)
+        {
+            this.forms.add(this.activeFolder);
+            this.categories.add(this.activeFolder);
+            lastAdded = this.activeFolder;
+        }
+        else if (showHomeCards)
+        {
+            boolean addedHome = false;
+
+            for (UIFormCategory uiCategory : this.allCategories)
+            {
+                if (uiCategory instanceof UIModelFormCategory)
+                {
+                    if (!addedHome)
+                    {
+                        this.forms.add(this.folderHome);
+                        lastAdded = this.folderHome;
+                        addedHome = true;
+                    }
+                }
+                else
+                {
+                    this.forms.add(uiCategory);
+                    this.categories.add(uiCategory);
+                    lastAdded = uiCategory;
+                }
+            }
+        }
+        else
+        {
+            for (UIFormCategory uiCategory : this.allCategories)
+            {
+                this.forms.add(uiCategory);
+                this.categories.add(uiCategory);
+                lastAdded = uiCategory;
+            }
+        }
+
+        if (lastAdded != null)
+        {
+            lastAdded.marginBottom(20);
+        }
+
+        this.updateChromeLayout();
+        this.afterSearchLayout();
     }
 
     private void onSearchQuery(String search)
@@ -220,9 +441,17 @@ public class UIFormList extends UIElement
     {
         String s = raw == null ? "" : raw.trim();
 
-        for (UIFormCategory category : this.categories)
+        for (UIFormCategory category : this.allCategories)
         {
             category.search(s);
+        }
+
+        if (this.lastFolderMode && this.activeFolder == null && this.wasShowingFolderHome != this.isShowingFolderHome())
+        {
+            this.rebuildDisplayedCategories();
+            this.forms.scroll.setScroll(0);
+
+            return;
         }
 
         this.afterSearchLayout();
@@ -231,9 +460,13 @@ public class UIFormList extends UIElement
     /** Lay every category out again — the cell size, the search or the width changed. */
     private void afterSearchLayout()
     {
-        for (UIFormCategory category : this.categories)
+        int size = this.getCellSize();
+
+        this.folderHome.setCellSize(size);
+
+        for (UIFormCategory category : this.allCategories)
         {
-            category.setCellSize(this.getCellSize());
+            category.setCellSize(size);
         }
 
         /* Two passes: a category can only measure itself once it has been placed (it needs its
@@ -292,38 +525,58 @@ public class UIFormList extends UIElement
     }
 
     /** A row of cells, or a category's header (row -1) — what the zoom keeps under the cursor. */
-    private record Row(UIFormCategory category, int row)
+    private record Row(UIItemGrid<?> grid, int row)
     {}
 
     private Row rowAt(int contentY)
     {
+        if (this.wasShowingFolderHome)
+        {
+            Row homeHit = this.rowInGrid(this.folderHome, contentY);
+
+            if (homeHit != null)
+            {
+                return homeHit;
+            }
+        }
+
         for (UIFormCategory category : this.categories)
         {
-            int top = category.area.y - this.forms.area.y;
+            Row hit = this.rowInGrid(category, contentY);
 
-            if (contentY < top || contentY >= top + category.area.h)
+            if (hit != null)
             {
-                continue;
+                return hit;
             }
-
-            FormGridLayout layout = category.getLayout();
-            int y = contentY - top;
-
-            if (y >= layout.getRowY(0) && layout.getRows() > 0)
-            {
-                return new Row(category, Math.min(layout.getRows() - 1, (y - layout.getRowY(0)) / (layout.getCellHeight() + FormGridLayout.GAP)));
-            }
-
-            return new Row(category, -1);
         }
 
         return null;
     }
 
+    private Row rowInGrid(UIItemGrid<?> grid, int contentY)
+    {
+        int top = grid.area.y - this.forms.area.y;
+
+        if (contentY < top || contentY >= top + grid.area.h)
+        {
+            return null;
+        }
+
+        FormGridLayout layout = (FormGridLayout) grid.getLayout();
+        int y = contentY - top;
+
+        if (y >= layout.getRowY(0) && layout.getRows() > 0)
+        {
+            return new Row(grid, Math.min(layout.getRows() - 1, (y - layout.getRowY(0)) / (layout.getCellHeight() + FormGridLayout.GAP)));
+        }
+
+        return new Row(grid, -1);
+    }
+
     private ScrollZoomAnchor.Placement rowPlacement(Row row)
     {
-        FormGridLayout layout = row.category().getLayout();
-        int top = row.category().area.y - this.forms.area.y;
+        FormGridLayout layout = (FormGridLayout) row.grid().getLayout();
+        int top = row.grid().area.y - this.forms.area.y;
 
         if (row.row() < 0)
         {
@@ -337,6 +590,11 @@ public class UIFormList extends UIElement
 
     private void setAllExpanded(boolean expanded)
     {
+        if (this.wasShowingFolderHome)
+        {
+            this.folderHome.setExpanded(expanded);
+        }
+
         for (UIFormCategory category : this.categories)
         {
             category.category.visible.set(expanded);
@@ -359,7 +617,7 @@ public class UIFormList extends UIElement
 
     public void deselect()
     {
-        for (UIFormCategory category : this.categories)
+        for (UIFormCategory category : this.allCategories)
         {
             category.selected = null;
         }
@@ -367,7 +625,7 @@ public class UIFormList extends UIElement
 
     public UIFormCategory getSelectedCategory()
     {
-        for (UIFormCategory category : this.categories)
+        for (UIFormCategory category : this.allCategories)
         {
             if (category.selected != null)
             {
@@ -391,7 +649,7 @@ public class UIFormList extends UIElement
 
         this.deselect();
 
-        for (UIFormCategory category : this.categories)
+        for (UIFormCategory category : this.allCategories)
         {
             int index = category.category.getForms().indexOf(form);
 
@@ -419,7 +677,7 @@ public class UIFormList extends UIElement
     /** The category that holds a form, or null once it's been removed. */
     public FormCategory categoryOf(Form form)
     {
-        for (UIFormCategory category : this.categories)
+        for (UIFormCategory category : this.allCategories)
         {
             if (this.selection.indexOf(category.category.getForms(), form) != -1)
             {
@@ -487,7 +745,7 @@ public class UIFormList extends UIElement
      */
     public void reconcile()
     {
-        for (UIFormCategory category : this.categories)
+        for (UIFormCategory category : this.allCategories)
         {
             if (category.selected != null && this.selection.indexOf(category.category.getForms(), category.selected) == -1)
             {
@@ -566,6 +824,11 @@ public class UIFormList extends UIElement
      */
     public void pressHeader(UIFormCategory category, UIContext context)
     {
+        if (this.activeFolder == category)
+        {
+            return;
+        }
+
         this.pressedHeader = category;
 
         if (category.category instanceof UserFormCategory user)
@@ -598,6 +861,32 @@ public class UIFormList extends UIElement
 
         this.pressedHeader = null;
         this.categoryDrag.reset();
+    }
+
+    @Override
+    protected boolean subMouseClicked(UIContext context)
+    {
+        if (this.isInFolder() && context.mouseButton == GLFW.GLFW_MOUSE_BUTTON_4 && this.area.isInside(context))
+        {
+            this.exitFolder();
+
+            return true;
+        }
+
+        return super.subMouseClicked(context);
+    }
+
+    @Override
+    protected boolean subKeyPressed(UIContext context)
+    {
+        if (this.isInFolder() && !context.isFocused() && context.getKeyAction() == KeyAction.PRESSED && context.getKeyCode() == GLFW.GLFW_KEY_BACKSPACE)
+        {
+            this.exitFolder();
+
+            return true;
+        }
+
+        return super.subKeyPressed(context);
     }
 
     @Override
@@ -707,6 +996,28 @@ public class UIFormList extends UIElement
          * out at the real width first so the offsets below are final. */
         this.afterSearchLayout();
 
+        if (this.wasShowingFolderHome && category instanceof UIModelFormCategory modelCat)
+        {
+            int contentY = this.folderHome.area.y - this.forms.area.y;
+            int cardY = this.folderHome.getFolderY(modelCat);
+            int itemHeight = FormGridLayout.HEADER;
+
+            if (cardY > 0)
+            {
+                contentY += cardY;
+                itemHeight = this.folderHome.getLayout().getCellHeight();
+            }
+
+            this.forms.scroll.setScroll(contentY - (this.forms.area.h - itemHeight) / 2);
+
+            return;
+        }
+
+        if (!this.categories.contains(category))
+        {
+            return;
+        }
+
         int contentY = category.area.y - this.forms.area.y;
         int formY = category.getFormY(category.selected);
         int itemHeight = FormGridLayout.HEADER;
@@ -737,14 +1048,7 @@ public class UIFormList extends UIElement
     {
         FormCategories categories = BBSModClient.getFormCategories();
 
-        if (this.lastScroll >= 0)
-        {
-            this.forms.scroll.scrollTo(this.lastScroll);
-
-            this.lastScroll = -1;
-        }
-
-        if (this.lastUpdate != categories.getLastUpdate())
+        if (this.lastUpdate != categories.getLastUpdate() || this.lastFolderMode != BBSSettings.isFormPickerFoldersEnabled())
         {
             this.lastScroll = (int) this.forms.scroll.getScroll();
 
@@ -752,6 +1056,13 @@ public class UIFormList extends UIElement
 
             this.setupForms(categories);
             this.setSelected(selected);
+        }
+
+        if (this.lastScroll >= 0)
+        {
+            this.forms.scroll.scrollTo(this.lastScroll);
+
+            this.lastScroll = -1;
         }
 
         /* A release swallowed by another element (a button, an overlay) must not leave a
@@ -872,7 +1183,7 @@ public class UIFormList extends UIElement
 
         DragGhost.render(context, context.mouseX, context.mouseY, size, h, forms.size(), landing, (ctx, gx, gy, gw, gh) ->
         {
-            FormUtilsClient.renderPreview(forms.get(0), ctx, gx, gy, gx + gw, gy + gh);
+            FormCellRenderer.renderPreviewOrPlaceholder(forms.get(0), ctx, gx, gy, gx + gw, gy + gh, true);
         });
 
         if (landing && this.isCopyDrop())
@@ -900,5 +1211,121 @@ public class UIFormList extends UIElement
         }
 
         return false;
+    }
+
+    /**
+     * Pinned navigation strip shown at the top of an opened model folder: a clickable
+     * Back-to-Home button on the left, the folder's name and count in the middle, and
+     * live gradual-loading progress on the right while visible models are still loading.
+     */
+    private class UIFolderNavBar extends UIElement
+    {
+        private int backWidth(FontRenderer font)
+        {
+            return 22 + font.getWidth(UIKeys.FORMS_LIST_BACK_TO_HOME.get()) + 10;
+        }
+
+        @Override
+        public boolean subMouseClicked(UIContext context)
+        {
+            if (!this.isVisible() || !this.area.isInside(context) || context.mouseButton != 0)
+            {
+                return false;
+            }
+
+            int bw = this.backWidth(context.batcher.getFont());
+
+            if (context.mouseX <= this.area.x + bw)
+            {
+                UIFormList.this.exitFolder();
+
+                return true;
+            }
+
+            return true;
+        }
+
+        @Override
+        public void render(UIContext context)
+        {
+            UIModelFormCategory folder = UIFormList.this.activeFolder;
+
+            if (folder == null)
+            {
+                return;
+            }
+
+            Batcher2D batcher = context.batcher;
+            FontRenderer font = batcher.getFont();
+            int x = this.area.x;
+            int y = this.area.y;
+            int h = this.area.h;
+            int ex = this.area.ex();
+            int ey = y + h;
+            int bw = this.backWidth(font);
+            boolean hoverBack = this.area.isInside(context) && context.mouseX <= x + bw;
+
+            batcher.box(x, y, ex, ey, BBSSettings.color(BBSSettings.chromeSurface(), Colors.A75));
+            batcher.box(x, ey - 1, ex, ey, BBSSettings.dividerColor());
+
+            RowStyle.row(batcher, x, y, bw, h, 0, false, hoverBack, false);
+
+            if (hoverBack)
+            {
+                context.requestCursor(GLFW.GLFW_HAND_CURSOR);
+            }
+
+            int backColor = RowStyle.textColor(hoverBack);
+            int textY = y + (h - font.getHeight()) / 2 + 1;
+
+            batcher.icon(Icons.ARROW_LEFT, RowStyle.iconColor(hoverBack), x + 11, y + h / 2F, 0.5F, 0.5F);
+            batcher.textShadow(UIKeys.FORMS_LIST_BACK_TO_HOME.get(), x + 22, textY, backColor);
+
+            batcher.box(x + bw, y + 3, x + bw + 1, ey - 3, BBSSettings.dividerColor());
+
+            ModelFormCategory cat = folder.getModelCategory();
+            List<Form> shown = folder.getForms();
+            int total = shown.size();
+            int ready = 0;
+            boolean anyLoading = false;
+            ModelManager models = BBSModClient.getModels();
+
+            for (Form form : shown)
+            {
+                if (form instanceof ModelForm modelForm)
+                {
+                    String id = modelForm.model.get();
+
+                    if (models.isPreviewReady(id))
+                    {
+                        ready += 1;
+                    }
+                    else if (models.isLoadingOrQueued(id))
+                    {
+                        anyLoading = true;
+                    }
+                }
+            }
+
+            int fx = x + bw + 8;
+
+            batcher.icon(Icons.FOLDER, Colors.LIGHTEST_GRAY, fx + 6, y + h / 2F, 0.5F, 0.5F);
+            fx += 18;
+
+            String progress = anyLoading ? UIKeys.FORMS_LIST_LOADING_MODELS.format(String.valueOf(ready), String.valueOf(total)).get() : null;
+            int rightReserve = progress == null ? 8 : font.getWidth(progress) + 16;
+            int maxTitleWidth = Math.max(20, ex - fx - rightReserve - 36);
+            String folderTitle = font.limitToWidth(cat.getFolderDisplayName(), maxTitleWidth);
+
+            batcher.textShadow(folderTitle, fx, textY, Colors.WHITE);
+            batcher.text(String.valueOf(total), fx + font.getWidth(folderTitle) + 6, textY, Colors.GRAY);
+
+            if (progress != null)
+            {
+                batcher.text(progress, ex - font.getWidth(progress) - 6, textY, Colors.LIGHTER_GRAY);
+            }
+
+            super.render(context);
+        }
     }
 }

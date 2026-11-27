@@ -796,6 +796,9 @@ public class UIKeys
     public static final IKey FORMS_LIST_COLLAPSE_ALL = L10n.lang("bbs.ui.forms.list.collapse_all");
     public static final IKey FORMS_LIST_EDIT = L10n.lang("bbs.ui.forms.list.edit");
     public static final IKey FORMS_LIST_EXPAND_ALL = L10n.lang("bbs.ui.forms.list.expand_all");
+    public static final IKey FORMS_LIST_BACK_TO_HOME = L10n.lang("bbs.ui.forms.list.back_to_home");
+    public static final IKey FORMS_LIST_FOLDER_COUNT = L10n.lang("bbs.ui.forms.list.folder_count");
+    public static final IKey FORMS_LIST_LOADING_MODELS = L10n.lang("bbs.ui.forms.list.loading_models");
     public static final IKey FORMS_LIST_SEARCH = L10n.lang("bbs.ui.forms.list.search");
     public static final IKey FORMS_LIST_STATUS_SELECTED = L10n.lang("bbs.ui.forms.list.status.selected");
     public static final IKey FORMS_SHARED_NOTIFICATION = L10n.lang("bbs.ui.forms.categories.shared-notification");
