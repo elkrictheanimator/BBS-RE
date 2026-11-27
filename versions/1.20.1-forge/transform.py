@@ -55,6 +55,33 @@ def run(root):
 
     edit(root, "src/main/java/mchorse/bbs_mod/items/GunItem.java", gun)
 
+    def model_block_entity(t):
+        i = t.rindex("}")
+
+        return t[:i] + """
+    @Override
+    public net.minecraft.util.math.Box getRenderBoundingBox()
+    {
+        if (this.properties.isGlobal())
+        {
+            return INFINITE_EXTENT_AABB;
+        }
+
+        net.minecraft.util.math.BlockPos p = this.getPos();
+        org.joml.Vector3f tr = this.properties.getTransform().translate;
+        org.joml.Vector3f sc = this.properties.getTransform().scale;
+        double pad = Math.max(4D, Math.max(Math.abs(sc.x), Math.max(Math.abs(sc.y), Math.abs(sc.z))) * 4D);
+        double cx = p.getX() + 0.5D + tr.x;
+        double cy = p.getY() + tr.y;
+        double cz = p.getZ() + 0.5D + tr.z;
+
+        return new net.minecraft.util.math.Box(cx - pad, cy - pad, cz - pad, cx + pad, cy + pad * 2D, cz + pad);
+    }
+}
+"""
+
+    edit(root, "src/main/java/mchorse/bbs_mod/blocks/entities/ModelBlockEntity.java", model_block_entity)
+
     def widener(t):
         return t.rstrip("\n") + "\naccessible method net/minecraft/world/GameRules$BooleanRule create (Z)Lnet/minecraft/world/GameRules$Type;\naccessible field net/minecraft/server/command/CommandManager$RegistrationEnvironment dedicated Z\n"
 

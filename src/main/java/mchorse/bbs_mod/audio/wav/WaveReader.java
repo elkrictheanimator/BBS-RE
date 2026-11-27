@@ -50,6 +50,11 @@ public class WaveReader extends BinaryReader
                 {
                     BinaryChunk chunk = this.readChunk(stream);
 
+                    if (chunk == null)
+                    {
+                        break;
+                    }
+
                     this.log("Reading chunk: " + chunk.id + " " + chunk.size + " " + stream.available());
 
                     if (chunk.id.equals("fmt "))
@@ -66,19 +71,19 @@ public class WaveReader extends BinaryReader
                         /* Discarding extra data */
                         if (chunk.size > 16)
                         {
-                            stream.skip(chunk.size - 16);
+                            this.skip(stream, chunk.size - 16);
                         }
                     }
                     else if (chunk.id.equals("data"))
                     {
                         data = new byte[chunk.size];
-                        stream.read(data);
+                        readFully(stream, data, 0, chunk.size);
                     }
                     /* https://www.recordingblogs.com/wiki/list-chunk-of-a-wave-file */
                     else if (chunk.id.equals("LIST"))
                     {
                         byte[] listData = new byte[chunk.size];
-                        stream.read(listData);
+                        readFully(stream, listData, 0, chunk.size);
 
                         try
                         {
@@ -91,7 +96,12 @@ public class WaveReader extends BinaryReader
                                 int size = this.readInt(bytes);
                                 byte[] stringData = new byte[size];
 
-                                bytes.read(stringData);
+                                readFully(bytes, stringData, 0, size);
+
+                                if ((size & 1) == 1 && bytes.available() > 0)
+                                {
+                                    bytes.skip(1);
+                                }
 
                                 String string = new String(stringData);
 
@@ -109,7 +119,7 @@ public class WaveReader extends BinaryReader
                     else if (chunk.id.equals("cue "))
                     {
                         byte[] cueData = new byte[chunk.size];
-                        stream.read(cueData);
+                        readFully(stream, cueData, 0, chunk.size);
 
                         ByteArrayInputStream bytes = new ByteArrayInputStream(cueData);
 
@@ -134,11 +144,15 @@ public class WaveReader extends BinaryReader
                     {
                         this.skip(stream, chunk.size);
                     }
+
+                    /* RIFF chunks are word-aligned: odd-sized payloads carry one pad byte */
+                    if ((chunk.size & 1) == 1)
+                    {
+                        this.skip(stream, 1);
+                    }
                 }
                 catch (EOFException e)
                 {
-                    e.printStackTrace();
-
                     break;
                 }
             }
@@ -172,7 +186,12 @@ public class WaveReader extends BinaryReader
     {
         this.log("- Starting reading chunk..." + stream.available());
 
-        String id = this.readFourString(stream);
+        String id = this.readFourStringOrEOF(stream);
+
+        if (id == null)
+        {
+            return null;
+        }
 
         this.log("- Read chunk ID... " + id + " " + stream.available());
 

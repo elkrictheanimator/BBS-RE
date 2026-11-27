@@ -1,5 +1,6 @@
 package mchorse.bbs_mod.client;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import mchorse.bbs_mod.BBSMod;
 import mchorse.bbs_mod.BBSModClient;
@@ -175,6 +176,11 @@ public class BBSRendering
         return customSize;
     }
 
+    public static boolean isToggleFramebuffer()
+    {
+        return toggleFramebuffer;
+    }
+
     public static void setCustomSize(boolean customSize)
     {
         setCustomSize(customSize, 0, 0);
@@ -312,6 +318,11 @@ public class BBSRendering
 
         if (toggleFramebuffer)
         {
+            if (framebuffer == null)
+            {
+                setupFramebuffer();
+            }
+
             int w = mc.getWindow().getFramebufferWidth();
             int h = mc.getWindow().getFramebufferHeight();
 
@@ -332,7 +343,11 @@ public class BBSRendering
         {
             int drawW = window.getFramebufferWidth();
             int drawH = window.getFramebufferHeight();
-            reassignFramebuffer(clientFramebuffer);
+
+            if (clientFramebuffer != null)
+            {
+                reassignFramebuffer(clientFramebuffer);
+            }
 
             mc.getFramebuffer().beginWrite(true);
 
@@ -397,6 +412,11 @@ public class BBSRendering
             menu.startRenderFrame(mc.getTickDelta());
         }
 
+        if (toggleFramebuffer)
+        {
+            toggleFramebuffer(false);
+        }
+
         renderingWorld = true;
 
         if (!customSize)
@@ -441,6 +461,18 @@ public class BBSRendering
 
     public static void onRenderBeforeScreen()
     {
+        if (!toggleFramebuffer)
+        {
+            if (pendingExportResolutionAction != null)
+            {
+                Runnable action = pendingExportResolutionAction;
+                pendingExportResolutionAction = null;
+                MinecraftClient.getInstance().execute(action);
+            }
+
+            return;
+        }
+
         Texture texture = getTexture();
         int targetWidth = getVideoWidth();
         int targetHeight = getVideoHeight();
@@ -467,6 +499,12 @@ public class BBSRendering
          * overflow the video recorder's frame buffer (macOS crashes in storeVecColor_BGR_UB). */
         int prevRead = GL30.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
         int prevDraw = GL30.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
+        boolean scissor = GL11.glIsEnabled(GL11.GL_SCISSOR_TEST);
+
+        if (scissor)
+        {
+            GlStateManager._disableScissorTest();
+        }
 
         GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, framebuffer.fbo);
         GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, exportFramebuffer.id);
@@ -475,6 +513,11 @@ public class BBSRendering
             0, 0, targetWidth, targetHeight,
             GL11.GL_COLOR_BUFFER_BIT, GL11.GL_LINEAR
         );
+
+        if (scissor)
+        {
+            GlStateManager._enableScissorTest();
+        }
 
         GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, prevRead);
         GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, prevDraw);
