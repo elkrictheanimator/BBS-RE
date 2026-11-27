@@ -172,9 +172,9 @@ public class GameRendererMixin
     @Inject(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/option/GameOptions;hudHidden:Z", opcode = Opcodes.GETFIELD, ordinal = 0))
     private void onBeforeHudRendering(float tickDelta, long startTime, boolean tick, CallbackInfo info)
     {
-        ICameraController current = BBSModClient.getCameraController().getCurrent();
+        MinecraftClient mc = MinecraftClient.getInstance();
 
-        if (MinecraftClient.getInstance().options.hudHidden && current == null)
+        if (mc.options.hudHidden && mc.currentScreen == null)
         {
             BBSRendering.onRenderBeforeScreen();
         }

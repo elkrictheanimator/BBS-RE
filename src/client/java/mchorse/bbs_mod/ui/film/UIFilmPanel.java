@@ -929,7 +929,7 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
         if (w % 2 != 0) w++;
         if (h % 2 != 0) h++;
 
-        boolean applied = w != BBSRendering.getVideoWidth() || h != BBSRendering.getVideoHeight();
+        boolean applied = !BBSRendering.isCustomSize() || w != BBSRendering.getVideoWidth() || h != BBSRendering.getVideoHeight();
 
         if (applied)
         {
@@ -1320,7 +1320,14 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
             BBSModClient.getFilms().unfreeze(this.data.getId());
         }
 
-        BBSRendering.setCustomSize(true);
+        if (!this.recorder.isExporting() && this.preview.area.w >= 2 && this.preview.area.h >= 2)
+        {
+            this.applyPreviewSizeToBBS();
+        }
+        else
+        {
+            BBSRendering.setCustomSize(true);
+        }
         MorphRenderer.hidePlayer = true;
 
         CameraController cameraController = this.getCameraController();

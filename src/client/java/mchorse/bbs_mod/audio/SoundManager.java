@@ -22,6 +22,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class SoundManager implements IWatchDogListener
 {
@@ -31,13 +38,124 @@ public class SoundManager implements IWatchDogListener
      */
     private static final long OWNED_IDLE_MS = 5_000;
 
+    private record LoadedWave(Link link, Wave wave, Waveform waveform, long generation)
+    {}
+
     private AssetProvider provider;
     private Map<Link, SoundBuffer> buffers = new HashMap<>();
     private List<SoundPlayer> sounds = new ArrayList<>();
 
+    /* Heavy audio decoding + WaveformEnvelope building (tens of MBs on long film tracks)
+     * runs on a background daemon thread so opening a film never stalls the render thread. */
+    private final Set<Link> loading = ConcurrentHashMap.newKeySet();
+    private final Queue<LoadedWave> loadedQueue = new ConcurrentLinkedQueue<>();
+    private final AtomicLong generation = new AtomicLong();
+    private ExecutorService loader;
+
     public SoundManager(AssetProvider provider)
     {
         this.provider = provider;
+    }
+
+    private synchronized ExecutorService ensureLoader()
+    {
+        if (this.loader == null || this.loader.isShutdown())
+        {
+            this.loader = Executors.newSingleThreadExecutor((runnable) ->
+            {
+                Thread thread = new Thread(runnable, "BBS audio loader");
+
+                thread.setDaemon(true);
+
+                return thread;
+            });
+        }
+
+        return this.loader;
+    }
+
+    private void enqueueLoad(Link link)
+    {
+        if (link == null || !this.loading.add(link))
+        {
+            return;
+        }
+
+        long gen = this.generation.get();
+        int density = BBSSettings.audioWaveformDensity.get();
+
+        this.ensureLoader().execute(() ->
+        {
+            Wave wave = null;
+            Waveform waveform = null;
+
+            try
+            {
+                wave = AudioReader.read(this.provider, link);
+
+                if (wave != null)
+                {
+                    Wave wave16 = wave.getBytesPerSample() > 2 ? wave.convertTo16() : wave;
+
+                    wave = wave16;
+                    waveform = new Waveform();
+                    waveform.generate(wave16, this.readColorCodes(link), density, 40);
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+
+            this.loadedQueue.add(new LoadedWave(link, wave, waveform, gen));
+        });
+    }
+
+    private void drainLoaded()
+    {
+        LoadedWave item;
+
+        while ((item = this.loadedQueue.poll()) != null)
+        {
+            boolean stillWanted = this.loading.remove(item.link);
+
+            if (!stillWanted || item.generation != this.generation.get())
+            {
+                if (item.waveform != null)
+                {
+                    item.waveform.delete();
+                }
+
+                continue;
+            }
+
+            SoundBuffer previous = this.buffers.remove(item.link);
+
+            if (previous != null)
+            {
+                previous.delete();
+            }
+
+            if (item.wave == null)
+            {
+                this.buffers.put(item.link, null);
+
+                continue;
+            }
+
+            try
+            {
+                SoundBuffer buffer = new SoundBuffer(item.link, item.wave, item.waveform);
+
+                this.buffers.put(item.link, buffer);
+                System.out.println("Sound \"" + item.link + "\" was loaded!");
+            }
+            catch (Exception e)
+            {
+                this.buffers.put(item.link, null);
+                e.printStackTrace();
+            }
+        }
     }
 
     public Collection<SoundPlayer> getPlayers()
@@ -146,18 +264,30 @@ public class SoundManager implements IWatchDogListener
 
     public SoundBuffer get(Link link, boolean includeWaveform)
     {
+        if (link == null)
+        {
+            return null;
+        }
+
+        this.drainLoaded();
+
         if (!this.buffers.containsKey(link))
         {
-            return this.load(link, includeWaveform);
+            if (includeWaveform)
+            {
+                this.enqueueLoad(link);
+
+                return null;
+            }
+
+            return this.load(link, false);
         }
 
         SoundBuffer player = this.buffers.get(link);
 
         if (player != null && includeWaveform && player.getWaveform() == null)
         {
-            player.delete();
-
-            return this.load(link, true);
+            this.enqueueLoad(link);
         }
 
         return player;
@@ -273,6 +403,8 @@ public class SoundManager implements IWatchDogListener
 
     public void update()
     {
+        this.drainLoaded();
+
         long now = System.currentTimeMillis();
         Iterator<SoundPlayer> it = this.sounds.iterator();
 
@@ -292,6 +424,10 @@ public class SoundManager implements IWatchDogListener
 
     public void deleteSounds()
     {
+        this.generation.incrementAndGet();
+        this.loading.clear();
+        this.loadedQueue.clear();
+
         for (SoundPlayer player : this.sounds)
         {
             if (player != null)
@@ -315,13 +451,15 @@ public class SoundManager implements IWatchDogListener
 
     public void deleteSound(Link audio)
     {
+        this.loading.remove(audio);
+
         SoundBuffer buffer = this.buffers.remove(audio);
 
         if (buffer != null)
         {
             Iterator<SoundPlayer> it = this.sounds.iterator();
 
-            if (it.hasNext())
+            while (it.hasNext())
             {
                 SoundPlayer player = it.next();
 
@@ -353,6 +491,8 @@ public class SoundManager implements IWatchDogListener
         {
             return;
         }
+
+        this.loading.remove(link);
 
         if (this.buffers.containsKey(link))
         {
